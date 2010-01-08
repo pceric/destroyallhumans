@@ -462,8 +462,8 @@ CommandInput:
 #ELSE
 in var byte
 CommandInput:
-	in = 0
 	hserin 10, nomore, [in]
+	hserstat 2 ; clear in & out buffer
 	IdleBot = 0
 	if in = "o" then
 		gosub toggleStandby command
@@ -491,8 +491,7 @@ CommandInput:
 	elseif in = "d"
 		return CMD_TURN_RIGHT
 	endif
-	hserout ["K"]
-	hserstat 2 ; clear in & out buffer
+	;hserout ["K"]
 	nomore:
 	return 99
 #ENDIF
