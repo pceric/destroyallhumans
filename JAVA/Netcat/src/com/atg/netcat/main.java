@@ -15,8 +15,11 @@ import android.widget.TextView;
 public class main extends Activity {
     private TextView tv;
     private SerialPort sp = null;
+    private ServerSocket ss = null;
     private InputStream is;
     private OutputStream os;
+    private SendThread mSendThread;
+    private ReadThread mReadThread;
 
 	/** Called when the activity is first created. */
     @Override
@@ -35,6 +38,8 @@ public class main extends Activity {
 			tv.append(e1.getMessage());
 			e1.printStackTrace();
 		}
+		mSendThread = new SendThread();
+		mReadThread = new ReadThread();
     }
 
 	/* (non-Javadoc)
@@ -58,14 +63,12 @@ public class main extends Activity {
 		// TODO Auto-generated method stub
 		super.onResume();
     	try {
-        	ServerSocket ss = new ServerSocket(44444);
+        	ss = new ServerSocket(44444);
         	Socket s;
     		s = ss.accept();
     		is = s.getInputStream();
     		os = s.getOutputStream();
-            SendThread mSendThread = new SendThread();
             mSendThread.start();
-            ReadThread mReadThread = new ReadThread();
             mReadThread.start();
     	} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -74,7 +77,26 @@ public class main extends Activity {
 		}
 	}
 	
-    private class SendThread extends Thread {
+    /* (non-Javadoc)
+	 * @see android.app.Activity#onPause()
+	 */
+	@Override
+	protected void onPause() {
+		// TODO Auto-generated method stub
+		super.onPause();
+		try {
+			mSendThread.interrupt();
+			mReadThread.interrupt();
+			if (!ss.isClosed())
+				ss.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			tv.append(e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	private class SendThread extends Thread {
 		InputStream spis = sp.getInputStream();
     	byte[] buffer = new byte[1024];
     	@Override
@@ -85,11 +107,16 @@ public class main extends Activity {
 	    				os.write(buffer);
 	        	        //tv.append("Send: " + buffer.length);
                     }
+					sleep(20);
                 } catch (IOException e) {
                 		tv.append(e.getMessage());
                         e.printStackTrace();
                         return;
-                }
+                } catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+                	tv.append(e.getMessage());
+					e.printStackTrace();
+				}
             }
         }
     }
@@ -105,11 +132,16 @@ public class main extends Activity {
                 				spos.write(buffer);
                     	        //tv.append("Read: ");
                 			}
+        					sleep(20);
                         } catch (IOException e) {
                         		tv.append(e.getMessage());
                                 e.printStackTrace();
                                 return;
-                        }
+                        } catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+                        	tv.append(e.getMessage());
+							e.printStackTrace();
+						}
                 }
         }
     }
