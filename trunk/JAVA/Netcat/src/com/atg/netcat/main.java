@@ -98,7 +98,7 @@ public class main extends Activity {
 
 	private class SendThread extends Thread {
 		InputStream spis = sp.getInputStream();
-    	byte[] buffer = new byte[1024];
+    	byte[] buffer = new byte[2];
     	@Override
         public void run() {
             while(!isInterrupted()) {
@@ -123,7 +123,7 @@ public class main extends Activity {
 
     private class ReadThread extends Thread {
 		OutputStream spos = sp.getOutputStream();
-    	byte[] buffer = new byte[1024];
+    	byte[] buffer = new byte[2];
     	@Override
         public void run() {
                 while(!isInterrupted()) {
