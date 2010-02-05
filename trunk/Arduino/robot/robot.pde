@@ -34,14 +34,15 @@ const int leftankle = SSP1;
 const int turret = SSP7;
 const int ssmap[16] = {SSP1,SSP2,SSP3,SSP4,SSP5,SSP6,SSP7,SSP8,SSP9,SSP10,SSP11,SSP12,SSP13,SSP14,SSP15,SSP16};
 // SN754410 pins on Duem
-const int laserPin = 11;
-const int lampPin = 10;  // Don't use pins 5 or 6 if possible
-const int rgunPin = 12;
-const int lgunPin = 13;
+const int lampPin = 11;  // Don't use pins 5 or 6 if possible
+const int laserPin = 12;
+const int rgunPin = 14;
+const int lgunPin = 15;
 // Other devices on Duem
 const int pingPin = 4;
 // Misc constants
 const float STRIDE = 35;
+const float LEAN = 25;
 const int OFFSET[] = {getOffset(ssmap[0]), getOffset(ssmap[1]), getOffset(ssmap[2]), getOffset(ssmap[3]), getOffset(ssmap[4]), getOffset(ssmap[5]), 0};
 
 // Some global vars
@@ -51,6 +52,10 @@ int MoveSpeed = 100;
 
 void setup() {
   Serial.begin(9600);
+  analogWrite(lampPin, 0);
+  pinMode(laserPin, OUTPUT);
+  pinMode(rgunPin, OUTPUT);
+  pinMode(lgunPin, OUTPUT);
   for (int servo = 0; servo < 7; servo++) {
     servos.setbounds(ssmap[servo], 1000, 2000);  //Set the minimum and maximum pulse duration of the servo
     servos.setposition(ssmap[servo], 1500 + OFFSET[servo]);      //Set the initial position of the servo
@@ -60,8 +65,8 @@ void setup() {
 }
 
 void loop() {
-  float WalkAngle, StrideLengthLeft, StrideLengthRight;
-  int in;
+  float StrideLengthLeft, StrideLengthRight;
+  int in, ta;
   if (Serial.available() > 0) {
     // read the incoming byte:
     in = Serial.read();
@@ -70,7 +75,6 @@ void loop() {
     else if (in == 'p')
       doPing();
     else if (in == 'w' || in == 's') {
-      WalkAngle = 20.0;
       if (in == 'w') {
         StrideLengthLeft = -STRIDE;
         StrideLengthRight = -STRIDE;
@@ -79,11 +83,11 @@ void loop() {
         StrideLengthRight = STRIDE;
       }
       if (firstStep)
-        movement(WalkAngle, 0.0, 0.0, 0.0, 0.0, 0.0, MoveSpeed);
-      movement(WalkAngle, StrideLengthLeft, StrideLengthLeft, -WalkAngle, -StrideLengthRight, -StrideLengthRight, MoveSpeed);
-      movement(-WalkAngle, StrideLengthLeft, StrideLengthLeft, WalkAngle, -StrideLengthRight, -StrideLengthRight, MoveSpeed);
-      movement(-WalkAngle, -StrideLengthLeft, -StrideLengthLeft, WalkAngle, StrideLengthRight, StrideLengthRight, MoveSpeed);
-      movement(WalkAngle, -StrideLengthLeft, -StrideLengthLeft, -WalkAngle, StrideLengthRight, StrideLengthRight, MoveSpeed);
+        movement(0, 0.0, 0.0, -LEAN, 0.0, 0.0, MoveSpeed);
+      movement(LEAN, StrideLengthLeft, StrideLengthLeft, -LEAN, -StrideLengthRight, -StrideLengthRight, MoveSpeed);
+      movement(-LEAN, StrideLengthLeft, StrideLengthLeft, LEAN, -StrideLengthRight, -StrideLengthRight, MoveSpeed);
+      movement(-LEAN, -StrideLengthLeft, -StrideLengthLeft, LEAN, StrideLengthRight, StrideLengthRight, MoveSpeed);
+      movement(LEAN, -StrideLengthLeft, -StrideLengthLeft, -LEAN, StrideLengthRight, StrideLengthRight, MoveSpeed);
       firstStep = false;
     }
     else if (in == 'a') {
@@ -122,7 +126,11 @@ void loop() {
       toggleLamp();
     }
     else if (in == 't') {
-      //test();
+      ta = (Serial.read() - 48) * 1000;
+      ta += (Serial.read() - 48) * 100;
+      ta += (Serial.read() - 48) * 10;
+      ta += (Serial.read() - 48);
+      servos.setposition(turret, constrain(ta, 1250, 1750));
     }
     else if (in == 'z') {
       movement(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, MoveSpeed);
@@ -180,7 +188,7 @@ void toggleLamp() {
     analogWrite(lampPin, 0);
   } else {
     LampOn = true;
-    analogWrite(lampPin, 127);
+    analogWrite(lampPin, 190);
   }
 }
 
