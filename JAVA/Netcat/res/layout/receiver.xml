@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:orientation="vertical"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent">
+
+
+  <LinearLayout
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:layout_weight="1">
+    <EditText
+      android:id="@+id/ipaddress"
+      android:text="192.168.1.100"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"/>
+    <TextView
+      android:id="@+id/status"
+      android:text=""
+      android:textSize="8pt"
+      android:layout_width="fill_parent"
+      android:layout_height="fill_parent"
+    />
+    </LinearLayout>
+    <LinearLayout
+      xmlns:android="http://schemas.android.com/apk/res/android"
+      android:orientation="horizontal"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:layout_weight="1">
+      <ToggleButton
+        android:id="@+id/listen"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textOn="Stop Listening"
+        android:textOff="Start Listening"
+        android:onClick="listenButtonHandler"/>
+      <ToggleButton
+        android:id="@+id/broadcast"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textOn="Stop Broadcasting"
+        android:textOff="Start Broadcasting"
+        android:onClick="startBroadcasting"
+        />
+        <ToggleButton
+        android:id="@+id/videoQuality"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textOn="352x288 "
+        android:textOff="176x144 "
+        android:onClick="qualityButtonHandler"
+        />
+
+  </LinearLayout>
+
+</LinearLayout>
