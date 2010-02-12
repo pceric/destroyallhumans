@@ -42,13 +42,13 @@ const int lgunPin = 15;
 const int pingPin = 4;
 // Misc constants
 const float STRIDE = 35;
-const float LEAN = 25;
+const float LEAN = 15;
 const int OFFSET[] = {getOffset(ssmap[0]), getOffset(ssmap[1]), getOffset(ssmap[2]), getOffset(ssmap[3]), getOffset(ssmap[4]), getOffset(ssmap[5]), 0};
 
 // Some global vars
 ServoShield servos;
 boolean firstStep = true, LaserOn = false, LampOn = false;
-int MoveSpeed = 100;
+int MoveSpeed = 100, StrideOffset = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -78,48 +78,49 @@ void loop() {
       if (in == 'w') {
         StrideLengthLeft = -STRIDE;
         StrideLengthRight = -STRIDE;
+        if (StrideOffset < 0)
+          StrideLengthLeft += -StrideOffset;
+        else if (StrideOffset > 0)
+          StrideLengthRight += StrideOffset;
       } else {
         StrideLengthLeft = STRIDE;
         StrideLengthRight = STRIDE;
+        if (StrideOffset < 0)
+          StrideLengthLeft -= -StrideOffset;
+        else if (StrideOffset > 0)
+          StrideLengthRight -= StrideOffset;
       }
+      // Normal walk - too much top weight to work correctly
       if (firstStep)
-        movement(0, 0.0, 0.0, -LEAN, 0.0, 0.0, MoveSpeed);
-      movement(LEAN, StrideLengthLeft, StrideLengthLeft, -LEAN, -StrideLengthRight, -StrideLengthRight, MoveSpeed);
-      movement(-LEAN, StrideLengthLeft, StrideLengthLeft, LEAN, -StrideLengthRight, -StrideLengthRight, MoveSpeed);
-      movement(-LEAN, -StrideLengthLeft, -StrideLengthLeft, LEAN, StrideLengthRight, StrideLengthRight, MoveSpeed);
-      movement(LEAN, -StrideLengthLeft, -StrideLengthLeft, -LEAN, StrideLengthRight, StrideLengthRight, MoveSpeed);
+        movement(0.0, 0.0, 0.0, -LEAN, 0.0, 0.0, MoveSpeed);  // Lean right
+      movement(LEAN, StrideLengthRight, StrideLengthRight, -LEAN, -StrideLengthLeft, -StrideLengthLeft, MoveSpeed);  // Step left
+      movement(-LEAN, StrideLengthRight, StrideLengthRight, LEAN, -StrideLengthLeft, -StrideLengthLeft, MoveSpeed);  // Lean left
+      movement(-LEAN, -StrideLengthRight, -StrideLengthRight, LEAN, StrideLengthLeft, StrideLengthLeft, MoveSpeed);  // Step right
+      movement(LEAN, -StrideLengthRight, -StrideLengthRight, -LEAN, StrideLengthLeft, StrideLengthLeft, MoveSpeed);  // Lean right
       firstStep = false;
     }
     else if (in == 'a') {
-      movement(20.0,  0.0,  0.0,-14.0,  0.0,  0.0, MoveSpeed);
-      movement(20.0,-35.0,-35.0,-14.0, 35.0, 35.0, MoveSpeed);
-      movement(0.0,-35.0,-35.0,  0.0, 35.0, 35.0, MoveSpeed);
-      movement(0.0, 35.0, 35.0,  0.0,-35.0,-35.0, MoveSpeed);
-      movement(20.0, 35.0, 35.0,-14.0,-35.0,-35.0, MoveSpeed);
-      movement(20.0,  0.0,  0.0,-14.0,-35.0,-35.0, MoveSpeed);
-      movement(-18.0,  0.0,  0.0, 16.0,-35.0,-35.0, MoveSpeed);
-      movement(-18.0,  0.0,  0.0, 16.0,  0.0,  0.0, MoveSpeed);
-      movement(0.0,  0.0,  0.0,  0.0,  0.0,  0.0, MoveSpeed);
+      movement(0.0,-35.0,-40.0,  0.0, 35.0, 37.0, MoveSpeed + 100.0);
+      movement(0.0, 35.0, 37.0,  0.0,-35.0,-40.0, MoveSpeed + 100.0);
+      movement(-16.0, 35.0, 37.0, 20.0,-35.0,-40.0, MoveSpeed + 100.0);
+      movement(-16.0, 35.0, 37.0, 20.0,  0.0,  0.0, MoveSpeed + 100.0);
+      movement(20.0,  0.0,  0.0,-16.0,  0.0,  0.0, MoveSpeed + 100.0);
     }
     else if (in == 'd') {
-      movement(-14.0,  0.0,  0.0, 20.0,  0.0,  0.0, MoveSpeed);
-      movement(-14.0, 35.0, 35.0, 20.0,-35.0,-35.0, MoveSpeed); 
-      movement(0.0, 35.0, 35.0,  0.0,-35.0,-35.0, MoveSpeed);
-      movement(0.0,-35.0,-35.0,  0.0, 35.0, 35.0, MoveSpeed);
-      movement(-14.0,-35.0,-35.0, 20.0, 35.0, 35.0, MoveSpeed);
-      movement(-14.0,-35.0,-35.0, 20.0,  0.0,  0.0, MoveSpeed);
-      movement(16.0,-35.0,-35.0,-18.0,  0.0,  0.0, MoveSpeed);
-      movement(16.0,  0.0,  0.0,-18.0,  0.0,  0.0, MoveSpeed);
-      movement(0.0,  0.0,  0.0,  0.0,  0.0,  0.0, MoveSpeed);
+      movement(0.0, 35.0, 37.0,  0.0,-35.0,-40.0, MoveSpeed + 100.0);
+      movement(0.0,-35.0,-40.0,  0.0, 35.0, 37.0, MoveSpeed + 100.0);
+      movement(20.0,-35.0,-40.0,-14.0, 35.0, 37.0, MoveSpeed + 100.0);
+      movement(20.0,  0.0,  0.0,-14.0, 35.0, 37.0, MoveSpeed + 100.0);
+      movement(-14.0,  0.0,  0.0, 20.0,  0.0,  0.0, MoveSpeed + 100.0);
     }
     else if (in == 'q') {
       digitalWrite(lgunPin, HIGH);
-      delay(2000);
+      delay(2500);
       digitalWrite(lgunPin, LOW);
     }
     else if (in == 'e') {
       digitalWrite(rgunPin, HIGH);
-      delay(2000);
+      delay(2500);
       digitalWrite(rgunPin, LOW);
     }
     else if (in == 'm') {
@@ -130,18 +131,24 @@ void loop() {
       ta += (Serial.read() - 48) * 100;
       ta += (Serial.read() - 48) * 10;
       ta += (Serial.read() - 48);
-      servos.setposition(turret, constrain(ta, 1250, 1750));
+      servos.setposition(turret, constrain(ta, 1200, 1800));
     }
     else if (in == 'z') {
       movement(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, MoveSpeed);
     }
-    else if (in == '+') {
-      MoveSpeed -= 10;
+    else if (in == '+' || in == '-') {
+      if (in == '+')
+        MoveSpeed -= 10;
+      else
+        MoveSpeed += 10;
       Serial.println(MoveSpeed, DEC);
     }
-    else if (in == '-') {
-      MoveSpeed += 10;
-      Serial.println(MoveSpeed, DEC);
+    else if (in == '[' || in == ']') {
+      if (in == '[')
+        StrideOffset -= 1;
+      else
+        StrideOffset += 1;
+      Serial.println(StrideOffset, DEC);
     }
   } else {
     firstStep = true;
@@ -188,7 +195,7 @@ void toggleLamp() {
     analogWrite(lampPin, 0);
   } else {
     LampOn = true;
-    analogWrite(lampPin, 190);
+    analogWrite(lampPin, 170);
   }
 }
 
