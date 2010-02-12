@@ -22,7 +22,7 @@
 // address length was changed from long to int for performance reasons.
 // END android-note
 
-package com.atg.netcat;
+package org.sipdroid;
 
 import java.io.FileDescriptor;
 import java.io.IOException;

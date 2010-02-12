@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package com.atg.netcat;
+package org.sipdroid;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -27,6 +27,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketOptions;
 import java.net.UnknownHostException;
+
 
 
 
