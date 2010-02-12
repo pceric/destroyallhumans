@@ -10,12 +10,12 @@
 #define SSP7 3
 #define SSP8 7
 #define SSP9 8
-#define SSP10 10
+#define SSP10 12
 #define SSP11 9
-#define SSP12 11
-#define SSP13 12
-#define SSP14 13
-#define SSP15 14
+#define SSP12 13
+#define SSP13 10
+#define SSP14 14
+#define SSP15 11
 #define SSP16 15
 
 #endif
