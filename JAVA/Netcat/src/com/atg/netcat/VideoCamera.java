@@ -27,6 +27,10 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.util.ArrayList;
 
+import org.sipdroid.RtpPacket;
+import org.sipdroid.RtpSocket;
+import org.sipdroid.SipdroidSocket;
+
 
 //import org.sipdroid.sipua.R;
 

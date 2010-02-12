@@ -1,4 +1,4 @@
-package com.atg.netcat;
+package org.sipdroid;
 
 /*
  * Copyright (C) 2009 The Sipdroid Open Source Project

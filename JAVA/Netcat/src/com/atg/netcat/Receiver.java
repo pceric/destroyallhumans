@@ -12,10 +12,17 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.Enumeration;
 
+import com.atg.netcat.R;
+import com.atg.netcat.R.id;
+import com.atg.netcat.R.layout;
+
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -158,6 +165,27 @@ public class Receiver extends Activity implements Runnable
     tv.setText("");
   }
 
+  private SensorEventListener sensorEventListener = new SensorEventListener() {
+
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+    }
+
+    public void onSensorChanged(SensorEvent e) {
+            switch( e.sensor.getType() ) {
+            case Sensor.TYPE_ACCELEROMETER:
+                    synchronized (this) {
+                           // Log.i(TAG, "Accelerometer Sensor event: " + e.values.toString() );
+                    }
+            case Sensor.TYPE_ORIENTATION:
+                    synchronized (this) {
+                           // Log.i(TAG, "Orientation Sensor event: " + e.values.toString() );
+                    }
+            }
+    }
+
+};
+
+  
   public String getLocalIpAddress()
   {
     try
