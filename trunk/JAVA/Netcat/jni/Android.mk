@@ -18,9 +18,12 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-TARGET_PLATFORM := android-4
-LOCAL_MODULE    := serial_port
-LOCAL_SRC_FILES := SerialPort.c
-LOCAL_LDLIBS    := -llog
+#TARGET_PLATFORM := android-4
+#LOCAL_MODULE    := serial_port
+#LOCAL_SRC_FILES := SerialPort.c
+#LOCAL_LDLIBS    := -llog
+
+LOCAL_MODULE    := OSNetworkSystem
+LOCAL_SRC_FILES := OSNetworkSystem.cpp
 
 include $(BUILD_SHARED_LIBRARY)
