@@ -28,6 +28,9 @@ import java.net.SocketException;
 import java.net.SocketOptions;
 import java.net.UnknownHostException;
 
+import org.sipdroid.net.impl.OSNetworkSystem;
+import org.sipdroid.net.impl.PlainDatagramSocketImpl;
+
 
 
 
@@ -84,6 +87,9 @@ public class SipdroidSocket extends DatagramSocket {
 		        OSNetworkSystem.getOSNetworkSystem().oneTimeInitialization(true);
 		        SipdroidSocket.loaded = true;
 			} catch (Throwable e) {
+			  e.printStackTrace();
+			  
+			  
 			}
 	}
 }
