@@ -82,6 +82,8 @@ public class RtpSocket {
 		datagram.setLength(rtpp.packet_len);
 		datagram.setAddress(r_addr);
 		datagram.setPort(r_port);
+		if (!socket.isConnected())
+	          socket.connect(datagram.getAddress(),datagram.getPort());
 		socket.send(datagram);
 	}
 

@@ -374,6 +374,11 @@ public class PlainDatagramSocketImpl extends DatagramSocketImpl {
         isNativeConnected = true;
     }
 
+    public boolean isConnected()
+    {
+      return isNativeConnected;
+    }
+    
     @Override
     public void disconnect() {
         try {
