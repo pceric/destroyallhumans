@@ -18,7 +18,9 @@
 
 #include <avr/sleep.h>
 #include <EEPROM.h>
+#include <Messenger.h>
 #include <ServoShield.h>
+#include "Controller.h"
 #include "ServoShieldPins.h"
 
 // From ServoShield specs
@@ -46,9 +48,13 @@ const float LEAN = 15;
 const int OFFSET[] = {getOffset(ssmap[0]), getOffset(ssmap[1]), getOffset(ssmap[2]), getOffset(ssmap[3]), getOffset(ssmap[4]), getOffset(ssmap[5]), 0};
 
 // Some global vars
+Messenger msg;
 ServoShield servos;
 boolean firstStep = true, LaserOn = false, LampOn = false;
 int MoveSpeed = 100, StrideOffset = 0;
+
+Controller prev_joystick1;
+Controller joystick1;
 
 void setup() {
   Serial.begin(9600);
@@ -61,21 +67,57 @@ void setup() {
     servos.setposition(ssmap[servo], 1500 + OFFSET[servo]);      //Set the initial position of the servo
   }
   servos.start();                         //Start the servo shield
+  msg = Messenger();
+  msg.attach(msgReady);
   Serial.println("Ready");
 }
 
 void loop() {
+  if (Serial.available()) {
+    // read the incoming data
+    msg.process(Serial.read());
+  } else {
+    firstStep = true;
+    movement(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, MoveSpeed);
+    set_sleep_mode(SLEEP_MODE_IDLE);  // Allows serial port to wake up chip
+    sleep_enable();
+    sleep_mode();  // Sleep here until interrupt
+    sleep_disable();
+  }
+}
+
+void msgReady() {
   float StrideLengthLeft, StrideLengthRight;
-  int in, ta;
-  if (Serial.available() > 0) {
-    // read the incoming byte:
-    in = Serial.read();
-    if (in == 'l')
+  prev_joystick1 = joystick1;
+  if (msg.readChar() == 'C') {
+    joystick1.timestamp = msg.readLong();
+    joystick1.X = msg.readChar();
+    joystick1.C = msg.readChar();
+    joystick1.T = msg.readChar();
+    joystick1.S = msg.readChar();
+    joystick1.L1 = msg.readChar();
+    joystick1.L2 = msg.readChar();
+    joystick1.L3 = msg.readChar();
+    joystick1.R1 = msg.readChar();
+    joystick1.R2 = msg.readChar();
+    joystick1.R3 = msg.readChar();
+    joystick1.Select = msg.readChar();
+    joystick1.Start = msg.readChar();
+    joystick1.Up = msg.readChar();
+    joystick1.Down = msg.readChar();
+    joystick1.Left = msg.readChar();
+    joystick1.Right = msg.readChar();
+    joystick1.LeftX = msg.readChar();
+    joystick1.LeftY = msg.readChar();
+    joystick1.RightX = msg.readChar();
+    joystick1.RightY = msg.readChar();
+
+    if (joystick1.Select != prev_joystick1.Select)
       toggleLaser();
-    else if (in == 'p')
+    if (joystick1.C != prev_joystick1.C)
       doPing();
-    else if (in == 'w' || in == 's') {
-      if (in == 'w') {
+    if (joystick1.LeftY > DEAD_ZONE || joystick1.LeftY < -DEAD_ZONE) {
+      if (joystick1.LeftY > DEAD_ZONE) {
         StrideLengthLeft = -STRIDE;
         StrideLengthRight = -STRIDE;
         if (StrideOffset < 0)
@@ -99,64 +141,54 @@ void loop() {
       movement(LEAN, -StrideLengthRight, -StrideLengthRight, -LEAN, StrideLengthLeft, StrideLengthLeft, MoveSpeed);  // Lean right
       firstStep = false;
     }
-    else if (in == 'a') {
+    if (joystick1.LeftX > DEAD_ZONE) {
       movement(0.0,-35.0,-40.0,  0.0, 35.0, 37.0, MoveSpeed + 100.0);
       movement(0.0, 35.0, 37.0,  0.0,-35.0,-40.0, MoveSpeed + 100.0);
       movement(-16.0, 35.0, 37.0, 20.0,-35.0,-40.0, MoveSpeed + 100.0);
       movement(-16.0, 35.0, 37.0, 20.0,  0.0,  0.0, MoveSpeed + 100.0);
       movement(20.0,  0.0,  0.0,-16.0,  0.0,  0.0, MoveSpeed + 100.0);
     }
-    else if (in == 'd') {
+    else if (joystick1.LeftX < -DEAD_ZONE) {
       movement(0.0, 35.0, 37.0,  0.0,-35.0,-40.0, MoveSpeed + 100.0);
       movement(0.0,-35.0,-40.0,  0.0, 35.0, 37.0, MoveSpeed + 100.0);
       movement(20.0,-35.0,-40.0,-14.0, 35.0, 37.0, MoveSpeed + 100.0);
       movement(20.0,  0.0,  0.0,-14.0, 35.0, 37.0, MoveSpeed + 100.0);
       movement(-14.0,  0.0,  0.0, 20.0,  0.0,  0.0, MoveSpeed + 100.0);
     }
-    else if (in == 'q') {
+    if (joystick1.L1) {
       digitalWrite(lgunPin, HIGH);
       delay(2500);
       digitalWrite(lgunPin, LOW);
     }
-    else if (in == 'e') {
+    if (joystick1.R1) {
       digitalWrite(rgunPin, HIGH);
       delay(2500);
       digitalWrite(rgunPin, LOW);
     }
-    else if (in == 'm') {
+    if (joystick1.S != prev_joystick1.S) {
       toggleLamp();
     }
-    else if (in == 't') {
-      ta = (Serial.read() - 48) * 1000;
-      ta += (Serial.read() - 48) * 100;
-      ta += (Serial.read() - 48) * 10;
-      ta += (Serial.read() - 48);
+    if (joystick1.RightX > DEAD_ZONE || joystick1.RightX < -DEAD_ZONE) {
+      int ta = (joystick1.RightX * 2) + 1500;
       servos.setposition(turret, constrain(ta, 1200, 1800));
     }
-    else if (in == 'z') {
+    if (joystick1.X) {
       movement(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, MoveSpeed);
     }
-    else if (in == '+' || in == '-') {
-      if (in == '+')
+    if (joystick1.Up || joystick1.Down) {
+      if (joystick1.Up)
         MoveSpeed -= 10;
       else
         MoveSpeed += 10;
       Serial.println(MoveSpeed, DEC);
     }
-    else if (in == '[' || in == ']') {
-      if (in == '[')
+    if (joystick1.Left || joystick1.Right) {
+      if (joystick1.Left)
         StrideOffset -= 1;
       else
         StrideOffset += 1;
       Serial.println(StrideOffset, DEC);
     }
-  } else {
-    firstStep = true;
-    movement(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, MoveSpeed);
-    set_sleep_mode(SLEEP_MODE_IDLE);  // Allows serial port to wake up chip
-    sleep_enable();
-    sleep_mode();  // Sleep here until interrupt
-    sleep_disable();
   }
 }
 
