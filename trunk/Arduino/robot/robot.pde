@@ -112,14 +112,11 @@ void msgReady() {
     joystick1.RightX = msg.readChar();
     joystick1.RightY = msg.readChar();
 
-    if (joystick1.Select != prev_joystick1.Select)
-      toggleLaser();
-    if (joystick1.C != prev_joystick1.C)
-      doPing();
+    // Movement
     if (joystick1.LeftY > DEAD_ZONE || joystick1.LeftY < -DEAD_ZONE) {
       if (joystick1.LeftY > DEAD_ZONE) {
-        StrideLengthLeft = -STRIDE;
-        StrideLengthRight = -STRIDE;
+        StrideLengthLeft = -(joystick1.LeftY / 3); // -STRIDE;
+        StrideLengthRight = -(joystick1.LeftY / 3); // -STRIDE;
         if (StrideOffset < 0)
           StrideLengthLeft += -StrideOffset;
         else if (StrideOffset > 0)
@@ -141,14 +138,14 @@ void msgReady() {
       movement(LEAN, -StrideLengthRight, -StrideLengthRight, -LEAN, StrideLengthLeft, StrideLengthLeft, MoveSpeed);  // Lean right
       firstStep = false;
     }
-    if (joystick1.LeftX > DEAD_ZONE) {
+    if (joystick1.LeftX > (DEAD_ZONE + 100)) {
       movement(0.0,-35.0,-40.0,  0.0, 35.0, 37.0, MoveSpeed + 100.0);
       movement(0.0, 35.0, 37.0,  0.0,-35.0,-40.0, MoveSpeed + 100.0);
       movement(-16.0, 35.0, 37.0, 20.0,-35.0,-40.0, MoveSpeed + 100.0);
       movement(-16.0, 35.0, 37.0, 20.0,  0.0,  0.0, MoveSpeed + 100.0);
       movement(20.0,  0.0,  0.0,-16.0,  0.0,  0.0, MoveSpeed + 100.0);
     }
-    else if (joystick1.LeftX < -DEAD_ZONE) {
+    else if (joystick1.LeftX < (-DEAD_ZONE - 100)) {
       movement(0.0, 35.0, 37.0,  0.0,-35.0,-40.0, MoveSpeed + 100.0);
       movement(0.0,-35.0,-40.0,  0.0, 35.0, 37.0, MoveSpeed + 100.0);
       movement(20.0,-35.0,-40.0,-14.0, 35.0, 37.0, MoveSpeed + 100.0);
@@ -165,16 +162,25 @@ void msgReady() {
       delay(2500);
       digitalWrite(rgunPin, LOW);
     }
-    if (joystick1.S != prev_joystick1.S) {
+    if (joystick1.Select != prev_joystick1.Select)
+      toggleLaser();
+    if (joystick1.C != prev_joystick1.C)
+      doPing();
+    if (joystick1.S != prev_joystick1.S)
       toggleLamp();
-    }
+    if (joystick1.X)
+      movement(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, MoveSpeed);
+    // Turret control
     if (joystick1.RightX > DEAD_ZONE || joystick1.RightX < -DEAD_ZONE) {
       int ta = (joystick1.RightX * 2) + 1500;
       servos.setposition(turret, constrain(ta, 1200, 1800));
     }
-    if (joystick1.X) {
-      movement(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, MoveSpeed);
+    if (joystick1.RightY > DEAD_ZONE || joystick1.RightY < -DEAD_ZONE) {
+      int hips = (joystick1.RightX * 2) + 1500;
+      servos.setposition(righthip, hips);
+      servos.setposition(lefthip, hips);
     }
+    // Adjustments
     if (joystick1.Up || joystick1.Down) {
       if (joystick1.Up)
         MoveSpeed -= 10;
