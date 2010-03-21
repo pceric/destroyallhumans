@@ -1,14 +1,7 @@
 package com.atg.netcat;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.net.SocketException;
 import java.util.Enumeration;
 
@@ -20,13 +13,9 @@ import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.serialport.SerialPort;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -34,14 +23,14 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
+import android.app.ProgressDialog;
+import android.bluetooth.BluetoothAdapter;
 
-public class Receiver extends Activity implements Runnable
+public class Receiver extends Activity implements OrientationListener
 {
   private TextView          tv;
 
-  private SerialPort        sp            = null;
-
-  private Integer           listenPort    = 5555;
+  public static Integer     controlPort   = 5555;
 
   public static Integer     videoPort     = 4444;
 
@@ -53,37 +42,32 @@ public class Receiver extends Activity implements Runnable
 
   // private ReadThread mReadThread;
 
-  Thread                    thread        = null;
+  private IPCommThread      ipComThread   = null;
 
   private EditText          edittext;
 
   private ToggleButton      listenbutton;
 
   private ToggleButton      broadcastbutton;
-  
+
   private ToggleButton      qualityButton;
 
   protected String          tostText      = "";
 
   protected String          logText       = "";
 
-  byte[]                    buffer        = new byte[256];
-
-  ServerSocket              ss            = null;
-
-  InputStream               is            = null;
-
-  OutputStream              os            = null;
-
-  Socket                    s             = null;
-
   public static Boolean     highQuality   = false;
-
-  public static Context     mContext;
 
   public static VideoCamera listener_video;
 
   boolean                   stopListening = false;
+
+  private static Context    CONTEXT;
+
+  // private Handler handler;
+  private BTCommThread      bTcomThread;
+
+  private ProgressDialog    dialog;
 
   /** Called when the activity is first created. */
   @Override
@@ -91,7 +75,7 @@ public class Receiver extends Activity implements Runnable
   {
     super.onCreate(savedInstanceState);
 
-    mContext = Receiver.this;
+    CONTEXT = Receiver.this;
 
     setContentView(R.layout.receiver);
     tv = (TextView) findViewById(R.id.status);
@@ -104,88 +88,125 @@ public class Receiver extends Activity implements Runnable
     broadcastbutton = (ToggleButton) findViewById(R.id.broadcast);
     qualityButton = (ToggleButton) findViewById(R.id.videoQuality);
 
-    
   }
 
-  public void qualityButtonHandler(View v)
+  @Override
+  public void onStart()
   {
-    highQuality = qualityButton.isChecked();
+    super.onStart();
+    startListening();
   }
+  
 
-  public void listenButtonHandler(View v)
+  @Override
+  public void onStop()
   {
-    // Perform action on clicks
-    if (listenbutton.isChecked())
-    {
-      startListening();
-    }
-    else
-    {
-      stopListening();
-    }
+    super.onStart();
+    stopListening();
+  }
+
+
+  
+  @Override
+  protected void onPause()
+  {
+    // TODO Auto-generated method stub
+
+    super.onPause();
+    //stopListening();
 
   }
+
 
   private void startListening()
   {
+    
+    String msg = "Listening on port " + controlPort + " for control server";
 
-    thread = new Thread(this);
-    thread.start();
+    dialog = ProgressDialog.show(this, "Connecting", msg);
 
-  }
+    ipComThread = new IPCommThread(controlPort, dialog, handler);
+    ipComThread.start();
 
-  public void startBroadcasting(View v)
-  {
+    // dialog = ProgressDialog.show(this, "Connecting",
+    // "Searching for a Bluetooth serial port...");
+    // bTcomThread = new BTCommThread(BluetoothAdapter.getDefaultAdapter(),
+    // dialog, handler);
+    // bTcomThread.start();
 
-    try
+    if (OrientationManager.isSupported())
     {
-      Intent intent = new Intent(mContext, VideoCamera.class);
-      startActivity(intent);
-    }
-    catch (ActivityNotFoundException e)
-    {
+      OrientationManager.startListening(this);
     }
 
   }
 
   private void stopListening()
   {
-    Toast.makeText(Receiver.this, "Stopping Listener", Toast.LENGTH_SHORT).show();
-
-    stopListening = true;
-
-    if (sp != null)
+    
+    if (OrientationManager.isListening())
     {
-      sp.close();
-      sp = null;
+      OrientationManager.stopListening();
     }
+    
 
-    // thread.stop();
+    if (dialog != null && dialog.isShowing())
+      dialog.dismiss();
 
-    tv.setText("");
+    if (ipComThread != null)
+      ipComThread.cancel();
+    ipComThread = null;
+
+    if (bTcomThread != null)
+      bTcomThread.cancel();
+    bTcomThread = null;
   }
 
-  private SensorEventListener sensorEventListener = new SensorEventListener() {
 
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+  public void onOrientationChanged(float azimuth, float pitch, float roll)
+  {
+    
+    String msg = "Or " + String.valueOf(azimuth) + " " + String.valueOf(pitch) + " " + String.valueOf(roll) + " \n";
+
+    if (ipComThread != null  && ipComThread.isConnected())
+    {
+      ipComThread.write(msg.getBytes());
     }
 
-    public void onSensorChanged(SensorEvent e) {
-            switch( e.sensor.getType() ) {
-            case Sensor.TYPE_ACCELEROMETER:
-                    synchronized (this) {
-                           // Log.i(TAG, "Accelerometer Sensor event: " + e.values.toString() );
-                    }
-            case Sensor.TYPE_ORIENTATION:
-                    synchronized (this) {
-                           // Log.i(TAG, "Orientation Sensor event: " + e.values.toString() );
-                    }
-            }
-    }
+  }
 
-};
+ 
 
-  
+  private Handler handler = new Handler()
+                          {
+
+                            @Override
+                            public void handleMessage(Message msg)
+                            {
+
+                              if (logText.length() > 0)
+                              {
+                                tv.append(logText);
+                                logText = "";
+                              }
+
+                              if (tostText.length() > 0)
+                              {
+                                Toast.makeText(Receiver.this, tostText, Toast.LENGTH_SHORT).show();
+                                tostText = "";
+                              }
+
+                              // if (bTcomThread != null)
+                              // bTcomThread.write(msg.toString());
+
+                            }
+                          };
+
+  public static Context getContext()
+  {
+    return CONTEXT;
+  }
+
   public String getLocalIpAddress()
   {
     try
@@ -209,163 +230,63 @@ public class Receiver extends Activity implements Runnable
     }
     return null;
   }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see android.app.Activity#onDestroy()
-   */
-  @Override
-  protected void onDestroy()
+  
+  public void onBottomUp()
   {
-    // TODO Auto-generated method stub
-    super.onDestroy();
-    stopListening();
+   // Toast.makeText(this, "Bottom UP", 1000).show();
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see android.app.Activity#onPause()
-   */
-  @Override
-  protected void onPause()
+  public void onLeftUp()
   {
-    // TODO Auto-generated method stub
-
-    super.onPause();
-    stopListening();
+  //  Toast.makeText(this, "Left UP", 1000).show();
   }
 
-  private Handler handler = new Handler()
-                          {
-
-                            @Override
-                            public void handleMessage(Message msg)
-                            {
-
-                              if (logText.length() > 0)
-                              {
-                                tv.append(logText);
-                                logText = "";
-                              }
-
-                              if (tostText.length() > 0)
-                              {
-                                Toast.makeText(Receiver.this, tostText, Toast.LENGTH_SHORT).show();
-                                tostText = "";
-                              }
-
-                            }
-                          };
-
-  public void run()
+  public void onRightUp()
   {
-    int readlen = 0;
+///    Toast.makeText(this, "Right UP", 1000).show();
+  }
 
-    while (!stopListening)
+  public void onTopUp()
+  {
+   /// Toast.makeText(this, "Top UP", 1000).show();
+  }
+
+  
+  public void qualityButtonHandler(View v)
+  {
+    highQuality = qualityButton.isChecked();
+  }
+
+  public void listenButtonHandler(View v)
+  {
+    // Perform action on clicks
+    /*
+    if (listenbutton.isChecked())
     {
-
-      if (ss == null)
-      {
-        try
-        {
-          ss = new ServerSocket(listenPort);
-          logText += "Listening on port " + listenPort + " for Connections from " + edittext.getText() + "\n";
-        }
-        catch (IOException e)
-        {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
-      }
-      else if (s == null)
-      {
-        try
-        {
-          tostText = "Connecting";
-          logText += "Connecting...\n";
-          handler.sendEmptyMessage(0);
-          s = ss.accept();
-        }
-        catch (IOException e)
-        {
-          // tv.appendi"Socket: " + e.getMessage());
-          // e.printStackTrace();
-        }
-
-      }
-      else if (is == null)
-      {
-        try
-        {
-
-          is = new DataInputStream(s.getInputStream());
-          clientAddress = s.getInetAddress();
-          tostText = "Connected";
-          logText += "Connected!\n";
-        }
-        catch (IOException e)
-        {
-          // tv.appendi"Socket: " + e.getMessage());
-          // e.printStackTrace();
-        }
-
-      }
-      else
-      {
-        try
-        {
-          if (ss.isClosed())
-          {
-            is = null;
-            s = null;
-            tostText = "Disconnected";
-            logText += "Disconnected!\n";
-          }
-          else
-          {
-            readlen = is.read(buffer, 0, 100);
-            if (readlen > 0)
-            {
-              // spos.write(buffer);
-              logText += new String(buffer, 0, readlen - 1);
-              ;
-            }
-          }
-
-        }
-        catch (IOException e)
-        {
-          // tv.append(e.getMessage());
-          return;
-        }
-      }
-      try
-      {
-        handler.sendEmptyMessage(0);
-        Thread.sleep(sleepTime);
-      }
-      catch (InterruptedException e)
-      {
-
-        // tv.append(e.getMessage());
-        // e.printStackTrace();
-      }
+      startListening();
     }
+    else
+    {
+      stopListening();
+    }
+    */
 
+  }
+
+  public void startBroadcasting(View v)
+  {
+
+    /*
+    
     try
     {
-      ss.close();
+      // Intent intent = new Intent(CONTEXT, VideoCamera.class);
+      // startActivity(intent);
     }
-    catch (IOException e1)
+    catch (ActivityNotFoundException e)
     {
     }
-    s = null;
-    is = null;
-    os = null;
-    ss = null;
-    stopListening = false;
+    */
   }
-
+  
 }
