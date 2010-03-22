@@ -55,15 +55,15 @@ class IPCommThread extends Thread
 
   public static InetAddress clientAddress;
 
-  private Handler           handler;
-
   private ProgressDialog    dialog;
+  
+  RobotState state ;
 
-  public IPCommThread(Integer port,  ProgressDialog dialog, Handler handler)
+  public IPCommThread(Integer port,  ProgressDialog dialog,   RobotState state )
   {
-    this.handler = handler;
     this.dialog = dialog;
     this.listenPort = port;
+    this.state = state;
   }
 
   public void run()
@@ -94,7 +94,7 @@ class IPCommThread extends Thread
         {
           //tostText = "Connecting";
           //logText += "Connecting...\n";
-          handler.sendEmptyMessage(0);
+          //handler.sendEmptyMessage(0);
           socket = serverSocket.accept();
         }
         catch (IOException e)
@@ -140,9 +140,7 @@ class IPCommThread extends Thread
             readlen = iStream.read(buffer, 0, 100);
             if (readlen > 0)
             {
-              // spos.write(buffer);
-              logText += new String(buffer, 0, readlen - 1);
-              ;
+              state.onIpDataRecive( new String(buffer, 0, readlen - 1));           
             }
           }
 
@@ -155,7 +153,6 @@ class IPCommThread extends Thread
       }
       try
       {
-        handler.sendEmptyMessage(0);
         Thread.sleep(sleepTime);
       }
       catch (InterruptedException e)
