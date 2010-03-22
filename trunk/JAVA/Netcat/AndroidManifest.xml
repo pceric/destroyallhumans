@@ -20,16 +20,8 @@
           android:name="android.intent.category.LAUNCHER"/>
       </intent-filter>
     </activity>
-    <activity
-      android:name=".VideoCamera"
-      android:label="VideoBroadcaster"
-      android:excludeFromRecents="true"
-      android:taskAffinity=""
-      android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
-      android:screenOrientation="landscape"
-      android:clearTaskOnLaunch="true"
-      android:configChanges="orientation|keyboardHidden">
-    </activity>
+    
+    
 
   </application>
   <uses-sdk

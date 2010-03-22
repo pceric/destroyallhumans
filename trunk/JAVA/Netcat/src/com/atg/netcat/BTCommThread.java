@@ -34,14 +34,15 @@ class BTCommThread extends Thread {
     private BluetoothSocket socket;
     private InputStream istream;
     private OutputStream ostream;
-    private Handler handler;
     private ProgressDialog dialog;
     private BluetoothAdapter adapter;
+    
+    RobotState state ;
 
-    public BTCommThread(BluetoothAdapter adapter, ProgressDialog dialog, Handler handler) {
-        this.handler = handler;
+    public BTCommThread(BluetoothAdapter adapter, ProgressDialog dialog,  RobotState state ) {
         this.dialog = dialog;
         this.adapter = adapter;
+        this.state =   state;
     }
 
     public void run() {
@@ -103,20 +104,15 @@ class BTCommThread extends Thread {
                 e.printStackTrace();
               }
                 // Read from the InputStream
-              /*
+              
                 bytes = istream.read(buffer);
-                sb.append(new String(buffer, 0, bytes));
-                while ((idx = sb.indexOf("\r\n\r\n")) > -1) {
-                    message = sb.substring(0, idx);
-                    sb.replace(0, idx+4, "");
-                    hm = new HashMap<String, String>();
-                    for (String line : message.split("\n")) {
-                        chunks = line.trim().split("=", 2);
-                        if (chunks.length != 2) continue;
-                        hm.put(chunks[0], chunks[1]);
-                    }
-                    handler.obtainMessage(0x2a, hm).sendToTarget();
-                    */
+               
+                if(bytes > 0)
+                {
+                state.onBtDataRecive(new String(buffer, 0, bytes));
+                }
+               
+               
                 //}
             } catch (IOException e) {
                 break;
