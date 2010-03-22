@@ -145,7 +145,9 @@ public class CameraPreviewHandler implements PreviewCallback {
 			//Das Format ist semi planar, Erklärung:
 			//semi-planar YCbCr 4:2:2 : two arrays, one with all Ys, one with Cb and Cr. 
 			//Quelle: http://www.celinuxforum.org/CelfPubWiki/AudioVideoGraphicsSpec_R2
-			throw new Exception(res.getString(R.string.error_unkown_pixel_format));
+			//throw new Exception(res.getString(R.string.error_unkown_pixel_format));
+			throw new Exception("R.string.error_unkown_pixel_format");
+			
 		}			
 		//get width/height of the camera
 		Size previewSize = camParams.getPreviewSize();
@@ -185,7 +187,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 		markerInfo.detectMarkers(data);
 	}
 	
-	protected void setMode(int pMode) {
+	public void setMode(int pMode) {
 		synchronized (modeLock) {
 			this.mode = pMode;
 			switch(mode) {
