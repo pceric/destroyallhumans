@@ -16,10 +16,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+import java.awt.Toolkit;
+import java.awt.MediaTracker;
+
 import processing.opengl.*;
 import processing.net.*;
 import procontroll.*;
-//import java.io.*;
 import processing.serial.*;
 
 // The serial port
@@ -101,7 +103,7 @@ void draw(){
   vertex(x, y + android.height, x, y + android.height);
   translate(width, 0);
   rotate(HALF_PI);
-  scale(1.70);
+  scale(1.0);
   endShape();
 
   long time = System.nanoTime() / 1000;
