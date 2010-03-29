@@ -1,8 +1,32 @@
-import procontroll.*;
-Client myClient; 
+/*
+    Robot control console.
+    Copyright (C) 2010 Darrell Taylor & Eric Hokanson
 
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+import java.awt.Toolkit;
+import java.awt.MediaTracker;
+
+import processing.opengl.*;
+import processing.net.*;
+import procontroll.*;
+import processing.serial.*;
 
 // Net client
+Client myClient; 
+
 Server vidServer;
 
 ControllIO controll;
@@ -137,6 +161,28 @@ void draw(){
  
 }
 
+
+// function based on the processing library's new PImage function
+// from http://processing.org/discourse/yabb2/YaBB.pl?num=1192330628
+PImage loadPImageFromBytes(byte[] b,PApplet p) {
+  Image img = Toolkit.getDefaultToolkit().createImage(b);
+  MediaTracker t=new MediaTracker(p);
+  t.addImage(img,0);
+  try{
+    t.waitForAll();
+  }
+  catch(Exception e){
+    println(e);
+  }
+  return new PImage(img);
+}
+
+
+// ServerEvent message is generated when a new client connects 
+// to an existing server.
+void serverEvent(Server someServer, Client someClient) {
+  println("We have a new client: " + someClient.ip());
+}
 
 
 // This function is called when a client disconnects.
