@@ -48,7 +48,7 @@ public class RobotStateHandler implements OrientationListener
     
     uiHandler = h;
 
-    state = RobotState.getInstance();
+    state = new RobotState();
     
     state.localIpAddress = getLocalIpAddress();
 
