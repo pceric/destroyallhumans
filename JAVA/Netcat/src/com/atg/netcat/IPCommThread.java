@@ -140,7 +140,7 @@ class IPCommThread extends Thread
             readlen = iStream.read(buffer, 0, 100);
             if (readlen > 0)
             {
-              state.onIpDataRecive( new String(buffer, 0, readlen - 1));           
+              //state.onIpDataRecive( new String(buffer, 0, readlen - 1));           
             }
           }
 

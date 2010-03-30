@@ -4,5 +4,9 @@
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="src" path="jni"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
+	<classpathentry kind="lib" path="libs/kryo-1.0.jar"/>
+	<classpathentry kind="lib" path="libs/kryonet-1.0.jar"/>
+	<classpathentry kind="lib" path="libs/asm-3.2.jar"/>
+	<classpathentry kind="lib" path="libs/minlog-1.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

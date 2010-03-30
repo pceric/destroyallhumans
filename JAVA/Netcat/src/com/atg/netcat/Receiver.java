@@ -1,5 +1,6 @@
 package com.atg.netcat;
 
+import java.io.IOException;
 import java.net.InetAddress;
 
 import android.app.Activity;
@@ -20,9 +21,6 @@ import android.view.SurfaceHolder;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.SurfaceHolder.Callback;
-import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.ToggleButton;
 import edu.dhbw.andopenglcam.CameraHolder;
 import edu.dhbw.andopenglcam.CameraPreviewHandler;
 import edu.dhbw.andopenglcam.MarkerInfo;
@@ -39,8 +37,6 @@ public class Receiver extends Activity implements Callback
 
   private int               sleepTime     = 200;
 
-  private IPCommThread      ipComThread   = null;
-
   protected String          tostText      = "";
 
   protected String          logText       = "";
@@ -49,17 +45,12 @@ public class Receiver extends Activity implements Callback
 
   boolean                   stopListening = false;
 
-  RobotState                state;
+  RobotStateHandler                state;
 
   private static Context    CONTEXT;
 
   // private Handler handler;
-  private BTCommThread      bTcomThread;
 
-  private ProgressDialog    btDialog;
-
-  private ProgressDialog    ipDialog;
-  
   private GLSurfaceView glSurfaceView;
   private Camera camera;
   private OpenGLCamRenderer renderer;
@@ -90,7 +81,15 @@ public class Receiver extends Activity implements Callback
     setContentView(glSurfaceView);   
     
     CONTEXT = Receiver.this;
-    state = new RobotState(handler);
+    try
+    {
+      state = new RobotStateHandler(handler);
+    }
+    catch (IOException e)
+    {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
     
     
 
@@ -102,7 +101,7 @@ public class Receiver extends Activity implements Callback
     @Override
     public void handleMessage(Message msg)
     {
-      state.flush(ipComThread, bTcomThread);
+      //state.flush(ipComThread, bTcomThread);
     }
 
   };
@@ -117,7 +116,7 @@ public class Receiver extends Activity implements Callback
   @Override
   public void onStop()
   {
-    super.onStart();
+    super.onStop();
     stopListening();
   }
 
@@ -137,15 +136,12 @@ public class Receiver extends Activity implements Callback
 
     String msg = "Listening on port " + controlPort + " for control server";
 
-    ipDialog = ProgressDialog.show(this, "Current IP:" + state.getLocalIpAddress(), msg);
+    ProgressDialog ipDialog = ProgressDialog.show(this, "Current IP:" + state.getLocalIpAddress(), msg);
 
-    ipComThread = new IPCommThread(controlPort, ipDialog, state);
-    ipComThread.start();
+    ProgressDialog btDialog = ProgressDialog.show(this, "Connecting", "Searching for a Bluetooth serial port...");
 
-    btDialog = ProgressDialog.show(this, "Connecting", "Searching for a Bluetooth serial port...");
-    bTcomThread = new BTCommThread(BluetoothAdapter.getDefaultAdapter(), btDialog, state);
-    bTcomThread.start();
-
+    state.startListening(ipDialog, btDialog);
+    
     if (OrientationManager.isSupported())
     {
       OrientationManager.startListening(state);
@@ -161,19 +157,7 @@ public class Receiver extends Activity implements Callback
       OrientationManager.stopListening();
     }
 
-    if (ipDialog != null && ipDialog.isShowing())
-      ipDialog.dismiss();
-
-    if (ipComThread != null)
-      ipComThread.cancel();
-    ipComThread = null;
-
-    if (btDialog != null && btDialog.isShowing())
-      btDialog.dismiss();
-
-    if (bTcomThread != null)
-      bTcomThread.cancel();
-    bTcomThread = null;
+    state.stopListening();
   }
 
 

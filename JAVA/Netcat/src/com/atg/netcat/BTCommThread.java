@@ -37,12 +37,12 @@ class BTCommThread extends Thread {
     private ProgressDialog dialog;
     private BluetoothAdapter adapter;
     
-    RobotState state ;
+    RobotStateHandler state ;
 
-    public BTCommThread(BluetoothAdapter adapter, ProgressDialog dialog,  RobotState state ) {
+    public BTCommThread(BluetoothAdapter adapter, ProgressDialog dialog,  RobotStateHandler state2 ) {
         this.dialog = dialog;
         this.adapter = adapter;
-        this.state =   state;
+        this.state =   state2;
     }
 
     public void run() {
@@ -85,15 +85,11 @@ class BTCommThread extends Thread {
         StringBuffer sb = new StringBuffer();
         byte[] buffer = new byte[1024];  // buffer store for the stream
         int bytes; // bytes returned from read()
-        String message;
-        int idx;
-        HashMap<String, String> hm;
-        String[] chunks;
         
         while (true) {
             try {
-              String test = "test\n";
-              ostream.write(test.getBytes());
+              //String test = "test\n";
+             /// ostream.write(test.getBytes());
               try
               {
                 sleep(1100);
