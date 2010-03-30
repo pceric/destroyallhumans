@@ -20,17 +20,4 @@ public class RobotState
     public float phoneBatteryVoltage = (float) 0.0;
     
     
-    static private RobotState instance;
-
-    public static RobotState getInstance()
-    {
-      if (instance == null)
-      {
-        instance = new RobotState();
-        return instance;
-      }
-      else
-        return instance;
-    }   
-    
 }
