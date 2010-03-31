@@ -117,47 +117,58 @@ public class Receiver extends Activity implements Callback
   public void onStop()
   {
     super.onStop();
+    
+    mPausing = true;
+    this.glSurfaceView.onPause();
     stopListening();
   }
 
+  
+  /*
   @Override
   protected void onPause()
   {
     // TODO Auto-generated method stub
-    mPausing = true;
-    this.glSurfaceView.onPause();
-    super.onPause();
-    // stopListening();
+     super.onPause();
 
   }
+  
+  */
 
   private void startListening()
   {
-
-    String msg = "Listening on port " + controlPort + " for control server";
-
-    ProgressDialog ipDialog = ProgressDialog.show(this, "Current IP:" + state.getLocalIpAddress(), msg);
-
-    ProgressDialog btDialog = ProgressDialog.show(this, "Connecting", "Searching for a Bluetooth serial port...");
-
-    state.startListening(ipDialog, btDialog);
+  
     
-    if (OrientationManager.isSupported())
+    if (! state.listening)
     {
-      OrientationManager.startListening(state);
+      String msg = "Listening on port " + controlPort + " for control server";
+  
+      ProgressDialog ipDialog = null; //ProgressDialog.show(this, "Current IP:" + state.getLocalIpAddress(), msg);
+  
+      ProgressDialog btDialog = ProgressDialog.show(CONTEXT, "Connecting", "Searching for a Bluetooth serial port...");
+  
+      state.startListening(ipDialog, btDialog);
+      
+      if (OrientationManager.isSupported())
+      {
+        OrientationManager.startListening(state);
+      }
     }
 
   }
 
   private void stopListening()
   {
-
-    if (OrientationManager.isListening())
+    
+    if(state.listening)
     {
-      OrientationManager.stopListening();
+      if (OrientationManager.isListening())
+      {
+        OrientationManager.stopListening();
+      }
+  
+      state.stopListening();
     }
-
-    state.stopListening();
   }
 
 

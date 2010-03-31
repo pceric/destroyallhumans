@@ -36,8 +36,10 @@ public class RobotStateHandler implements OrientationListener
   private Handler  uiHandler;
 
   RobotState           state;
+  
+  public boolean listening = false;
 
-  int                  listenPort = 4444;
+  int                  listenPort = 5555;
 
   public RobotStateHandler(Handler h) throws IOException
   {
@@ -56,7 +58,7 @@ public class RobotStateHandler implements OrientationListener
 
     server.start();
 
-    server.bind(listenPort, listenPort + 1);
+    server.bind(listenPort);
 
     Kryo kryo = server.getKryo();
     kryo.register(ControllerState.class);
@@ -187,11 +189,22 @@ public class RobotStateHandler implements OrientationListener
   {
     bTcomThread = new BTCommThread(BluetoothAdapter.getDefaultAdapter(), btDialog, this);
     bTcomThread.start();
+    
+    listening = true;
+    //server.run();
+    
+    //if (ipDialog != null && ipDialog.isShowing())
+      //ipDialog.dismiss();
+    
   }
   
   public void stopListening()
   {
 
+   // server.stop();
+    
+    listening = false;
+    
     if (OrientationManager.isListening())
     {
       OrientationManager.stopListening();
