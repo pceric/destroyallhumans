@@ -19,7 +19,7 @@ import android.os.Message;
 /*
  * This is a class to store the state of the robot.
  */
-public class RobotStateHandler implements OrientationListener
+public class RobotStateHandler extends Thread implements OrientationListener
 {
   private Server       server;
 
@@ -35,6 +35,10 @@ public class RobotStateHandler implements OrientationListener
   
   private Handler  uiHandler;
 
+  private ControllerState controllerState = null;
+  
+  private Connection clientConnection = null;
+  
   RobotState           state;
   
   public boolean listening = false;
@@ -57,6 +61,8 @@ public class RobotStateHandler implements OrientationListener
     server = new Server();
 
     server.start();
+    
+    setName("Robot State Handler");
 
     server.bind(listenPort);
 
@@ -70,10 +76,9 @@ public class RobotStateHandler implements OrientationListener
       {
         if (object instanceof ControllerState)
         {
-          ControllerState request = (ControllerState) object;
-          System.out.println(request.toString());
-
-          connection.sendTCP(state);
+          controllerState = (ControllerState) object;
+          //System.out.println(request.toString());
+          clientConnection = connection;
         }
       }
 
@@ -84,7 +89,9 @@ public class RobotStateHandler implements OrientationListener
   public void onBtDataRecive(String data)
   {
     btInBuffer.append(data);
+    state.blueToothConnected = true; 
     handler.sendEmptyMessage(0);
+   
   }
 
   private Handler handler = new Handler()
@@ -116,11 +123,7 @@ public class RobotStateHandler implements OrientationListener
 
   public void flush(IPCommThread ip, BTCommThread bt)
   {
-    if (bt != null)
-    {
-      bt.write(btOutBuffer.toString().getBytes());
-      btOutBuffer.delete(0, btInBuffer.length());
-    }
+   
 
   }
 
@@ -201,7 +204,7 @@ public class RobotStateHandler implements OrientationListener
   public void stopListening()
   {
 
-   // server.stop();
+    //server.stop();
     
     listening = false;
     
@@ -222,6 +225,64 @@ public class RobotStateHandler implements OrientationListener
     bTcomThread = null;
   }
 
+  
+  public void run()
+  {
+    while (true) {
+      try {
+        //String test = "test\n";
+       /// ostream.write(test.getBytes());
+        try
+        {
+                 
+          if(clientConnection != null)
+          {            
+            
+            state.ipConnected = true; 
+            
+            if (ipDialog != null && ipDialog.isShowing())
+            {
+              ipDialog.dismiss();
+              ipDialog = null;
+            }
+            
+            
+            clientConnection.sendTCP(state);
+          }
+          server.update(10);
+          
+          
+          if (bTcomThread != null)
+          {
+            
+            if(controllerState != null)
+            {
+              btOutBuffer.append(controllerState.toString());
+            }
+            bTcomThread.write(btOutBuffer.toString().getBytes());
+            btOutBuffer.delete(0, btInBuffer.length());
+            
+            
+          }
+         
+          
+          sleep(50);
+          
+        }
+        catch (InterruptedException e)
+        {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+          // Read from the InputStream
+
+         
+          //}
+      } catch (IOException e) {
+          break;
+      }
+  }
+  }
   
   
 }
