@@ -43,6 +43,7 @@ class BTCommThread extends Thread {
         this.dialog = dialog;
         this.adapter = adapter;
         this.state =   state2;
+        setName("BlueTooth Com");
     }
 
     public void run() {

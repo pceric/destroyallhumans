@@ -69,6 +69,11 @@ public class Receiver extends Activity implements Callback
 
     setFullscreen();
     disableScreenTurnOff();
+    setOrientation();
+    setNoTitle();
+    disableScreenTurnOff();
+    
+    
     //orientation is set via the manifest
 
     res = getResources();     
@@ -90,6 +95,8 @@ public class Receiver extends Activity implements Callback
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
+
+    
     
     
 
@@ -143,11 +150,13 @@ public class Receiver extends Activity implements Callback
     {
       String msg = "Listening on port " + controlPort + " for control server";
   
-      ProgressDialog ipDialog = null; //ProgressDialog.show(this, "Current IP:" + state.getLocalIpAddress(), msg);
+      ProgressDialog ipDialog = ProgressDialog.show(this, "Current IP:" + state.getLocalIpAddress(), msg);
   
       ProgressDialog btDialog = ProgressDialog.show(CONTEXT, "Connecting", "Searching for a Bluetooth serial port...");
   
       state.startListening(ipDialog, btDialog);
+      
+      state.start();
       
       if (OrientationManager.isSupported())
       {
@@ -166,8 +175,12 @@ public class Receiver extends Activity implements Callback
       {
         OrientationManager.stopListening();
       }
+      
+      state.stop();
   
       state.stopListening();
+      
+
     }
   }
 
