@@ -5,6 +5,7 @@ class DAController
   public ControllStick rightStick;
   private ControllCoolieHat DPad;
   private ControllSlider XBOXTrig;
+  private ControllerState cs;
 
   // concessions to the XBOX Controller, maybe I'm going a little overboard?
   public float leftTriggerMultiplier, leftTriggerTolerance, leftTriggerTotalValue;
@@ -36,8 +37,12 @@ class DAController
 
   DAController(ControllDevice d, Object o)
   {
+    cs = new ControllerState();
     gamepad = d;
     println(gamepad.getName());
+    gamepad.printSticks();
+    gamepad.printButtons();
+    gamepad.printSliders();
     if ( gamepad.getName().equals("USB Force Feedback Joypad (MP-8888)") )
     {
       mapJoybox();
@@ -50,7 +55,7 @@ class DAController
     {
       mapGeneric();
     }
-    else if ( gamepad.getName().equals("Controller (XBOX 360 For Windows)") )
+    else if (match(gamepad.getName(), "XBOX 360") != null)
     {
       mapXBOX360();
     }
@@ -58,6 +63,8 @@ class DAController
     {
       mapPlaystation3();
     }
+    else if (match(gamepad.getName(), "SideWinder") != null)
+      mapSidewinder();
     else 
     {
       println("Unrecognized device name, using Logitech mapping.");
@@ -69,8 +76,6 @@ class DAController
 
   private void mapJoybox()
   {
-    gamepad.printSticks();
-    gamepad.printButtons();
     leftStick = gamepad.getStick(1);
     rightStick = gamepad.getStick(0);
     leftTriggerMultiplier = rightTriggerMultiplier = 1;
@@ -92,8 +97,6 @@ class DAController
 
   private void mapLogitech()
   {
-    gamepad.printSticks();
-    gamepad.printButtons();
     leftStick = gamepad.getStick(1);
     rightStick = gamepad.getStick(0);
     leftTriggerMultiplier = rightTriggerMultiplier = 1;
@@ -115,9 +118,6 @@ class DAController
 
   private void mapPlaystation3()
   {
-    gamepad.printSticks();
-    gamepad.printButtons();
-
     leftStick = gamepad.getStick(0);
     rightStick = gamepad.getStick(1);
     leftTriggerMultiplier = rightTriggerMultiplier = 1;
@@ -142,9 +142,6 @@ class DAController
 
   private void mapGeneric()
   {
-
-    gamepad.printSticks();
-    gamepad.printButtons();
     leftStick = gamepad.getStick(0);
     rightStick = gamepad.getStick(1);
     leftTriggerMultiplier = rightTriggerMultiplier = 1;
@@ -169,8 +166,6 @@ class DAController
 
   private void mapXBOX360()
   {
-    gamepad.printSliders();
-    gamepad.printButtons();
     leftStick = new ControllStick(gamepad.getSlider(1), gamepad.getSlider(0));
     rightStick = new ControllStick(gamepad.getSlider(3), gamepad.getSlider(2));
     XBOXTrig = gamepad.getSlider(4);
@@ -186,6 +181,23 @@ class DAController
     L3 = gamepad.getButton(8);
     DPad = gamepad.getCoolieHat(10);
     Select = gamepad.getButton(6);
+    Start = gamepad.getButton(7);
+  }
+
+  private void mapSidewinder()
+  {
+    leftStick = new ControllStick(gamepad.getSlider(1), gamepad.getSlider(0));
+    rightStick = new ControllStick(gamepad.getSlider(1), gamepad.getSlider(0));
+    T = gamepad.getButton(4);
+    C = gamepad.getButton(2);
+    X = gamepad.getButton(1);
+    S = gamepad.getButton(3);
+    R1 = gamepad.getButton(6);
+    R3 = gamepad.getButton(9);
+    L1 = gamepad.getButton(5);
+    L3 = gamepad.getButton(8);
+    DPad = gamepad.getCoolieHat(0);
+    Select = gamepad.getButton(7);
     Start = gamepad.getButton(7);
   }
 
@@ -346,6 +358,10 @@ class DAController
     else return false;
   }
 
+  ControllerState getState() {
+    return cs;
+  }
+  
   String toString(){
     String pressed = "";
     String delim = " ";
