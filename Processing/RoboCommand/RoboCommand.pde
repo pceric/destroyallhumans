@@ -24,18 +24,21 @@ import processing.net.*;
 import procontroll.*;
 import processing.serial.*;
 
-// Net client
-Client myClient; 
-
-Server vidServer;
+// Kryonet client for control
+com.esotericsoftware.kryonet.Client myClient; 
+// Processing server for video
+processing.net.Server vidServer;
 
 ControllIO controll;
 ControllDevice device;
-PFont fontA;
 DAController ps3;
 
-String phoneIpAddress = "192.168.2.254";
-String joystickName = "PLAYSTATION(R)3 Controller";
+PFont fontA;
+
+String phoneIpAddress = "192.168.1.109";
+//String joystickName = "PLAYSTATION(R)3 Controller";
+String joystickName = "Microsoft SideWinder Precision Pro (USB)";
+
 
 int controlPort = 5555;
 int videoPort = 4444;
@@ -43,26 +46,21 @@ int videoPort = 4444;
 int size = 0;
 PImage android = createImage(20, 20, RGB);
 byte[] imageBuffer;
-String inputBuffer = "Connecting To Robot";
+//String inputBuffer = "Connecting To Robot";
 
 float segLength = 50;
 
-int azimuth, pitch, roll;
-
+DataThread thread;
 
 void setup(){
-  size(640,640);
-  
+  size(640,640,OPENGL);
   //size(800,600,P3D);
 
   controll = ControllIO.getInstance(this);
   controll.printDevices();
  
-
   device = controll.getDevice(joystickName);
   ps3 = new DAController(device, this);
-
-  frameRate(20);
 
   fill(0);
   frameRate(20);
@@ -71,23 +69,35 @@ void setup(){
 
   fontA = loadFont("Ziggurat-HTF-Black-32.vlw");
 
-  vidServer = new Server(this, videoPort);
+  vidServer = new processing.net.Server(this, videoPort);
   
-  
-  println("Connecting to phone at " + phoneIpAddress);
-  myClient = new Client(this, phoneIpAddress, controlPort); 
-
-
   smooth(); 
   strokeWeight(20.0);
   stroke(0, 100);
+  
+  myClient = new com.esotericsoftware.kryonet.Client();
+  
+  thread = new DataThread(myClient, ps3);
+  thread.start();
+
+  Kryo kryo = myClient.getKryo();
+  kryo.register(ControllerState.class);
+  kryo.register(RobotState.class);
+
+  try {
+    println("Connecting to phone at " + phoneIpAddress);
+    myClient.connect(15000, phoneIpAddress, controlPort);
+  } catch (IOException e) {
+    println(e + ".  Bye Bye.");
+    System.exit(0);
+  }
 }
 
 void draw(){
- // background(255);
+  background(255);
   
   // Get the next available client
-  Client thisClient = vidServer.available();
+  processing.net.Client thisClient = vidServer.available();
   // If the client is not null, try and get data
   if (thisClient != null) {
     // Get our image size
@@ -121,10 +131,9 @@ void draw(){
   y =  height/2 + ((height/2) * ps3.rightY());
   fill(255,0,0);
   rect(x,y,20,20);
-  
   */
   
-  
+
   x = 0;
   y = 0;
   beginShape();
@@ -138,27 +147,13 @@ void draw(){
   scale(1.0);
   endShape();
   
-
- 
  
   x = width/2;
   y = width/2;
   fill(255,0,0); 
   pushMatrix();
-  segment(x, y, radians(azimuth)); 
+  segment(x, y, radians(thread.get_azimuth())); 
   popMatrix();
-
- long time = System.nanoTime() / 1000;
- print("C " + time + ps3);
- try{
-   myClient.write("C " + time + ps3);
- }
- catch(NullPointerException ex)
- {
-   myClient = new Client(this, phoneIpAddress, controlPort); 
- }
- 
- 
 }
 
 
@@ -180,28 +175,14 @@ PImage loadPImageFromBytes(byte[] b,PApplet p) {
 
 // ServerEvent message is generated when a new client connects 
 // to an existing server.
-void serverEvent(Server someServer, Client someClient) {
+void serverEvent(processing.net.Server someServer, processing.net.Client someClient) {
   println("We have a new client: " + someClient.ip());
 }
 
 
 // This function is called when a client disconnects.
-void disconnectEvent(Client someClient) {
+void disconnectEvent(processing.net.Client someClient) {
   println("Client disconnected.");
-}
-
-
-void clientEvent(Client someClient) {
-   
-    if(someClient.available() > 0){
-    inputBuffer = someClient.readString(); 
-     print("Server Says:  " + inputBuffer);
-    String[] values = split(inputBuffer, ' ');
-    if(values.length > 1)
-    {
-      azimuth = int(float(values[1]));
-    }
-}
 }
 
 
