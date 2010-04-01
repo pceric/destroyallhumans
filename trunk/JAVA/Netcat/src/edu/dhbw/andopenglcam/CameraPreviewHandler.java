@@ -137,8 +137,8 @@ public class CameraPreviewHandler implements PreviewCallback {
 	 */
 	public void init(Camera camera) throws Exception {
 		Parameters camParams = camera.getParameters();
-		camParams.setPreviewSize(480,320);
-		camera.setParameters(camParams);
+		//camParams.setPreviewSize(480,320);
+		//camera.setParameters(camParams);
         //Log.d("CameraPreviewHandler",supportedPreviewSizes.toString());
 		//check if the pixel format is supported
 		if (camParams.getPreviewFormat() != PixelFormat.YCbCr_420_SP) {

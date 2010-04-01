@@ -15,53 +15,67 @@ import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 
 /*
  * This is a class to store the state of the robot.
  */
 public class RobotStateHandler extends Thread implements OrientationListener
 {
-  private Server       server;
+  private Server                   server;
 
-  private StringBuffer btInBuffer;
+  private StringBuffer             btInBuffer;
 
-  private StringBuffer btOutBuffer;
-  
-  private BTCommThread      bTcomThread;
+  private StringBuffer             btOutBuffer;
 
-  private ProgressDialog    btDialog;
+  private BTCommThread             bTcomThread;
 
-  private ProgressDialog    ipDialog;
-  
-  private Handler  uiHandler;
+  private ProgressDialog           btDialog;
 
-  private ControllerState controllerState = null;
-  
-  private Connection clientConnection = null;
-  
-  RobotState           state;
-  
-  public boolean listening = false;
+  private ProgressDialog           ipDialog;
 
-  int                  listenPort = 5555;
+  private Handler                  uiHandler;
 
-  public RobotStateHandler(Handler h) throws IOException
+  private ControllerState          controllerState  = null;
+
+  private Connection               clientConnection = null;
+
+  RobotState                       state;
+
+  private static RobotStateHandler instance         = null;
+
+  public boolean                   listening        = false;
+
+  int                              listenPort       = 5555;
+
+  public static RobotStateHandler getInstance(Handler h) throws IOException
+  {
+    if (instance == null)
+    {
+      instance = new RobotStateHandler(h);
+    }
+
+    return instance;
+
+  }
+
+  private RobotStateHandler(Handler h) throws IOException
   {
 
     btInBuffer = new StringBuffer();
 
     btOutBuffer = new StringBuffer();
-    
+
     uiHandler = h;
 
     state = new RobotState();
-    
+
     state.localIpAddress = getLocalIpAddress();
 
     server = new Server();
 
     server.start();
-    
+
     setName("Robot State Handler");
 
     server.bind(listenPort);
@@ -77,7 +91,6 @@ public class RobotStateHandler extends Thread implements OrientationListener
         if (object instanceof ControllerState)
         {
           controllerState = (ControllerState) object;
-          //System.out.println(request.toString());
           clientConnection = connection;
         }
       }
@@ -89,9 +102,9 @@ public class RobotStateHandler extends Thread implements OrientationListener
   public void onBtDataRecive(String data)
   {
     btInBuffer.append(data);
-    state.blueToothConnected = true; 
+    state.blueToothConnected = true;
     handler.sendEmptyMessage(0);
-   
+
   }
 
   private Handler handler = new Handler()
@@ -123,16 +136,15 @@ public class RobotStateHandler extends Thread implements OrientationListener
 
   public void flush(IPCommThread ip, BTCommThread bt)
   {
-   
 
   }
 
   public void onOrientationChanged(float azimuth, float pitch, float roll)
   {
-   state.azimuth = azimuth;
-   state.pitch = pitch;
-   state.roll = roll;
-   
+    state.azimuth = azimuth;
+    state.pitch = pitch;
+    state.roll = roll;
+
     // ipOutBuffer.append(msg);
 
   }
@@ -186,28 +198,44 @@ public class RobotStateHandler extends Thread implements OrientationListener
     return null;
   }
 
-  
-
-  public void startListening(ProgressDialog ipDialog, ProgressDialog btDialog)
+  public synchronized void  startListening(ProgressDialog ipDialog, ProgressDialog btDialog)
   {
-    bTcomThread = new BTCommThread(BluetoothAdapter.getDefaultAdapter(), btDialog, this);
-    bTcomThread.start();
+    Log.d("RobotStateHandler","startListening");
     
-    listening = true;
-    //server.run();
+    if(! listening)
+    {
+      
+      bTcomThread = new BTCommThread(BluetoothAdapter.getDefaultAdapter(), btDialog, this);
+      bTcomThread.start();
+  
+      if (OrientationManager.isSupported())
+      {
+        OrientationManager.startListening(this);
+      }
+  
+      listening = true;
+      try {
+      super.start();
+      }
+      catch (java.lang.IllegalThreadStateException e) {
+        // TODO: handle exception
+      }
     
-    //if (ipDialog != null && ipDialog.isShowing())
-      //ipDialog.dismiss();
-    
+    }
+    // server.run();
+
+    // if (ipDialog != null && ipDialog.isShowing())
+    // ipDialog.dismiss();
+
   }
-  
-  public void stopListening()
+
+  public synchronized void stopListening()
   {
 
-    //server.stop();
-    
     listening = false;
-    
+
+    // super.stop();
+
     if (OrientationManager.isListening())
     {
       OrientationManager.stopListening();
@@ -215,7 +243,6 @@ public class RobotStateHandler extends Thread implements OrientationListener
 
     if (ipDialog != null && ipDialog.isShowing())
       ipDialog.dismiss();
-
 
     if (btDialog != null && btDialog.isShowing())
       btDialog.dismiss();
@@ -225,64 +252,51 @@ public class RobotStateHandler extends Thread implements OrientationListener
     bTcomThread = null;
   }
 
-  
   public void run()
   {
-    while (true) {
-      try {
-        //String test = "test\n";
-       /// ostream.write(test.getBytes());
+    while (listening)
+    {
+      try
+      {
         try
         {
-                 
-          if(clientConnection != null)
-          {            
-            
-            state.ipConnected = true; 
-            
+          server.update(10);
+          if (clientConnection != null)
+          {
+
+            state.ipConnected = true;
+
             if (ipDialog != null && ipDialog.isShowing())
             {
               ipDialog.dismiss();
               ipDialog = null;
             }
-            
-            
-            clientConnection.sendTCP(state);
-          }
-          server.update(10);
-          
-          
-          if (bTcomThread != null)
-          {
-            
-            if(controllerState != null)
-            {
-              btOutBuffer.append(controllerState.toString());
-            }
-            bTcomThread.write(btOutBuffer.toString().getBytes());
-            btOutBuffer.delete(0, btInBuffer.length());
-            
-            
-          }
-         
-          
-          sleep(50);
-          
-        }
-        catch (InterruptedException e)
-        {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
-          // Read from the InputStream
 
-         
-          //}
-      } catch (IOException e) {
+            if (bTcomThread != null && controllerState != null)
+            {
+              // btOutBuffer.append(controllerState.toString());
+              // bTcomThread.write(btOutBuffer.toString().getBytes());
+              // btOutBuffer.delete(0, btInBuffer.length());
+            }
+
+            clientConnection.sendTCP(state);
+
+          }
+
+        }
+        catch (IOException e)
+        {
           break;
+        }
+        Thread.sleep(50);
       }
+
+      catch (InterruptedException e)
+      {
+        // TODO Auto-generated catch block
+        // listening = false;
+      }
+    }
   }
-  }
-  
-  
+
 }
