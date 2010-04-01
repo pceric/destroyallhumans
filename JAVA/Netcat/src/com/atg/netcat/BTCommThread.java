@@ -120,7 +120,10 @@ class BTCommThread extends Thread {
     /* Call this from the main Activity to send data to the remote device */
     public void write(byte[] bytes) {
         try {
-            ostream.write(bytes);
+            if(ostream != null)
+            {
+              ostream.write(bytes);
+            }
         } catch (IOException e) {
             Log.e("CommThread.write", "exception during write", e);
         }
