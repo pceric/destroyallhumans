@@ -211,31 +211,7 @@ class DAController
     gamepad.rumble(amt, id);
   }
   
-  float leftX()
-  {
-    int i = (invertLeftX ? -1 : 1);
-    return leftStick.getX()*i;
-  }
-
-  float rightX()
-  {
-    int i = (invertRightX ? -1 : 1);
-    return rightStick.getX()*i;
-  }
-
-  float leftY()
-  {
-    int i = (invertLeftY ? 1 : -1);
-    return leftStick.getY()*i;
-  }
-
-  float rightY()
-  {
-    int i = (invertRightY ? 1 : -1);
-    return rightStick.getY()*i;
-  }
-
-  float leftZ()
+  private float leftZ()
   {
     if ( XBOXTrig != null )
     {
@@ -259,7 +235,7 @@ class DAController
     else return 0;
   }
 
-  float rightZ()
+  private float rightZ()
   {
     if ( XBOXTrig != null )
     {
@@ -283,75 +259,42 @@ class DAController
     else return 0;
   }
 
-  boolean T() { 
-    return T.pressed(); 
-  }
-  boolean C() { 
-    return C.pressed(); 
-  }
-  boolean X() { 
-    return X.pressed(); 
-  }
-  boolean S() { 
-    return S.pressed(); 
-  }
-  boolean L1(){ 
-    return L1.pressed(); 
-  }
-
-  boolean L2()
+  private boolean L2()
   {
     if ( L2 != null ) return L2.pressed();
     else if ( XBOXTrig != null ) return leftZ() > 0;
     else return false;
   }
 
-  boolean L3() { 
-    return L3.pressed(); 
-  }
-  boolean R1() { 
-    return R1.pressed(); 
-  }
-
-  boolean R2()
+  private boolean R2()
   {
     if ( R2 != null ) return R2.pressed();
     else if ( XBOXTrig != null ) return rightZ() > 0;
     else return false;
   }
 
-  boolean R3() { 
-    return R3.pressed(); 
-  }
-  boolean Start() { 
-    return Start.pressed(); 
-  }
-  boolean Select() { 
-    return Select.pressed(); 
-  }
-
-  boolean DUp()
+  private boolean DUp()
   {
     if ( Up != null ) return Up.pressed();
     else if ( DPad != null ) return DPad.getY() < 0;
     else return false;
   }
 
-  boolean DDown()
+  private boolean DDown()
   {
     if ( Down != null ) return Down.pressed();
     else if ( DPad != null ) return DPad.getY() > 0;
     else return false;
   }
 
-  boolean DLeft()
+  private boolean DLeft()
   {
     if ( Left != null ) return Left.pressed();
     else if ( DPad != null ) return DPad.getX() < 0;
     else return false;
   }
 
-  boolean DRight()
+  private boolean DRight()
   {
     if ( Right != null ) return Right.pressed();
     else if ( DPad != null ) return DPad.getX() > 0;
@@ -359,43 +302,36 @@ class DAController
   }
 
   ControllerState getState() {
+    int i;
+    i = (invertLeftX ? -1 : 1);
+    cs.leftX = leftStick.getX()*i;
+    i = (invertRightX ? -1 : 1);
+    cs.rightX = rightStick.getX()*i;
+    i = (invertLeftY ? 1 : -1);
+    cs.leftY = leftStick.getY()*i;
+    i = (invertRightY ? 1 : -1);
+    cs.rightY = rightStick.getY()*i;
+    cs.X = X.pressed(); 
+    cs.C = C.pressed(); 
+    cs.T = T.pressed(); 
+    cs.S = S.pressed(); 
+    cs.L1 = L1.pressed();
+    cs.L2 = L2();
+    cs.L3 = L3.pressed();
+    cs.R1 = R1.pressed();
+    cs.R2 = R2();
+    cs.R3 = R3.pressed();
+    cs.Up = DUp();
+    cs.Down = DDown();
+    cs.Left = DLeft();
+    cs.Right = DRight();
+    cs.Start = Start.pressed(); 
+    cs.Select = Select.pressed(); 
     return cs;
   }
   
   String toString(){
-    String pressed = "";
-    String delim = " ";
-
-    pressed += this.X() ? "1" + delim : "0"  + delim;
-    pressed += this.C() ? "1" + delim : "0"  + delim;
-    pressed += this.T() ? "1" + delim : "0"  + delim;
-    pressed += this.S() ? "1" + delim : "0"  + delim;
-
-    pressed += this.L1() ? "1" + delim : "0"  + delim;
-    pressed += this.L2() ? "1" + delim : "0"  + delim;
-    pressed += this.L3() ? "1" + delim : "0"  + delim;
-
-    pressed += this.R1() ? "1" + delim : "0"  + delim;
-    pressed += this.R2() ? "1" + delim : "0"  + delim;
-    pressed += this.R3() ? "1" + delim : "0"  + delim;
-
-    pressed += this.DUp() ? "1" + delim : "0"  + delim;
-    pressed += this.DDown() ? "1" + delim : "0"  + delim;
-    pressed += this.DLeft() ? "1" + delim : "0"  + delim;
-    pressed += this.DRight() ? "1" + delim : "0"  + delim;
-
-    pressed += this.Select() ? "1" + delim : "0"  + delim;
-    pressed += this.Start() ? "1" + delim : "0"  + delim;
-
-    pressed += int(JOYMAX * this.leftX()) + delim;
-    pressed += int(JOYMAX * this.leftY()) + delim;
-
-    pressed += int(JOYMAX * this.rightX())+ delim;
-    pressed += int(JOYMAX * this.rightY())+ delim;
-
-    pressed +="\n";
-
-    return pressed;
+    return gamepad.getName();
   }
 
 }
