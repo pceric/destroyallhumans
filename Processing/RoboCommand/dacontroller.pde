@@ -1,17 +1,12 @@
 class DAController
 {
   private ControllDevice gamepad;
-  public ControllStick leftStick;
-  public ControllStick rightStick;
+  private ControllStick leftStick;
+  private ControllStick rightStick;
   private ControllCoolieHat DPad;
-  private ControllSlider XBOXTrig;
+  private ControllSlider Z1;
+  private ControllSlider Z2;
   private ControllerState cs;
-
-  // concessions to the XBOX Controller, maybe I'm going a little overboard?
-  public float leftTriggerMultiplier, leftTriggerTolerance, leftTriggerTotalValue;
-  public float rightTriggerMultiplier, rightTriggerTolerance, rightTriggerTotalValue;
-
-  private float JOYMAX = 127.0; 
 
   private ControllButton X;
   private ControllButton C;
@@ -39,10 +34,10 @@ class DAController
   {
     cs = new ControllerState();
     gamepad = d;
-    println(gamepad.getName());
-    gamepad.printSticks();
-    gamepad.printButtons();
-    gamepad.printSliders();
+    //gamepad.printSticks();
+    //gamepad.printButtons();
+    //gamepad.printSliders();
+    invertLeftX = invertLeftY = invertRightX = invertRightY = false;
     if ( gamepad.getName().equals("USB Force Feedback Joypad (MP-8888)") )
     {
       mapJoybox();
@@ -70,16 +65,12 @@ class DAController
       println("Unrecognized device name, using Logitech mapping.");
       mapLogitech();
     }
-    leftTriggerTotalValue = rightTriggerTotalValue = 0;
-    invertLeftX = invertLeftY = invertRightX = invertRightY = false;
   }
 
   private void mapJoybox()
   {
     leftStick = gamepad.getStick(1);
     rightStick = gamepad.getStick(0);
-    leftTriggerMultiplier = rightTriggerMultiplier = 1;
-    leftTriggerTolerance = rightTriggerTolerance = 0;
     T = gamepad.getButton(0);
     C = gamepad.getButton(1);
     X = gamepad.getButton(2);
@@ -99,8 +90,6 @@ class DAController
   {
     leftStick = gamepad.getStick(1);
     rightStick = gamepad.getStick(0);
-    leftTriggerMultiplier = rightTriggerMultiplier = 1;
-    leftTriggerTolerance = rightTriggerTolerance = 0;
     T = gamepad.getButton(4);
     C = gamepad.getButton(3);
     X = gamepad.getButton(2);
@@ -119,9 +108,9 @@ class DAController
   private void mapPlaystation3()
   {
     leftStick = gamepad.getStick(0);
+    leftStick.setTolerance(0.08f);
     rightStick = gamepad.getStick(1);
-    leftTriggerMultiplier = rightTriggerMultiplier = 1;
-    leftTriggerTolerance = rightTriggerTolerance = 0;
+    rightStick.setTolerance(0.08f);
     T = gamepad.getButton(12);
     C = gamepad.getButton(13);
     X = gamepad.getButton(14);
@@ -144,8 +133,6 @@ class DAController
   {
     leftStick = gamepad.getStick(0);
     rightStick = gamepad.getStick(1);
-    leftTriggerMultiplier = rightTriggerMultiplier = 1;
-    leftTriggerTolerance = rightTriggerTolerance = 0;
     T = gamepad.getButton(0);
     C = gamepad.getButton(1);
     X = gamepad.getButton(2);
@@ -168,9 +155,8 @@ class DAController
   {
     leftStick = new ControllStick(gamepad.getSlider(1), gamepad.getSlider(0));
     rightStick = new ControllStick(gamepad.getSlider(3), gamepad.getSlider(2));
-    XBOXTrig = gamepad.getSlider(4);
-    leftTriggerTolerance = rightTriggerTolerance = XBOXTrig.getTolerance();
-    leftTriggerMultiplier = rightTriggerMultiplier = XBOXTrig.getMultiplier();
+    Z1 = gamepad.getSlider(4);
+    Z1.setTolerance(0.50f);
     T = gamepad.getButton(3);
     C = gamepad.getButton(1);
     X = gamepad.getButton(0);
@@ -187,7 +173,13 @@ class DAController
   private void mapSidewinder()
   {
     leftStick = new ControllStick(gamepad.getSlider(1), gamepad.getSlider(0));
+    leftStick.setTolerance(0.08f);
     rightStick = new ControllStick(gamepad.getSlider(1), gamepad.getSlider(0));
+    rightStick.setTolerance(0.08f);
+    Z1 = gamepad.getSlider(2);
+    Z1.setTolerance(0.50f);
+    Z2 = gamepad.getSlider(3);
+    Z2.setTolerance(0.50f);
     T = gamepad.getButton(4);
     C = gamepad.getButton(2);
     X = gamepad.getButton(1);
@@ -213,63 +205,31 @@ class DAController
   
   private float leftZ()
   {
-    if ( XBOXTrig != null )
-    {
-      float v = leftTriggerMultiplier*XBOXTrig.getValue();
-      if ( v > leftTriggerTolerance ) 
-      {
-        leftTriggerTotalValue += v;
-        return v;
-      }
-      else return 0;
-    }
-    else if ( L2 != null )
-    {
-      if ( L2.pressed() )
-      {
-        leftTriggerTotalValue += leftTriggerMultiplier;
-        return leftTriggerMultiplier;
-      }
-      else return 0;
-    }
-    else return 0;
+    if ( Z1 != null )
+      return Z1.getValue();
+    else
+      return 0;
   }
 
   private float rightZ()
   {
-    if ( XBOXTrig != null )
-    {
-      float v = -rightTriggerMultiplier*XBOXTrig.getValue();
-      if ( v > rightTriggerTolerance ) 
-      {
-        rightTriggerTotalValue += v;
-        return v;
-      }
-      else return 0;
-    }
-    else if ( R2 != null )
-    {
-      if ( R2.pressed() )
-      {
-        rightTriggerTotalValue += rightTriggerMultiplier;
-        return rightTriggerMultiplier;
-      }
-      else return 0;
-    }
-    else return 0;
+    if ( Z2 != null )
+      return Z2.getValue();
+    else
+      return 0;
   }
 
   private boolean L2()
   {
     if ( L2 != null ) return L2.pressed();
-    else if ( XBOXTrig != null ) return leftZ() > 0;
+    else if ( Z1 != null ) return leftZ() != 0;
     else return false;
   }
 
   private boolean R2()
   {
     if ( R2 != null ) return R2.pressed();
-    else if ( XBOXTrig != null ) return rightZ() > 0;
+    else if ( Z2 != null ) return rightZ() != 0;
     else return false;
   }
 

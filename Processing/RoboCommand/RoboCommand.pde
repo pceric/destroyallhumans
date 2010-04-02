@@ -46,7 +46,6 @@ int videoPort = 4444;
 int size = 0;
 PImage android = createImage(20, 20, RGB);
 byte[] imageBuffer;
-//String inputBuffer = "Connecting To Robot";
 
 float segLength = 50;
 
@@ -63,7 +62,7 @@ void setup(){
   ps3 = new DAController(device, this);
 
   fill(0);
-  frameRate(20);
+  //frameRate(20);
 
   rectMode(CENTER);
 
@@ -176,13 +175,13 @@ PImage loadPImageFromBytes(byte[] b,PApplet p) {
 // ServerEvent message is generated when a new client connects 
 // to an existing server.
 void serverEvent(processing.net.Server someServer, processing.net.Client someClient) {
-  println("We have a new client: " + someClient.ip());
+  println("We have a new video client: " + someClient.ip());
 }
 
 
 // This function is called when a client disconnects.
 void disconnectEvent(processing.net.Client someClient) {
-  println("Client disconnected.");
+  println("Video client disconnected.");
 }
 
 
