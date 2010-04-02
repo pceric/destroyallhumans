@@ -18,7 +18,7 @@ public class DataThread extends Thread {
   
   public void run() {
     while (_client != null) {
-      println("C " + (System.nanoTime() / 1000) + _controller.getState());
+      print(Long.toString(System.nanoTime() / 1000) + _controller.getState());
       try {
         _client.sendTCP(_controller.getState());
         _client.update(0);
