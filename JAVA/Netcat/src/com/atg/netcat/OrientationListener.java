@@ -5,6 +5,10 @@ package com.atg.netcat;
     public void onOrientationChanged(float azimuth, 
             float pitch, float roll);
  
+    public void onCompassChanged(float x, 
+        float y, float z);
+    
+    
     /**
      * Top side of the phone is up
      * The phone is standing on its bottom side
@@ -28,6 +32,8 @@ package com.atg.netcat;
      * The phone is standing on its right side
      */
     public void onLeftUp();
+
+    public void onLightLevelChanged(float level);
  
 
 }

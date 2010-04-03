@@ -7,10 +7,13 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
+import android.net.wifi.WifiManager;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
@@ -21,6 +24,7 @@ import android.view.SurfaceHolder;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.SurfaceHolder.Callback;
+import android.widget.Toast;
 import edu.dhbw.andopenglcam.CameraHolder;
 import edu.dhbw.andopenglcam.CameraPreviewHandler;
 import edu.dhbw.andopenglcam.Config;
@@ -34,12 +38,9 @@ public class Receiver extends Activity implements Callback
 
   public static Integer        videoPort     = 4444;
   
+  private static Integer PREVIEW_HEIGHT = 480;
   
-  private static Integer PREVIEW_HEIGHT = 800;
-  private static Integer PREVIEW_WIDTH = 480;
-  
-  
-  
+  private static Integer PREVIEW_WIDTH = 320;
 
   public static InetAddress    clientAddress;
 
@@ -153,11 +154,25 @@ public class Receiver extends Activity implements Callback
     {
       String msg = "Listening on port " + controlPort + " for control server";
 
-      ProgressDialog ipDialog = ProgressDialog.show(this, "Current IP:" + state.getLocalIpAddress(), msg);
+      Toast.makeText(CONTEXT, "Current IP:" + state.getLocalIpAddress(),   Toast.LENGTH_LONG);
 
       ProgressDialog btDialog = ProgressDialog.show(CONTEXT, "Connecting", "Searching for a Bluetooth serial port...");
+      
+      
+      String connectivity_context = Context.WIFI_SERVICE;
+      WifiManager wifi = (WifiManager)getSystemService(connectivity_context);
 
-      state.startListening(ipDialog, btDialog);
+      if(!wifi.isWifiEnabled()){
+              if(wifi.getWifiState() != WifiManager.WIFI_STATE_ENABLING){
+                      wifi.setWifiEnabled(true);
+              }
+      }
+
+      state.startListening(btDialog , wifi);
+      
+      this.registerReceiver(state.mBatInfoReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+
+      this.registerReceiver(state.mWifiInfoReceiver, new IntentFilter(WifiManager.RSSI_CHANGED_ACTION));
 
       //state.start();
 
@@ -224,6 +239,7 @@ public class Receiver extends Activity implements Callback
       params.setPreviewSize(PREVIEW_HEIGHT,PREVIEW_WIDTH);
       // params.setPreviewFrameRate(1);//TODO remove restriction
       camera.setParameters(params);
+     /*
       if (Config.USE_ONE_SHOT_PREVIEW)
       {
         camera.setOneShotPreviewCallback(cameraHandler);
@@ -233,6 +249,7 @@ public class Receiver extends Activity implements Callback
         camera.setPreviewCallback(cameraHandler);
 
       }
+      */
       try
       {
         cameraHandler.init(camera);

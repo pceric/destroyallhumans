@@ -35,5 +35,5 @@ LOCAL_CFLAGS += -O3 -fstrict-aliasing -fprefetch-loop-arrays
 #LOCAL_CFLAGS += -march=armv6j
 
 
-#include $(BUILD_STATIC_LIBRARY)
-include $(BUILD_SHARED_LIBRARY)
+include $(BUILD_STATIC_LIBRARY)
+#include $(BUILD_SHARED_LIBRARY)

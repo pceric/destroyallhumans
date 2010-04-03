@@ -19,6 +19,22 @@ extern "C" {
 #define edu_dhbw_andopenglcam_CameraPreviewHandler_MODE_CONTOUR 4L
 /*
  * Class:     edu_dhbw_andopenglcam_CameraPreviewHandler
+ * Method:    setupJPEG
+ * Signature: (Ljava/lang/String;IIII)V
+ */
+JNIEXPORT void JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_setupJPEG
+  (JNIEnv *, jobject, jstring, jint, jint, jint, jint);
+
+/*
+ * Class:     edu_dhbw_andopenglcam_CameraPreviewHandler
+ * Method:    sendJPEG
+ * Signature: ([B)V
+ */
+JNIEXPORT void JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_sendJPEG
+  (JNIEnv *, jobject, jbyteArray);
+
+/*
+ * Class:     edu_dhbw_andopenglcam_CameraPreviewHandler
  * Method:    yuv420sp2rgb
  * Signature: ([BIII[B)V
  */
@@ -49,6 +65,23 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_detect_1e
 JNIEXPORT void JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_detect_1edges_1simple
   (JNIEnv *, jobject, jbyteArray, jint, jint, jbyteArray, jint);
 
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class edu_dhbw_andopenglcam_CameraPreviewHandler_ConversionWorker */
+
+#ifndef _Included_edu_dhbw_andopenglcam_CameraPreviewHandler_ConversionWorker
+#define _Included_edu_dhbw_andopenglcam_CameraPreviewHandler_ConversionWorker
+#ifdef __cplusplus
+extern "C" {
+#endif
+#undef edu_dhbw_andopenglcam_CameraPreviewHandler_ConversionWorker_MIN_PRIORITY
+#define edu_dhbw_andopenglcam_CameraPreviewHandler_ConversionWorker_MIN_PRIORITY 1L
+#undef edu_dhbw_andopenglcam_CameraPreviewHandler_ConversionWorker_NORM_PRIORITY
+#define edu_dhbw_andopenglcam_CameraPreviewHandler_ConversionWorker_NORM_PRIORITY 5L
+#undef edu_dhbw_andopenglcam_CameraPreviewHandler_ConversionWorker_MAX_PRIORITY
+#define edu_dhbw_andopenglcam_CameraPreviewHandler_ConversionWorker_MAX_PRIORITY 10L
 #ifdef __cplusplus
 }
 #endif
