@@ -18,7 +18,7 @@ public class DataThread extends Thread {
   
   public void run() {
     while (_client != null) {
-      print(Long.toString(System.nanoTime() / 1000) + _controller.getState());
+      //print(Long.toString(_controller.timestamp) + _controller.getState());
       try {
         _client.sendTCP(_controller.getState());
         _client.update(0);
@@ -58,7 +58,14 @@ public class DataThread extends Thread {
   
   public float get_battery() {
     if (_rs != null)
-      return _rs.phoneBatteryVoltage;
+      return _rs.phoneBatteryLevel;
+    else
+      return 0.0;
+  }
+
+  public float get_hitPoints() {
+    if (_rs != null)
+      return _rs.hitPoints;
     else
       return 0.0;
   }

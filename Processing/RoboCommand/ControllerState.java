@@ -1,5 +1,7 @@
 public class ControllerState
 {
+  
+   public long timestamp;
    
    public boolean X;
    public boolean C;
