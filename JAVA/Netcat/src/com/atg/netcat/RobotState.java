@@ -9,15 +9,44 @@ public class RobotState
 {
     public boolean blueToothConnected = false;
     
-    public boolean ipConnected = false;
-    
-    public boolean sendingVideo = false;
-    
     public float azimuth = 0,  pitch = 0, roll = 0;
     
-    public String localIpAddress = "127.0.0.1";    
-       
-    public float phoneBatteryVoltage = (float) 0.0;
+    public float magX = 0,  magY = 0, magZ = 0;
     
+    public float accelX = 0, accelY = 0, accelZ = 0;  
+       
+    public int phoneBatteryLevel =  0;
+    
+    public int phoneBatteryTemp =  0;
+    
+    public float camFrameRate = 0;
+    
+    public float processFrameRate = 0;
+    
+    public int wifiStrength = 0;
+    
+    public int wifiSpeed = 0;
+
+    public float lightLevel = 0;
+     
+    //these values come from the Arduino
+    
+    public float botBatteryLevel = 0;
+    
+    public float irDistance = 0;
+    
+    public float sonarDistance = 0;
+    
+    public int hitPoints = 0;
+    
+    public int turrentElevation = 0;
+    
+    public int turrentAzimuth = 0;
+    
+    public int servoSpeed = 0;
+    
+    public int ankleAngle = 0;
+    
+    public boolean moving = false;
     
 }
