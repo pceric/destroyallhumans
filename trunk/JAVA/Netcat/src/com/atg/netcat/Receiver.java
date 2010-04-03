@@ -152,11 +152,11 @@ public class Receiver extends Activity implements Callback
 
     if (!state.listening)
     {
-      String msg = "Listening on port " + controlPort + " for control server";
+      String msg = "IP:" + state.getLocalIpAddress() +":" + controlPort ;
 
-      Toast.makeText(CONTEXT, "Current IP:" + state.getLocalIpAddress(),   Toast.LENGTH_LONG);
+      //Toast.makeText(CONTEXT, "Current IP:" + state.getLocalIpAddress(),   Toast.LENGTH_LONG);
 
-      ProgressDialog btDialog = ProgressDialog.show(CONTEXT, "Connecting", "Searching for a Bluetooth serial port...");
+      ProgressDialog btDialog = ProgressDialog.show(CONTEXT, msg, "Searching for a Bluetooth serial port...");
       
       
       String connectivity_context = Context.WIFI_SERVICE;

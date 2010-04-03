@@ -81,7 +81,15 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
     
     return instance.clientAddress.getAddress().getHostAddress();
   }
+   
   
+  public static void setFrameRate(float raw, float processed)
+  {
+    if (instance == null)
+      return ;
+     instance.state.camFrameRate = raw;
+     instance.state.processFrameRate = processed;
+  }
 
   private RobotStateHandler(Handler h) throws IOException
   {
