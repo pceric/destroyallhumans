@@ -20,3 +20,19 @@ LOCAL_SRC_FILES := image_processing.c
 
 include $(BUILD_SHARED_LIBRARY)
 
+
+include $(CLEAR_VARS)
+
+LOCAL_MODULE    := framebuffet
+LOCAL_C_INCLUDES := \
+        $(LOCAL_PATH)/../jpeg-8
+LOCAL_CFLAGS := $(LOCAL_C_INCLUDES:%=-I%)
+LOCAL_LDLIBS := -L$(SYSROOT)/usr/lib -ldl  #\
+            #    -L$(NDK_APP_OUT)/Netcat -ljpeg 
+
+LOCAL_SRC_FILES := framebuffet.c
+
+LOCAL_STATIC_LIBRARIES := jpeg
+
+
+include $(BUILD_SHARED_LIBRARY)

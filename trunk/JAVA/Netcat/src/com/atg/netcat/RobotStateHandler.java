@@ -2,6 +2,7 @@ package com.atg.netcat;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
@@ -13,6 +14,12 @@ import com.esotericsoftware.kryonet.Server;
 
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -20,7 +27,7 @@ import android.util.Log;
 /*
  * This is a class to store the state of the robot.
  */
-public class RobotStateHandler extends Thread implements OrientationListener
+public class RobotStateHandler extends Thread implements OrientationListener, AccelerometerListener 
 {
   private Server                   server;
 
@@ -32,7 +39,9 @@ public class RobotStateHandler extends Thread implements OrientationListener
 
   private ProgressDialog           btDialog;
 
-  private ProgressDialog           ipDialog;
+  //private ProgressDialog           ipDialog;
+  
+  private WifiManager              wifi;
 
   private Handler                  uiHandler;
 
@@ -46,7 +55,9 @@ public class RobotStateHandler extends Thread implements OrientationListener
 
   public boolean                   listening        = false;
 
-  int                              listenPort       = 5555;
+  
+  InetSocketAddress clientAddress = null;
+  
 
   public static RobotStateHandler getInstance(Handler h) throws IOException
   {
@@ -58,6 +69,19 @@ public class RobotStateHandler extends Thread implements OrientationListener
     return instance;
 
   }
+  
+  
+  public static String getClientIpAddress()
+  {
+    if (instance == null)
+      return null;
+    
+    if(instance.clientAddress == null)
+      return null;
+    
+    return instance.clientAddress.getAddress().getHostAddress();
+  }
+  
 
   private RobotStateHandler(Handler h) throws IOException
   {
@@ -70,15 +94,13 @@ public class RobotStateHandler extends Thread implements OrientationListener
 
     state = new RobotState();
 
-    state.localIpAddress = getLocalIpAddress();
-
     server = new Server();
 
     server.start();
 
     setName("Robot State Handler");
 
-    server.bind(listenPort);
+    server.bind(Receiver.controlPort);
 
     Kryo kryo = server.getKryo();
     kryo.register(ControllerState.class);
@@ -88,6 +110,8 @@ public class RobotStateHandler extends Thread implements OrientationListener
     {
       public void received(Connection connection, Object object)
       {
+        clientAddress = connection.getRemoteAddressTCP();
+        
         if (object instanceof ControllerState)
         {
           controllerState = (ControllerState) object;
@@ -103,7 +127,7 @@ public class RobotStateHandler extends Thread implements OrientationListener
   {
     btInBuffer.append(data);
     state.blueToothConnected = true;
-    handler.sendEmptyMessage(0);
+    //handler.sendEmptyMessage(0);
 
   }
 
@@ -134,9 +158,60 @@ public class RobotStateHandler extends Thread implements OrientationListener
     return data;
   }
 
-  public void flush(IPCommThread ip, BTCommThread bt)
-  {
+  public BroadcastReceiver mBatInfoReceiver = new BroadcastReceiver(){
+    public void onReceive(Context arg0, Intent intent) {
+      // TODO Auto-generated method stub
+      state.phoneBatteryLevel = intent.getIntExtra("level", 0);
+      state.phoneBatteryTemp = intent.getIntExtra("temperature", 0);
+    }
+  };
+  
+  
+  public BroadcastReceiver mWifiInfoReceiver = new BroadcastReceiver(){
 
+    @Override
+    public void onReceive(Context context, Intent intent) {
+            WifiInfo info = wifi.getConnectionInfo();            
+            
+            state.wifiStrength =  info.getRssi();
+            
+            state.wifiSpeed = info.getLinkSpeed();
+            
+    }
+  
+  };
+  
+  /**
+   * onShake callback
+   */
+  public void onShake(float force) {
+      //Toast.makeText(this, "Phone shaked : " + force, 1000).show();
+  }
+
+  /**
+   * onAccelerationChanged callback
+   */
+  public void onAccelerationChanged(float x, float y, float z) {
+     state.accelX = x;
+     state.accelY = y;
+     state.accelZ = z;
+  }
+
+  /**
+   * onCompassChanged callback
+   */
+  public void onCompassChanged(float x, float y, float z) {
+     state.magX = x;
+     state.magY = y;
+     state.accelZ = z;
+  }
+  
+  
+  /**
+   * onLightLevelChanged callback
+   */
+  public void onLightLevelChanged(float level) {
+     state.lightLevel = level;
   }
 
   public void onOrientationChanged(float azimuth, float pitch, float roll)
@@ -144,9 +219,6 @@ public class RobotStateHandler extends Thread implements OrientationListener
     state.azimuth = azimuth;
     state.pitch = pitch;
     state.roll = roll;
-
-    // ipOutBuffer.append(msg);
-
   }
 
   public void onBottomUp()
@@ -198,13 +270,15 @@ public class RobotStateHandler extends Thread implements OrientationListener
     return null;
   }
 
-  public synchronized void  startListening(ProgressDialog ipDialog, ProgressDialog btDialog)
+  public synchronized void  startListening(ProgressDialog btDialog, WifiManager wifi)
   {
-    Log.d("RobotStateHandler","startListening");
+    //Log.d("RobotStateHandler","startListening");
+    
+    this.wifi = wifi;
     
     if(! listening)
     {
-      
+            
       bTcomThread = new BTCommThread(BluetoothAdapter.getDefaultAdapter(), btDialog, this);
       bTcomThread.start();
   
@@ -241,8 +315,6 @@ public class RobotStateHandler extends Thread implements OrientationListener
       OrientationManager.stopListening();
     }
 
-    if (ipDialog != null && ipDialog.isShowing())
-      ipDialog.dismiss();
 
     if (btDialog != null && btDialog.isShowing())
       btDialog.dismiss();
@@ -263,20 +335,13 @@ public class RobotStateHandler extends Thread implements OrientationListener
           server.update(10);
           if (clientConnection != null)
           {
-
-            state.ipConnected = true;
-
-            if (ipDialog != null && ipDialog.isShowing())
-            {
-              ipDialog.dismiss();
-              ipDialog = null;
-            }
-
+            
             if (bTcomThread != null && controllerState != null)
             {
-              // btOutBuffer.append(controllerState.toString());
-              // bTcomThread.write(btOutBuffer.toString().getBytes());
-              // btOutBuffer.delete(0, btInBuffer.length());
+               btOutBuffer.append(controllerState.toString());
+               bTcomThread.write(btOutBuffer.toString().getBytes());
+               btOutBuffer.delete(0, btInBuffer.length());
+               controllerState = null;
             }
 
             clientConnection.sendTCP(state);

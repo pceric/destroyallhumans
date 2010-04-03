@@ -19,11 +19,16 @@
  */
 package edu.dhbw.andopenglcam;
 
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Date;
 import java.util.List;
 
 import javax.microedition.khronos.opengles.GL10;
+
+import com.atg.netcat.Receiver;
+import com.atg.netcat.RobotStateHandler;
 
 import edu.dhbw.andopenglcam.interfaces.PreviewFrameSink;
 import android.content.res.Resources;
@@ -34,6 +39,7 @@ import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PreviewCallback;
 import android.hardware.Camera.Size;
 import android.opengl.GLSurfaceView;
+import android.provider.MediaStore.Video;
 import android.util.Log;
 
 /**
@@ -53,9 +59,11 @@ public class CameraPreviewHandler implements PreviewCallback {
 	private PreviewFrameSink frameSink;
 	private Resources res;
 	private int textureSize=256;
-	private int previewFrameWidth=240;
-	private int previewFrameHeight=160;
-	private int bwSize=previewFrameWidth*previewFrameHeight;//size of the black/white image
+	private int previewFrameWidth;
+	private int previewFrameHeight;
+	private int bwSize;//size of the black/white image
+	private int NUMBER_OF_BUFFERS = 16;
+	private boolean sendVideo = false;
 	
 	//Modes:
 	public final static int MODE_RGB=0;
@@ -68,6 +76,10 @@ public class CameraPreviewHandler implements PreviewCallback {
 	private MarkerInfo markerInfo;
 	private ConversionWorker convWorker;
 	
+	private Camera mCamera;
+	
+    Date start;
+    int fcount;
 	
 	public CameraPreviewHandler(GLSurfaceView glSurfaceView,
 			PreviewFrameSink sink, Resources res, MarkerInfo markerInfo) {
@@ -84,7 +96,31 @@ public class CameraPreviewHandler implements PreviewCallback {
 	static { 
 	    System.loadLibrary( "imageprocessing" );
 	    System.loadLibrary( "yuv420sp2rgb" );	
+	    System.loadLibrary("framebuffet" );  
+	  //  System.load("/data/data/com.atg.netcat/libjpeg.so" );
 	} 
+
+	
+	/**
+     * native function, that sends a jpeg
+     * @param in
+     * @param width
+     * @param height
+     * @param textureSize
+     * @param out
+     */
+    public native void setupJPEG(String host, int port, int width, int height, int quality);
+    
+    /**
+     * native function, that converts a byte array from ycbcr420 to RGB
+     * @param in
+     * @param width
+     * @param height
+     * @param textureSize
+     * @param out
+     */
+    private native void sendJPEG(byte[] in);
+	
 	
 	/**
 	 * native function, that converts a byte array from ycbcr420 to RGB
@@ -136,10 +172,12 @@ public class CameraPreviewHandler implements PreviewCallback {
 	 * @param camera
 	 */
 	public void init(Camera camera) throws Exception {
+	    mCamera= camera;
+	    
+	    start = new Date();
+	    fcount = 0;
+	  
 		Parameters camParams = camera.getParameters();
-		//camParams.setPreviewSize(480,320);
-		//camera.setParameters(camParams);
-        //Log.d("CameraPreviewHandler",supportedPreviewSizes.toString());
 		//check if the pixel format is supported
 		if (camParams.getPreviewFormat() != PixelFormat.YCbCr_420_SP) {
 			//Das Format ist semi planar, Erklärung:
@@ -148,22 +186,42 @@ public class CameraPreviewHandler implements PreviewCallback {
 			//throw new Exception(res.getString(R.string.error_unkown_pixel_format));
 			throw new Exception("R.string.error_unkown_pixel_format");
 			
-		}			
+		}					
 		//get width/height of the camera
 		Size previewSize = camParams.getPreviewSize();
 		previewFrameWidth = previewSize.width;
-		previewFrameHeight = previewSize.height;
+		previewFrameHeight = previewSize.height;		
+		
+	    PixelFormat p = new PixelFormat();
+        PixelFormat.getPixelFormatInfo(camParams.getPreviewFormat(),p);
+        //int bufSize = (previewFrameWidth*previewFrameHeight*p.bitsPerPixel)/8;
+           
 		textureSize = GenericFunctions.nextPowerOfTwo(Math.max(previewFrameWidth, previewFrameHeight));
 		//frame = new byte[textureSize*textureSize*3];
-		bwSize = previewFrameWidth * previewFrameHeight;
+		bwSize = previewFrameWidth * previewFrameHeight;	
+		
 		frame = new byte[bwSize*3];
 		for (int i = 0; i < frame.length; i++) {
 			frame[i]=(byte) 128;
-		}
+		}		
+		
 		frameSink.setPreviewFrameSize(textureSize, previewFrameWidth, previewFrameHeight);
 		//default mode:
 		setMode(MODE_RGB);
 		markerInfo.setImageSize(previewFrameWidth, previewFrameHeight);
+		
+	    //Must call this before calling addCallbackBuffer to get all the
+	    // reflection variables setup
+	    initForACB();
+		
+	    //Add three buffers to the buffer queue. I re-queue them once they are used in
+	    // onPreviewFrame, so we should not need many of them.  
+	    for (int i = 0; i < NUMBER_OF_BUFFERS; i++)
+	    {
+	       addCallbackBuffer(new byte[bwSize*3]);                               
+	    }
+		
+		setPreviewCallbackWithBuffer();
 	}
 
 	//size of a texture must be a power of 2
@@ -180,11 +238,44 @@ public class CameraPreviewHandler implements PreviewCallback {
 	 */
 	//@Override
 	public void onPreviewFrame(byte[] data, Camera camera) {
-		//prevent null pointer exceptions
+		//prevent null pointer exceptions	  
 		if (data == null)
 			return;
-		convWorker.nextFrame(data);
-		markerInfo.detectMarkers(data);
+		
+        if(start == null){
+            
+        }
+        fcount++;
+        if(fcount % 30 == 0){
+            double ms = (new Date()).getTime() - start.getTime();
+            Log.i("AR","fps:" + fcount/(ms/1000.0));
+            start = new Date();
+            fcount = 0;
+        }
+				
+		if(convWorker.nextFrame(data))
+		{
+		  //markerInfo.detectMarkers(data);
+		}
+		else
+		{
+		  //We are done with this buffer, so add it back to the pool     
+		  addCallbackBuffer(data);
+		}
+		
+	
+		if(sendVideo == false )
+		{
+		  String ip = RobotStateHandler.getClientIpAddress();
+		  if(ip != null)
+		  {
+		    setupJPEG(ip, Receiver.videoPort, previewFrameWidth, previewFrameHeight, 20);
+		  }
+		}
+		
+		
+			
+		      
 	}
 	
 	public void setMode(int pMode) {
@@ -209,6 +300,104 @@ public class CameraPreviewHandler implements PreviewCallback {
 			}
 		}		
 	}
+	  
+    /**
+     * This method will list all methods of the android.hardware.Camera class,
+     * even the hidden ones. With the information it provides, you can use the same
+     * approach I took below to expose methods that were written but hidden in eclair
+     */
+    private void listAllCameraMethods(){
+        try {
+            Class c = Class.forName("android.hardware.Camera");
+            Method[] m = c.getMethods();
+            for(int i=0; i<m.length; i++){
+                Log.i("AR","  method:"+m[i].toString());
+            }
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            Log.i("AR",e.toString());
+        }
+    }
+    
+    /**
+     * These variables are re-used over and over by
+     * addCallbackBuffer
+     */
+    Method mAcb;
+    Object[] mArglist;
+    
+    private void initForACB(){
+        try {
+            Class mC = Class.forName("android.hardware.Camera");
+        
+            Class[] mPartypes = new Class[1];
+            mPartypes[0] = (new byte[1]).getClass(); //There is probably a better way to do this.
+            mAcb = mC.getMethod("addCallbackBuffer", mPartypes);
+
+            mArglist = new Object[1];
+        } catch (Exception e) {
+            Log.e("AR","Problem setting up for addCallbackBuffer: " + e.toString());
+        }
+    }
+    
+    /**
+     * This method allows you to add a byte buffer to the queue of buffers to be used by preview.
+     * See: http://android.git.kernel.org/?p=platform/frameworks/base.git;a=blob;f=core/java/android/hardware/Camera.java;hb=9db3d07b9620b4269ab33f78604a36327e536ce1
+     * 
+     * @param b The buffer to register. Size should be width * height * bitsPerPixel / 8.
+     */
+    public void addCallbackBuffer(byte[] b){
+        //Check to be sure initForACB has been called to setup
+        // mAcb and mArglist
+        if(mArglist == null){
+            initForACB();
+        }
+
+        mArglist[0] = b;
+        try {
+            mAcb.invoke(mCamera, mArglist);
+        } catch (Exception e) {
+            Log.e("AR","invoking addCallbackBuffer failed: " + e.toString());
+        }
+    }
+    
+    /**
+     * Use this method instead of setPreviewCallback if you want to use manually allocated
+     * buffers. Assumes that "this" implements Camera.PreviewCallback
+     */
+    private void setPreviewCallbackWithBuffer(){
+        try {
+            Class c = Class.forName("android.hardware.Camera");
+            
+            Method spcwb = null;
+            //This way of finding our method is a bit inefficient, but I am a reflection novice,
+            // and didn't want to waste the time figuring out the right way to do it.
+            // since this method is only called once, this should not cause performance issues
+            Method[] m = c.getMethods();
+            for(int i=0; i<m.length; i++){
+                if(m[i].getName().compareTo("setPreviewCallbackWithBuffer") == 0){
+                    spcwb = m[i];
+                    break;
+                }
+            }
+            
+            //If we were able to find the setPreviewCallbackWithBuffer method of Camera, 
+            // we can now invoke it on our Camera instance, setting 'this' to be the
+            // callback handler
+            if(spcwb != null){
+                Object[] arglist = new Object[1];
+                arglist[0] = this;
+                spcwb.invoke(mCamera, arglist);
+                Log.i("AR","setPreviewCallbackWithBuffer: Called method");
+            } else {
+                Log.i("AR","setPreviewCallbackWithBuffer: Did not find method");
+            }
+            
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            Log.i("AR",e.toString());
+        }
+    }
 	
 	/**
 	 * A worker thread that does colorspace conversion in the background.
@@ -219,7 +408,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 	 *
 	 */
 	class ConversionWorker extends Thread {
-		private byte[] curFrame;
+		private byte[] curFrame = null;
 		private PreviewFrameSink frameSink;
 		
 		/**
@@ -227,7 +416,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 		 */
 		public ConversionWorker(PreviewFrameSink frameSink) {
 			setDaemon(true);
-			this.frameSink = frameSink;
+			this.frameSink = frameSink;	
 			start();
 		}
 		
@@ -244,10 +433,14 @@ public class CameraPreviewHandler implements PreviewCallback {
 				frameSink.getFrameLock().lock();
 				synchronized (modeLock) {
 					switch(mode) {
-					case MODE_RGB:
+					case MODE_RGB:			     
+					    if(sendVideo)
+					    {
+					      sendJPEG(curFrame);
+					    }		  
 						//color:
 						yuv420sp2rgb(curFrame, previewFrameWidth, previewFrameHeight, textureSize, frame);   
-						Log.d("ConversionWorker","handing frame over to sink");
+						Log.d("ConversionWorker","handing frame over to sink");						
 						frameSink.setNextFrame(ByteBuffer.wrap(frame));
 						break;
 					case MODE_GRAY:
@@ -270,24 +463,33 @@ public class CameraPreviewHandler implements PreviewCallback {
 						frameSink.setNextFrame(ByteBuffer.wrap(frame));
 						break;
 					}
+					
 				}
+				//We are done with this buffer, so add it back to the pool
+				addCallbackBuffer(curFrame);
 				frameSink.getFrameLock().unlock();
-				glSurfaceView.requestRender();
+				glSurfaceView.requestRender();	      
+		        
 				try {
 					wait();//wait for next frame
 				} catch (InterruptedException e) {}
 			}
 		}
 		
-		synchronized void nextFrame(byte[] frame) {
-			if(this.getState() == Thread.State.WAITING) {
-				//ok, we are ready for a new frame:
-				curFrame = frame;
+		synchronized boolean nextFrame(byte[] frame) {
+			if(this.getState() == Thread.State.WAITING) 
+			{
+              //ok, we are ready for a new frame:
+			    curFrame = frame;
 				//do the work:
 				this.notify();
+				return true;
 			} else {
 				//ignore it
+			  return false;
+
 			}
+			
 		}
 	}
 

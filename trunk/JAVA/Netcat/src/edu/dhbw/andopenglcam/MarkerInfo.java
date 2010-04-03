@@ -116,12 +116,12 @@ public class MarkerInfo {
 	}
 	
 	class DetectMarkerWorker extends Thread {
-		private byte[] curFrame;
+		private byte[] curFrame = null;
 		
 		/**
 		 * 
 		 */
-		public DetectMarkerWorker() {
+		public DetectMarkerWorker() {  
 			setPriority(MIN_PRIORITY);
 			setDaemon(true);
 			start();
@@ -144,10 +144,18 @@ public class MarkerInfo {
 			}
 		}
 		
-		synchronized void nextFrame(byte[] frame) {
+		synchronized void nextFrame(byte[] frame ) {
 			if(this.getState() == Thread.State.WAITING) {
-				//ok, we are ready for a new frame:
-				curFrame = frame;
+			  		
+			    /*
+	            if(curFrame == null)
+	              curFrame = new byte[frame.length]; 
+	            
+                System.arraycopy(frame, 0, curFrame, 0, frame.length);
+                
+                */
+			  
+			    curFrame = frame;
 				//do the work:
 				this.notify();
 			} else {
