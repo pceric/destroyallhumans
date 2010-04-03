@@ -22,26 +22,33 @@ import java.awt.MediaTracker;
 import processing.opengl.*;
 import processing.net.*;
 import procontroll.*;
-import processing.serial.*;
+
+import controlP5.*;
+
+final String PHONE_IP = "192.168.1.109";
+//final String JOYSTICK_NAME = "PLAYSTATION(R)3 Controller";
+final String JOYSTICK_NAME = "Microsoft SideWinder Precision Pro (USB)";
+final int CONTROL_PORT = 5555;
+final int VIDEO_PORT = 4444;
 
 // Kryonet client for control
 com.esotericsoftware.kryonet.Client myClient; 
+
 // Processing server for video
 processing.net.Server vidServer;
 
+// Joystick devices
 ControllIO controll;
 ControllDevice device;
 DAController ps3;
 
+// GUI
+ControlP5 controlP5;
+
+// Communication thread
+DataThread thread;
+
 PFont fontA;
-
-String phoneIpAddress = "192.168.1.109";
-//String joystickName = "PLAYSTATION(R)3 Controller";
-String joystickName = "Microsoft SideWinder Precision Pro (USB)";
-
-
-int controlPort = 5555;
-int videoPort = 4444;
 
 int size = 0;
 PImage android = createImage(20, 20, RGB);
@@ -49,30 +56,27 @@ byte[] imageBuffer;
 
 float segLength = 50;
 
-DataThread thread;
-
 void setup(){
   size(640,640,OPENGL);
   //size(800,600,P3D);
+  
+  //fill(0);
+  //frameRate(20);
+  //rectMode(CENTER);
+  fontA = loadFont("Ziggurat-HTF-Black-32.vlw");
+
+  controlP5 = new ControlP5(this);
+  controlP5.addTextfield("speech",100,600,300,20).setFocus(true);
+  controlP5.addSlider("lifeBar",0,15,1,20,height-115,20,100).setNumberOfTickMarks(15);
+  controlP5.addSlider("powerBar",0,100,100,width-40,height-115,20,100);
 
   controll = ControllIO.getInstance(this);
   controll.printDevices();
  
-  device = controll.getDevice(joystickName);
+  device = controll.getDevice(JOYSTICK_NAME);
   ps3 = new DAController(device, this);
 
-  fill(0);
-  //frameRate(20);
-
-  rectMode(CENTER);
-
-  fontA = loadFont("Ziggurat-HTF-Black-32.vlw");
-
-  vidServer = new processing.net.Server(this, videoPort);
-  
-  smooth(); 
-  strokeWeight(20.0);
-  stroke(0, 100);
+  vidServer = new processing.net.Server(this, VIDEO_PORT);
   
   myClient = new com.esotericsoftware.kryonet.Client();
   
@@ -84,8 +88,8 @@ void setup(){
   kryo.register(RobotState.class);
 
   try {
-    println("Connecting to phone at " + phoneIpAddress);
-    myClient.connect(15000, phoneIpAddress, controlPort);
+    println("Connecting to phone at " + PHONE_IP);
+    myClient.connect(15000, PHONE_IP, CONTROL_PORT);
   } catch (IOException e) {
     println(e + ".  Bye Bye.");
     System.exit(0);
@@ -93,8 +97,11 @@ void setup(){
 }
 
 void draw(){
-  background(255);
-  
+  float x;
+  float y;
+
+  background(0);
+
   // Get the next available client
   processing.net.Client thisClient = vidServer.available();
   // If the client is not null, try and get data
@@ -114,44 +121,49 @@ void draw(){
     }
   }
   
-  float x;
-  float y;
-
-
 /*
+  fill(0,0,255);
   x = width/2 + ((width/2) *  ps3.leftX());
   y = height/2 + ((height/2) * ps3.leftY());
-
   rect(x,y,20,20);
-
-   rect(x,y,20,20);
-
   x =  width/2 + ((width/2) *  ps3.rightX());
   y =  height/2 + ((height/2) * ps3.rightY());
   fill(255,0,0);
   rect(x,y,20,20);
   */
-  
 
   x = 0;
   y = 0;
+  pushMatrix();
+  translate(width, 0);
+  rotate(HALF_PI);
+  scale(1.0);
   beginShape();
   texture(android);
   vertex(x, y, x, y);
   vertex(x + android.width, y, x + android.width, y);
   vertex(x + android.width, y + android.height, x + android.width, y + android.height);
   vertex(x, y + android.height, x, y + android.height);
-  translate(width, 0);
-  rotate(HALF_PI);
-  scale(1.0);
-  endShape();
+  endShape(CLOSE);
+  popMatrix();  
   
- 
-  x = width/2;
-  y = width/2;
-  fill(255,0,0); 
+  // GUI components
+  controlP5.controller("powerBar").setValue(thread.get_battery());
+  if ((controlP5.controller("powerBar").value() / controlP5.controller("powerBar").max()) <= 0.25)
+    controlP5.controller("powerBar").setColorForeground(color(255,0,0));
+  else
+    controlP5.controller("powerBar").setColorForeground(color(0,255,0));
+  controlP5.controller("lifeBar").setValue(thread.get_hitPoints());
+  if ((controlP5.controller("lifeBar").value() / controlP5.controller("lifeBar").max()) <= 0.25)
+    controlP5.controller("lifeBar").setColorForeground(color(255,0,0));
+  else
+    controlP5.controller("lifeBar").setColorForeground(color(0,255,0));
+
+  fill(128,0,128); 
   pushMatrix();
-  segment(x, y, radians(thread.get_azimuth())); 
+  translate(500, 575);
+  rotate(radians(thread.get_azimuth()));
+  box(100, 50, 5);
   popMatrix();
 }
 
@@ -191,4 +203,8 @@ void segment(float x, float y, float a) {
   line(0, 0, segLength, 0);
 }
 
+public void speech(String theText) {
+  // receiving text from controller texting
+  println("a textfield event for controller 'speech': "+theText);
+}
 

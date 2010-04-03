@@ -263,6 +263,7 @@ class DAController
 
   ControllerState getState() {
     int i;
+    cs.timestamp = System.nanoTime() / 1000;
     i = (invertLeftX ? -1 : 1);
     cs.leftX = leftStick.getX()*i;
     i = (invertRightX ? -1 : 1);
