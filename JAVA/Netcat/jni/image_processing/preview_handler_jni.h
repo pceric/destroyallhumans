@@ -20,17 +20,17 @@ extern "C" {
 /*
  * Class:     edu_dhbw_andopenglcam_CameraPreviewHandler
  * Method:    setupJPEG
- * Signature: (Ljava/lang/String;IIII)V
+ * Signature: ([BIIII)I
  */
-JNIEXPORT void JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_setupJPEG
-  (JNIEnv *, jobject, jstring, jint, jint, jint, jint);
+JNIEXPORT jint JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_setupJPEG
+  (JNIEnv *, jobject, jbyteArray, jint, jint, jint, jint);
 
 /*
  * Class:     edu_dhbw_andopenglcam_CameraPreviewHandler
  * Method:    sendJPEG
- * Signature: ([B)V
+ * Signature: ([B)I
  */
-JNIEXPORT void JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_sendJPEG
+JNIEXPORT jint JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_sendJPEG
   (JNIEnv *, jobject, jbyteArray);
 
 /*

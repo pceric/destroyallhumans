@@ -79,7 +79,9 @@ public class CameraPreviewHandler implements PreviewCallback {
 	private Camera mCamera;
 	
     Date start;
-    int fcount;
+    int proccessedFrameCount;
+	
+    int rawFrameCount;
 	
 	public CameraPreviewHandler(GLSurfaceView glSurfaceView,
 			PreviewFrameSink sink, Resources res, MarkerInfo markerInfo) {
@@ -96,8 +98,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 	static { 
 	    System.loadLibrary( "imageprocessing" );
 	    System.loadLibrary( "yuv420sp2rgb" );	
-	    System.loadLibrary("framebuffet" );  
-	  //  System.load("/data/data/com.atg.netcat/libjpeg.so" );
+	    System.loadLibrary( "framebuffet" );  
 	} 
 
 	
@@ -109,7 +110,7 @@ public class CameraPreviewHandler implements PreviewCallback {
      * @param textureSize
      * @param out
      */
-    public native void setupJPEG(String host, int port, int width, int height, int quality);
+    public native int setupJPEG(byte[] host, int port, int width, int height, int quality);
     
     /**
      * native function, that converts a byte array from ycbcr420 to RGB
@@ -119,7 +120,7 @@ public class CameraPreviewHandler implements PreviewCallback {
      * @param textureSize
      * @param out
      */
-    private native void sendJPEG(byte[] in);
+    private native int sendJPEG(byte[] in);
 	
 	
 	/**
@@ -175,7 +176,9 @@ public class CameraPreviewHandler implements PreviewCallback {
 	    mCamera= camera;
 	    
 	    start = new Date();
-	    fcount = 0;
+	    proccessedFrameCount = 0;
+	    
+	    rawFrameCount = 0;
 	  
 		Parameters camParams = camera.getParameters();
 		//check if the pixel format is supported
@@ -242,26 +245,29 @@ public class CameraPreviewHandler implements PreviewCallback {
 		if (data == null)
 			return;
 		
-        if(start == null){
-            
-        }
-        fcount++;
-        if(fcount % 30 == 0){
+        if(rawFrameCount % 30 == 0){
             double ms = (new Date()).getTime() - start.getTime();
-            Log.i("AR","fps:" + fcount/(ms/1000.0));
+            
+            float rawFps =  (float) ( 30/(ms/1000.0) );
+            float camFps =  (float) ( proccessedFrameCount/(ms/1000.0));
+            
+            proccessedFrameCount = 0;
             start = new Date();
-            fcount = 0;
+                          
+            Log.i("AR","fps raw:" +rawFps + "fps processed:"+ camFps);
         }
-				
+        
+        rawFrameCount++;		
 		if(convWorker.nextFrame(data))
 		{
-		  //markerInfo.detectMarkers(data);
+	      proccessedFrameCount++;
 		}
 		else
 		{
 		  //We are done with this buffer, so add it back to the pool     
 		  addCallbackBuffer(data);
 		}
+
 		
 	
 		if(sendVideo == false )
@@ -269,7 +275,16 @@ public class CameraPreviewHandler implements PreviewCallback {
 		  String ip = RobotStateHandler.getClientIpAddress();
 		  if(ip != null)
 		  {
-		    setupJPEG(ip, Receiver.videoPort, previewFrameWidth, previewFrameHeight, 20);
+		    Log.d("CamPreview", "Calling setupJPEG with" + ip +" "+ Receiver.videoPort+" "+previewFrameWidth+" "+ previewFrameHeight+" "+20);
+		    
+		    if( setupJPEG(ip.getBytes(), Receiver.videoPort, previewFrameWidth, previewFrameHeight, 20)  != 0)
+		    {
+		     sendVideo = false; 
+		    }
+		    else
+		    {
+		      sendVideo = true;
+		    }
 		  }
 		}
 		
@@ -436,6 +451,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 					case MODE_RGB:			     
 					    if(sendVideo)
 					    {
+					      Log.d("PreviewHandler", "calling sendJPEG");
 					      sendJPEG(curFrame);
 					    }		  
 						//color:
