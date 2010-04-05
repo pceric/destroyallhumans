@@ -33,6 +33,7 @@ public class ControllerState
    public float rightX;
    public float rightY;
    
+   public String extraData = "";
 
    private float JOYMAX = (float) 127.0; 
 

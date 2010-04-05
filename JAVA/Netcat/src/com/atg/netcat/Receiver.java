@@ -2,6 +2,10 @@ package com.atg.netcat;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.Locale;
+import java.util.Random;
+
+//import com.example.android.apis.R;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -18,12 +22,16 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.speech.tts.TextToSpeech;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceHolder;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.SurfaceHolder.Callback;
+import android.widget.Button;
 import android.widget.Toast;
 import edu.dhbw.andopenglcam.CameraHolder;
 import edu.dhbw.andopenglcam.CameraPreviewHandler;
@@ -32,7 +40,7 @@ import edu.dhbw.andopenglcam.MarkerInfo;
 import edu.dhbw.andopenglcam.OpenGLCamRenderer;
 import edu.dhbw.andopenglcam.OpenGLCamView;
 
-public class Receiver extends Activity implements Callback
+public class Receiver extends Activity implements Callback, TextToSpeech.OnInitListener
 {
   public static Integer        controlPort   = 5555;
 
@@ -42,7 +50,7 @@ public class Receiver extends Activity implements Callback
   
   private static Integer PREVIEW_WIDTH = 480;
   
-  public static Integer JPEG_QUALITY = 30;
+  public static Integer JPEG_QUALITY = 20;
 
   public static InetAddress    clientAddress;
 
@@ -78,6 +86,11 @@ public class Receiver extends Activity implements Callback
 
   private MarkerInfo           markerInfo    = new MarkerInfo();
 
+  public TextToSpeech mTts;
+  
+  public static String TAG = "RoboBrain";
+  
+  
   /** Called when the activity is first created. */
   @Override
   public void onCreate(Bundle savedInstanceState)
@@ -112,15 +125,60 @@ public class Receiver extends Activity implements Callback
       e.printStackTrace();
     }
 
+    
+    // Initialize text-to-speech. This is an asynchronous operation.
+    // The OnInitListener (second argument) is called after initialization completes.
+    mTts = new TextToSpeech(this,
+        this  // TextToSpeech.OnInitListener
+        );
   }
 
+  
+  // Implements TextToSpeech.OnInitListener.
+  public void onInit(int status) {
+      // status can be either TextToSpeech.SUCCESS or TextToSpeech.ERROR.
+      if (status == TextToSpeech.SUCCESS) {
+          // Set preferred language to US english.
+          // Note that a language may not be available, and the result will indicate this.
+          int result = mTts.setLanguage(Locale.US);
+          // Try this someday for some interesting results.
+          // int result mTts.setLanguage(Locale.FRANCE);
+          if (result == TextToSpeech.LANG_MISSING_DATA ||
+              result == TextToSpeech.LANG_NOT_SUPPORTED) {
+             // Lanuage data is missing or the language is not supported.
+              Log.e(TAG, "Language is not available.");
+          } else {
+              // Check the documentation for other possible result codes.
+              // For example, the language may be available for the locale,
+              // but not for the specified country and variant.
+
+              // The TTS engine has been successfully initialized.
+              // Allow the user to press the button for the app to speak again.
+              //mAgainButton.setEnabled(true);
+              // Greet the user.
+              utterTaunt("Destroy all humans!");
+          }
+      } else {
+          // Initialization failed.
+          Log.e(TAG, "Could not initialize TextToSpeech.");
+      }
+  }
+
+  
+
+  private void utterTaunt(String taunt) {
+
+      mTts.speak(taunt, TextToSpeech.QUEUE_FLUSH, null);
+  }
+  
+  
   private Handler handler = new Handler()
                           {
 
                             @Override
                             public void handleMessage(Message msg)
                             {
-                              // state.flush(ipComThread, bTcomThread);
+                              utterTaunt((String)msg.obj);
                             }
 
                           };
