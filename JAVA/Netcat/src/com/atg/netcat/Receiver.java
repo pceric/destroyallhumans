@@ -174,12 +174,6 @@ public class Receiver extends Activity implements Callback
 
       this.registerReceiver(state.mWifiInfoReceiver, new IntentFilter(WifiManager.RSSI_CHANGED_ACTION));
 
-      //state.start();
-
-      if (OrientationManager.isSupported())
-      {
-        OrientationManager.startListening(state);
-      }
     }
 
   }
@@ -191,6 +185,10 @@ public class Receiver extends Activity implements Callback
     {
       state.stopListening();
     }
+    
+    this.unregisterReceiver(state.mBatInfoReceiver);
+
+    this.unregisterReceiver(state.mWifiInfoReceiver);
   }
 
   public static Context getContext()

@@ -295,6 +295,16 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
         OrientationManager.startListening(this);
       }
   
+      if (LightSensorManager.isSupported())
+      {
+        LightSensorManager.startListening(this);
+      }
+  
+      if (CompassManager.isSupported())
+      {
+        CompassManager.startListening(this);
+      }
+  
       listening = true;
       try {
       super.start();
@@ -323,6 +333,16 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
       OrientationManager.stopListening();
     }
 
+    if (CompassManager.isListening())
+    {
+      CompassManager.stopListening();
+    }
+    
+    if (LightSensorManager.isListening())
+    {
+      LightSensorManager.stopListening();
+    }
+     
 
     if (btDialog != null && btDialog.isShowing())
       btDialog.dismiss();
