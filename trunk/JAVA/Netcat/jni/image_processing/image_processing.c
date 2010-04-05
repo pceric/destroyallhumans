@@ -176,7 +176,7 @@ http://homepages.inf.ed.ac.uk/rbf/HIPR2/sobel.htm
 JNIEXPORT void JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_detect_1edges_1simple
   (JNIEnv *env, jobject object, jbyteArray inArray, jint width, jint height, jbyteArray outArray, jint threshold){
         int i,j,ptr=0,ptrAbove,ptrBelow,x,y,tmp;
-        //a pointer to a jbyte will not work because jbyte is actually a signed char, therefor comparing with the threshold would fail
+        //a pointer to a jbyte will not work because jbyte is actually a signed char, therefore comparing with the threshold would fail
         unsigned char *in;
         unsigned char *out;
         in = (*env)->GetByteArrayElements(env, inArray, JNI_FALSE);

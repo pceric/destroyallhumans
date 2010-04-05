@@ -275,9 +275,9 @@ public class CameraPreviewHandler implements PreviewCallback {
 		  String ip = RobotStateHandler.getClientIpAddress();
 		  if(ip != null)
 		  {
-		    Log.d("CamPreview", "Calling setupJPEG with" + ip +" "+ Receiver.videoPort+" "+previewFrameWidth+" "+ previewFrameHeight+" "+20);
+		    //Log.d("CamPreview", "Calling setupJPEG with" + ip +" "+ Receiver.videoPort+" "+previewFrameWidth+" "+ previewFrameHeight+" "+Receiver.JPEG_QUALITY);
 		    
-		    if( setupJPEG(ip.getBytes(), Receiver.videoPort, previewFrameWidth, previewFrameHeight, 20)  != 0)
+		    if( setupJPEG(ip.getBytes(), Receiver.videoPort, previewFrameWidth, previewFrameHeight, Receiver.JPEG_QUALITY)  != 0)
 		    {
 		     sendVideo = false; 
 		    }
@@ -444,19 +444,19 @@ public class CameraPreviewHandler implements PreviewCallback {
 				wait();//wait for initial frame
 			} catch (InterruptedException e) {}
 			while(true) {
-				Log.d("ConversionWorker","starting conversion");
+				//Log.d("ConversionWorker","starting conversion");
 				frameSink.getFrameLock().lock();
 				synchronized (modeLock) {
 					switch(mode) {
 					case MODE_RGB:			     
 					    if(sendVideo)
 					    {
-					      Log.d("PreviewHandler", "calling sendJPEG");
+					      //Log.d("PreviewHandler", "calling sendJPEG");
 					      sendJPEG(curFrame);
 					    }		  
 						//color:
 						yuv420sp2rgb(curFrame, previewFrameWidth, previewFrameHeight, textureSize, frame);   
-						Log.d("ConversionWorker","handing frame over to sink");						
+						//Log.d("ConversionWorker","handing frame over to sink");						
 						frameSink.setNextFrame(ByteBuffer.wrap(frame));
 						break;
 					case MODE_GRAY:
