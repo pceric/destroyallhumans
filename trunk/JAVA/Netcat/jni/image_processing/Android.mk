@@ -27,7 +27,7 @@ DEBUG_LOGGING := true
 
 LOCAL_MODULE    := framebuffet
 LOCAL_C_INCLUDES := \
-        $(LOCAL_PATH)/../jpeg-8
+        $(LOCAL_PATH)/../jpeg
 LOCAL_CFLAGS := $(LOCAL_C_INCLUDES:%=-I%)
 LOCAL_LDLIBS := -L$(SYSROOT)/usr/lib -ldl -llog  #\
             #    -L$(NDK_APP_OUT)/Netcat -ljpeg 

@@ -34,6 +34,8 @@ int QUALITY = 20;
 
 UINT32 img_size = 1152000;
 BYTE out_buffer[1152000];
+
+BYTE frameTerminator[32];
 //unsigned char *out_buffer;
 
 
@@ -63,12 +65,14 @@ int MakeNetworkConnection(char *addr, int port) {
     Res = inet_pton(AF_INET, addr, &stSockAddr.sin_addr);
 
     // Set buffer size
+    /*
     	int flag = 64000;
     	if (-1 == setsockopt(SocketFD, IPPROTO_UDP, SO_SNDBUF, (char *) &flag,sizeof(flag)))
     	{
     		__android_log_print(ANDROID_LOG_ERROR, "FRAMEBUFFET","set buffer size failed %d", errno);
     		return 2;
     	}
+    */
 
     if (0 > Res)
     {
@@ -281,7 +285,14 @@ JNIEXPORT int JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_sendJPEG
     }
 
 
-	int bytes_written = send(SocketFD, out_buffer, 1000, 0);
+	int i=0;
+	for(i = 0; i<32; i++)
+	{
+		out_buffer[compressed_size + i] += 0;
+	}
+
+	int bytes_written = send(SocketFD, out_buffer, compressed_size + 32, 0);
+
 
 	if(bytes_written < 0)
 	{
