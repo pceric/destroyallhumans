@@ -1,3 +1,5 @@
+import java.util.Date;
+
 public class DataThread extends Thread {
   private com.esotericsoftware.kryonet.Client _client;
   private DAController _controller;
@@ -20,8 +22,12 @@ public class DataThread extends Thread {
     while (_client != null) {
       //print(Long.toString(_controller.timestamp) + _controller.getState());
       try {
-        _client.sendTCP(_controller.getState());
+        ControllerState cs = _controller.getState();
+        Date sent = new Date();
+        cs.timestamp= sent.getTime();
+        _client.sendTCP(cs);
         _client.update(0);
+        cs.extraData="";
         Thread.sleep(100);
       }
       catch(IOException ex) {

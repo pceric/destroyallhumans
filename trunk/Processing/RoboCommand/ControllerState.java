@@ -25,11 +25,12 @@ public class ControllerState
    public boolean invertRightX;
    public boolean invertRightY;
    
-   
    public float leftX;
    public float leftY;
    public float rightX;
    public float rightY;
+   
+   public String extraData = "";
    
 
    private float JOYMAX = (float) 127.0; 
