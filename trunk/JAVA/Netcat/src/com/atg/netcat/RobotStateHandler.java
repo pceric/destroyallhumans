@@ -22,6 +22,7 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.Message;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
 
 /*
@@ -124,6 +125,13 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
         {
           controllerState = (ControllerState) object;
           clientConnection = connection;
+          
+          if(controllerState.extraData.length() > 0)
+          {
+            Message say = uiHandler.obtainMessage();
+            say.obj = controllerState.extraData;
+            say.sendToTarget();
+          }
         }
       }
 
@@ -145,6 +153,7 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
                             @Override
                             public void handleMessage(Message msg)
                             {
+
                               // state.flush(ipComThread, bTcomThread);
                             }
 
@@ -314,10 +323,6 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
       }
     
     }
-    // server.run();
-
-    // if (ipDialog != null && ipDialog.isShowing())
-    // ipDialog.dismiss();
 
   }
 

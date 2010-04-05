@@ -1,5 +1,15 @@
-// CameraSend.cpp : Defines the entry point for the console application.
-//
+/*  framebuffet.c by Darrell Taylor
+ *
+ *  Uses code from:
+ * 	picture.c
+ *
+ *	Various funtions for saving/loading pictures.
+ *	Copyright 2002 by Jeroen Vreeken (pe1rxq@amsat.org)
+ *	Portions of this file are Copyright by Lionnel Maugis
+ *	This software is distributed under the GNU public license version 2
+ *
+ */
+
 
 #include <jni.h>
 #include <preview_handler_jni.h>
@@ -328,6 +338,111 @@ static int put_jpeg_grey_memory(unsigned char *dest_image, int image_size, unsig
 	jpeg_destroy_compress(&cjpeg);
 
 	return dest_image_size;
+}
+
+/* put_jpeg_yuv420p_file converts an YUV420P coded image to a jpeg image and writes
+ * it to an already open file.
+ * Inputs:
+ * - image is the image in YUV420P format.
+ * - width and height are the dimensions of the image
+ * - quality is the jpeg encoding quality 0-100%
+ * Output:
+ * - The jpeg is written directly to the file given by the file pointer fp
+ * Returns nothing
+ */
+static void put_jpeg_yuv420p_file(FILE *fp, unsigned char *image, int width, int height, int quality)
+{
+	int i,j;
+
+	JSAMPROW y[16],cb[16],cr[16]; // y[2][5] = color sample of row 2 and pixel column 5; (one plane)
+	JSAMPARRAY data[3]; // t[0][2][5] = color sample 0 of row 2 and column 5
+
+	struct jpeg_compress_struct cinfo;
+	struct jpeg_error_mgr jerr;
+
+	data[0] = y;
+	data[1] = cb;
+	data[2] = cr;
+
+	cinfo.err = jpeg_std_error(&jerr);  // errors get written to stderr
+
+	jpeg_create_compress(&cinfo);
+	cinfo.image_width = width;
+	cinfo.image_height = height;
+	cinfo.input_components = 3;
+	jpeg_set_defaults(&cinfo);
+
+	jpeg_set_colorspace(&cinfo, JCS_YCbCr);
+
+	cinfo.raw_data_in = TRUE; // supply downsampled data
+	cinfo.comp_info[0].h_samp_factor = 2;
+	cinfo.comp_info[0].v_samp_factor = 2;
+	cinfo.comp_info[1].h_samp_factor = 1;
+	cinfo.comp_info[1].v_samp_factor = 1;
+	cinfo.comp_info[2].h_samp_factor = 1;
+	cinfo.comp_info[2].v_samp_factor = 1;
+
+	jpeg_set_quality(&cinfo, quality, TRUE);
+	cinfo.dct_method = JDCT_FASTEST;
+
+	jpeg_stdio_dest(&cinfo, fp);  	  // data written to file
+	jpeg_start_compress(&cinfo, TRUE);
+
+	for (j=0;j<height;j+=16) {
+		for (i=0;i<16;i++) {
+			y[i] = image + width*(i+j);
+			if (i%2 == 0) {
+				cb[i/2] = image + width*height + width/2*((i+j)/2);
+				cr[i/2] = image + width*height + width*height/4 + width/2*((i+j)/2);
+			}
+		}
+		jpeg_write_raw_data(&cinfo, data, 16);
+	}
+
+	jpeg_finish_compress(&cinfo);
+	jpeg_destroy_compress(&cinfo);
+}
+
+
+/* put_jpeg_grey_file converts an greyscale image to a jpeg image and writes
+ * it to an already open file.
+ * Inputs:
+ * - image is the image in greyscale format.
+ * - width and height are the dimensions of the image
+ * - quality is the jpeg encoding quality 0-100%
+ * Output:
+ * - The jpeg is written directly to the file given by the file pointer fp
+ * Returns nothing
+ */
+static void put_jpeg_grey_file(FILE *picture, unsigned char *image, int width, int height, int quality)
+{
+	int y;
+	JSAMPROW row_ptr[1];
+	struct jpeg_compress_struct cjpeg;
+	struct jpeg_error_mgr jerr;
+
+	cjpeg.err = jpeg_std_error(&jerr);
+	jpeg_create_compress(&cjpeg);
+	cjpeg.image_width = width;
+	cjpeg.image_height = height;
+	cjpeg.input_components = 1; /* one colour component */
+	cjpeg.in_color_space = JCS_GRAYSCALE;
+
+	jpeg_set_defaults(&cjpeg);
+
+	jpeg_set_quality(&cjpeg, quality, TRUE);
+	cjpeg.dct_method = JDCT_FASTEST;
+	jpeg_stdio_dest(&cjpeg, picture);
+
+	jpeg_start_compress(&cjpeg, TRUE);
+
+	row_ptr[0]=image;
+	for (y=0; y<height; y++) {
+		jpeg_write_scanlines(&cjpeg, row_ptr, 1);
+		row_ptr[0]+=width;
+	}
+	jpeg_finish_compress(&cjpeg);
+	jpeg_destroy_compress(&cjpeg);
 }
 
 
