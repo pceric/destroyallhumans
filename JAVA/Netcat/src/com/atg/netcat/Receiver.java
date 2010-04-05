@@ -38,9 +38,11 @@ public class Receiver extends Activity implements Callback
 
   public static Integer        videoPort     = 4444;
   
-  private static Integer PREVIEW_HEIGHT = 480;
+  private static Integer PREVIEW_HEIGHT = 800;
   
-  private static Integer PREVIEW_WIDTH = 320;
+  private static Integer PREVIEW_WIDTH = 480;
+  
+  public static Integer JPEG_QUALITY = 30;
 
   public static InetAddress    clientAddress;
 
@@ -162,12 +164,15 @@ public class Receiver extends Activity implements Callback
       String connectivity_context = Context.WIFI_SERVICE;
       WifiManager wifi = (WifiManager)getSystemService(connectivity_context);
 
+      /*
+      
       if(!wifi.isWifiEnabled()){
               if(wifi.getWifiState() != WifiManager.WIFI_STATE_ENABLING){
                       wifi.setWifiEnabled(true);
               }
       }
-
+      */
+      
       state.startListening(btDialog , wifi);
       
       this.registerReceiver(state.mBatInfoReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
@@ -235,9 +240,9 @@ public class Receiver extends Activity implements Callback
       
       //480x320
       params.setPreviewSize(PREVIEW_HEIGHT,PREVIEW_WIDTH);
-      // params.setPreviewFrameRate(1);//TODO remove restriction
+      // params.setPreviewFrameRate(1);
       camera.setParameters(params);
-     /*
+      /*
       if (Config.USE_ONE_SHOT_PREVIEW)
       {
         camera.setOneShotPreviewCallback(cameraHandler);
@@ -245,7 +250,6 @@ public class Receiver extends Activity implements Callback
       else
       {
         camera.setPreviewCallback(cameraHandler);
-
       }
       */
       try
