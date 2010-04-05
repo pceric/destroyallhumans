@@ -28,7 +28,7 @@ import procontroll.*;
 
 import controlP5.*;
 
-final String PHONE_IP = "192.168.2.254";
+final String PHONE_IP = "192.168.1.100";
 final String JOYSTICK_NAME = "PLAYSTATION(R)3 Controller";
 //final String JOYSTICK_NAME = "Microsoft SideWinder Precision Pro (USB)";
 final int CONTROL_PORT = 5555;
@@ -65,8 +65,11 @@ int packetBuffPos = 0;
 
 float segLength = 50;
 
+int SCREEN_WIDTH = 800;
+int SCREEN_HEIGHT = 640;
+
 void setup(){
-  size(640,640,OPENGL);
+  size(SCREEN_WIDTH,SCREEN_HEIGHT,OPENGL);
   //size(800,600,P3D);
   
   //fill(0);
@@ -109,8 +112,6 @@ void setup(){
   
   vidServer = new UDP(this, VIDEO_PORT);
   vidServer.setReceiveHandler( "videoPacketHandler"); 
-  
- 
 }
 
 
@@ -134,16 +135,19 @@ vidServer.listen();
   rect(x,y,20,20);
   */
 
-  x = 0;
+  x = 0; 
   y = 0;
   z = 1;
   
   if(android != null)
   {
+    float ratio = (float)width/(float)android.width;
+    
     pushMatrix();
-    translate(width, 0);
-    rotate(HALF_PI);
-    scale(1.0);
+    //translate(width, 0);
+    //rotate(HALF_PI);
+    //println("ratio = "+ratio);
+    scale(ratio);
     beginShape();
     texture(android);
     vertex(x, y, x, y);
@@ -154,7 +158,7 @@ vidServer.listen();
     popMatrix();      
   }
   
-  /*
+  
   // GUI components
   controlP5.controller("powerBar").setValue(thread.get_battery());
   if ((controlP5.controller("powerBar").value() / controlP5.controller("powerBar").max()) <= 0.25)
@@ -174,7 +178,6 @@ vidServer.listen();
   box(100, 50, 5);
   popMatrix();
   
-  */
 }
 
 
@@ -207,6 +210,7 @@ void segment(float x, float y, float a) {
 public void speech(String theText) {
   // receiving text from controller texting
   println("a textfield event for controller 'speech': "+theText);
+  ps3.getState().extraData = theText;
 }
 
 void videoPacketHandler(byte[] message, String ip, int port) {
@@ -221,7 +225,7 @@ void videoPacketHandler(byte[] message, String ip, int port) {
      msgPos++;
    }
     //if(sumLast32() == 0) {
-      println("found end");
+      //println("found end");
       imageBuffer = new byte[packetBuffPos];
       System.arraycopy(packetBuffer,0,imageBuffer,0,packetBuffPos - 32);
       android = loadPImageFromBytes(imageBuffer, this);
