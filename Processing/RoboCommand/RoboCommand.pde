@@ -16,8 +16,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+import hypermedia.net.*;
+
 import java.awt.Toolkit;
 import java.awt.MediaTracker;
+
 
 import processing.opengl.*;
 import processing.net.*;
@@ -25,9 +28,9 @@ import procontroll.*;
 
 import controlP5.*;
 
-final String PHONE_IP = "192.168.1.109";
-//final String JOYSTICK_NAME = "PLAYSTATION(R)3 Controller";
-final String JOYSTICK_NAME = "Microsoft SideWinder Precision Pro (USB)";
+final String PHONE_IP = "192.168.2.254";
+final String JOYSTICK_NAME = "PLAYSTATION(R)3 Controller";
+//final String JOYSTICK_NAME = "Microsoft SideWinder Precision Pro (USB)";
 final int CONTROL_PORT = 5555;
 final int VIDEO_PORT = 4444;
 
@@ -35,7 +38,8 @@ final int VIDEO_PORT = 4444;
 com.esotericsoftware.kryonet.Client myClient; 
 
 // Processing server for video
-processing.net.Server vidServer;
+//processing.net.Server vidServer;
+UDP vidServer;
 
 // Joystick devices
 ControllIO controll;
@@ -51,8 +55,13 @@ DataThread thread;
 PFont fontA;
 
 int size = 0;
-PImage android = createImage(20, 20, RGB);
+PImage android;
 byte[] imageBuffer;
+
+//byte[] packetBuffer = new ByteBuffer(64000);
+byte[] packetBuffer = new byte[64000];
+
+int packetBuffPos = 0;
 
 float segLength = 50;
 
@@ -76,7 +85,7 @@ void setup(){
   device = controll.getDevice(JOYSTICK_NAME);
   ps3 = new DAController(device, this);
 
-  vidServer = new processing.net.Server(this, VIDEO_PORT);
+  //vidServer = new processing.net.Server(this, VIDEO_PORT);
   
   myClient = new com.esotericsoftware.kryonet.Client();
   
@@ -86,7 +95,10 @@ void setup(){
   Kryo kryo = myClient.getKryo();
   kryo.register(ControllerState.class);
   kryo.register(RobotState.class);
-
+  
+  Arrays.fill(packetBuffer,0,packetBuffer.length, (byte)2);
+  
+  
   try {
     println("Connecting to phone at " + PHONE_IP);
     myClient.connect(15000, PHONE_IP, CONTROL_PORT);
@@ -94,34 +106,24 @@ void setup(){
     println(e + ".  Bye Bye.");
     System.exit(0);
   }
+  
+  vidServer = new UDP(this, VIDEO_PORT);
+  vidServer.setReceiveHandler( "videoPacketHandler"); 
+  
+ 
 }
+
 
 void draw(){
   float x;
   float y;
+  float z;
 
-  background(0);
+vidServer.listen();
 
-  // Get the next available client
-  processing.net.Client thisClient = vidServer.available();
-  // If the client is not null, try and get data
-  if (thisClient != null) {
-    // Get our image size
-    if (size == 0 && thisClient.available() >= 4) {
-      size = thisClient.read() << 24 | thisClient.read() << 16 | thisClient.read() << 8 | thisClient.read();
-      println(hex(size) + "  " + size);
-      imageBuffer = new byte[size];
-    }
-    // Draw image
-    if (size > 0 && thisClient.available() >= size) {
-      thisClient.readBytes(imageBuffer);
-      android = loadPImageFromBytes(imageBuffer, this);
-      //println("Image Done");
-      size = 0;
-    }
-  }
-  
-/*
+  background(0);   
+     
+  /*
   fill(0,0,255);
   x = width/2 + ((width/2) *  ps3.leftX());
   y = height/2 + ((height/2) * ps3.leftY());
@@ -134,19 +136,25 @@ void draw(){
 
   x = 0;
   y = 0;
-  pushMatrix();
-  translate(width, 0);
-  rotate(HALF_PI);
-  scale(1.0);
-  beginShape();
-  texture(android);
-  vertex(x, y, x, y);
-  vertex(x + android.width, y, x + android.width, y);
-  vertex(x + android.width, y + android.height, x + android.width, y + android.height);
-  vertex(x, y + android.height, x, y + android.height);
-  endShape(CLOSE);
-  popMatrix();  
+  z = 1;
   
+  if(android != null)
+  {
+    pushMatrix();
+    translate(width, 0);
+    rotate(HALF_PI);
+    scale(1.0);
+    beginShape();
+    texture(android);
+    vertex(x, y, x, y);
+    vertex(x + android.width, y, x + android.width, y);
+    vertex(x + android.width, y + android.height, x + android.width, y + android.height);
+    vertex(x, y + android.height, x, y + android.height);
+    endShape(CLOSE);
+    popMatrix();      
+  }
+  
+  /*
   // GUI components
   controlP5.controller("powerBar").setValue(thread.get_battery());
   if ((controlP5.controller("powerBar").value() / controlP5.controller("powerBar").max()) <= 0.25)
@@ -165,35 +173,28 @@ void draw(){
   rotate(radians(thread.get_azimuth()));
   box(100, 50, 5);
   popMatrix();
+  
+  */
 }
 
 
 // function based on the processing library's new PImage function
 // from http://processing.org/discourse/yabb2/YaBB.pl?num=1192330628
 PImage loadPImageFromBytes(byte[] b,PApplet p) {
+  
+ 
   Image img = Toolkit.getDefaultToolkit().createImage(b);
-  MediaTracker t=new MediaTracker(p);
+  MediaTracker t = new MediaTracker(p);
   t.addImage(img,0);
   try{
     t.waitForAll();
   }
   catch(Exception e){
     println(e);
+    return null;
   }
+ // println("loaded img");
   return new PImage(img);
-}
-
-
-// ServerEvent message is generated when a new client connects 
-// to an existing server.
-void serverEvent(processing.net.Server someServer, processing.net.Client someClient) {
-  println("We have a new video client: " + someClient.ip());
-}
-
-
-// This function is called when a client disconnects.
-void disconnectEvent(processing.net.Client someClient) {
-  println("Video client disconnected.");
 }
 
 
@@ -206,5 +207,39 @@ void segment(float x, float y, float a) {
 public void speech(String theText) {
   // receiving text from controller texting
   println("a textfield event for controller 'speech': "+theText);
+}
+
+void videoPacketHandler(byte[] message, String ip, int port) {
+   
+ println("Server send me video packet of length: "+message.length);
+
+ int msgPos = 0;
+ while( msgPos < message.length)
+   {
+     packetBuffer[packetBuffPos] = message[msgPos];             
+     packetBuffPos++;
+     msgPos++;
+   }
+    //if(sumLast32() == 0) {
+      println("found end");
+      imageBuffer = new byte[packetBuffPos];
+      System.arraycopy(packetBuffer,0,imageBuffer,0,packetBuffPos - 32);
+      android = loadPImageFromBytes(imageBuffer, this);
+      packetBuffPos = 0;
+    //}
+ }
+
+
+int sumLast32()
+{
+  if(packetBuffPos < 32)
+    return -1;
+  
+  int sum = 0;
+  for(int i = packetBuffPos - 32; i < packetBuffPos; i++)
+  {
+     sum += packetBuffer[i]; 
+  }
+  return sum;
 }
 
