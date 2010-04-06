@@ -54,9 +54,8 @@ public class AccelerometerManager {
      */
     public static boolean isSupported() {
         if (supported == null) {
-            if (Receiver.getContext() != null) {
-                sensorManager = (SensorManager) Receiver.getContext().
-                        getSystemService(Context.SENSOR_SERVICE);
+            if (Receiver.sensorManager != null) {
+                sensorManager = Receiver.sensorManager;
                 List<Sensor> sensors = sensorManager.getSensorList(
                         Sensor.TYPE_ACCELEROMETER);
                 supported = new Boolean(sensors.size() > 0);
@@ -86,8 +85,7 @@ public class AccelerometerManager {
      */
     public static void startListening(
             AccelerometerListener accelerometerListener) {
-        sensorManager = (SensorManager) Receiver.getContext().
-                getSystemService(Context.SENSOR_SERVICE);
+        sensorManager = (SensorManager) Receiver.sensorManager;
         List<Sensor> sensors = sensorManager.getSensorList(
                 Sensor.TYPE_ACCELEROMETER);
         if (sensors.size() > 0) {

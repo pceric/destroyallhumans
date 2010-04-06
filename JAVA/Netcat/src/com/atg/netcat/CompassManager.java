@@ -50,9 +50,8 @@ public class CompassManager {
      */
     public static boolean isSupported() {
         if (supported == null) {
-            if (Receiver.getContext() != null) {
-                sensorManager = (SensorManager) Receiver.getContext()
-                        .getSystemService(Context.SENSOR_SERVICE);
+          sensorManager = (SensorManager) Receiver.sensorManager;
+          if (sensorManager != null) {
                 List<Sensor> sensors = sensorManager.getSensorList(
                         Sensor.TYPE_MAGNETIC_FIELD);
                 supported = new Boolean(sensors.size() > 0);
@@ -68,8 +67,8 @@ public class CompassManager {
      */
     public static void startListening(
             OrientationListener orientationListener) {
-        sensorManager = (SensorManager) Receiver.getContext()
-                .getSystemService(Context.SENSOR_SERVICE);
+      sensorManager = (SensorManager) Receiver.sensorManager;
+      if (sensorManager != null) {
         List<Sensor> sensors = sensorManager.getSensorList(
                 Sensor.TYPE_MAGNETIC_FIELD);
         if (sensors.size() > 0) {
@@ -79,6 +78,7 @@ public class CompassManager {
                     SensorManager.SENSOR_DELAY_NORMAL);
             listener = orientationListener;
         }
+      }
     }
     
     /**

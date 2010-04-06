@@ -457,7 +457,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 						//color:
 						yuv420sp2rgb(curFrame, previewFrameWidth, previewFrameHeight, textureSize, frame);   
 						//Log.d("ConversionWorker","handing frame over to sink");						
-						frameSink.setNextFrame(ByteBuffer.wrap(frame));
+						//frameSink.setNextFrame(ByteBuffer.wrap(frame));
 						break;
 					case MODE_GRAY:
 						//luminace: 

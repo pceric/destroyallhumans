@@ -34,8 +34,6 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
 
   private StringBuffer             btInBuffer;
 
-  private StringBuffer             btOutBuffer;
-
   private BTCommThread             bTcomThread;
 
   private ProgressDialog           btDialog;
@@ -56,6 +54,10 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
 
   public boolean                   listening        = false;
 
+  private long                     lastTimeStamp = 0; 
+  
+  public static String TAG = "RobotStateHandler";
+  
   
   InetSocketAddress clientAddress = null;
   
@@ -92,12 +94,10 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
      instance.state.processFrameRate = processed;
   }
 
-  private RobotStateHandler(Handler h) throws IOException
+  public RobotStateHandler(Handler h) throws IOException
   {
 
     btInBuffer = new StringBuffer();
-
-    btOutBuffer = new StringBuffer();
 
     uiHandler = h;
 
@@ -146,35 +146,7 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
     //handler.sendEmptyMessage(0);
 
   }
-
-  private Handler handler = new Handler()
-                          {
-
-                            @Override
-                            public void handleMessage(Message msg)
-                            {
-
-                              // state.flush(ipComThread, bTcomThread);
-                            }
-
-                          };
-
-  /*
-   * sb.append(new String(buffer, 0, bytes)); while ((idx =
-   * sb.indexOf("\r\n\r\n")) > -1) { message = sb.substring(0, idx);
-   * sb.replace(0, idx+4, ""); hm = new HashMap<String, String>(); for (String
-   * line : message.split("\n")) { chunks = line.trim().split("=", 2); if
-   * (chunks.length != 2) continue; hm.put(chunks[0], chunks[1]); }
-   * handler.obtainMessage(0x2a, hm).sendToTarget();
-   */
-
-  public String readBtInBuffer()
-  {
-    String data = new String(btInBuffer);
-    btInBuffer.delete(0, btInBuffer.length());
-    return data;
-  }
-
+  
   public BroadcastReceiver mBatInfoReceiver = new BroadcastReceiver(){
     public void onReceive(Context arg0, Intent intent) {
       // TODO Auto-generated method stub
@@ -258,10 +230,6 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
     // / Toast.makeText(this, "Top UP", 1000).show();
   }
 
-  public Handler getHandler()
-  {
-    return handler;
-  }
 
   public String getLocalIpAddress()
   {
@@ -314,13 +282,14 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
         CompassManager.startListening(this);
       }
   
-      listening = true;
       try {
-      super.start();
+        this.start();
       }
       catch (java.lang.IllegalThreadStateException e) {
-        // TODO: handle exception
+        Log.e(TAG, "Robot state handler thead start error",e);
       }
+      
+      server.start();
     
     }
 
@@ -328,10 +297,6 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
 
   public synchronized void stopListening()
   {
-
-    listening = false;
-
-    // super.stop();
 
     if (OrientationManager.isListening())
     {
@@ -353,42 +318,39 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
       btDialog.dismiss();
 
     if (bTcomThread != null)
-      bTcomThread.cancel();
+      bTcomThread.quit();
     bTcomThread = null;
+    
+    this.stop();
+
   }
 
   public void run()
   {
-    while (listening)
+    while (true)
     {
+
+        if (clientConnection != null)
+        {
+          
+          if (bTcomThread != null && controllerState != null && controllerState.timestamp != lastTimeStamp)
+          {
+             lastTimeStamp = controllerState.timestamp;
+             Message btMsg = bTcomThread.handler.obtainMessage();
+             btMsg.obj = controllerState.toString();
+             btMsg.sendToTarget();             
+          }
+          bTcomThread.read();
+          clientConnection.sendTCP(state);
+
+        }
+        
       try
       {
-        try
-        {
-          server.update(10);
-          if (clientConnection != null)
-          {
-            
-            if (bTcomThread != null && controllerState != null)
-            {
-               btOutBuffer.append(controllerState.toString());
-               bTcomThread.write(btOutBuffer.toString().getBytes());
-               btOutBuffer.delete(0, btInBuffer.length());
-               controllerState = null;
-            }
-
-            clientConnection.sendTCP(state);
-
-          }
-
-        }
-        catch (IOException e)
-        {
-          break;
-        }
+        //Log.d(TAG, "Sleeping");
         Thread.sleep(50);
       }
-
+    
       catch (InterruptedException e)
       {
         // TODO Auto-generated catch block

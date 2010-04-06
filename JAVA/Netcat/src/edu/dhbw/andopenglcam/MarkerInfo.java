@@ -108,7 +108,7 @@ public class MarkerInfo {
 	
 	public void draw(GL10 gl) {
 		if(initialized) {
-			Log.i("MarkerInfo", "going to draw opengl stuff now");
+			//Log.i("MarkerInfo", "going to draw opengl stuff now");
 			synchronized (transMatMonitor) {
 				draw();
 			}
