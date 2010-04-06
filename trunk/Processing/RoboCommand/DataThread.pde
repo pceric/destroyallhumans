@@ -69,6 +69,13 @@ public class DataThread extends Thread {
       return 0.0;
   }
 
+  public float get_robotBattery() {
+    if (_rs != null)
+      return _rs.botBatteryLevel;
+    else
+      return 0.0;
+  }
+
   public float get_hitPoints() {
     if (_rs != null)
       return _rs.hitPoints;
