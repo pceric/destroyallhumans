@@ -1,0 +1,14 @@
+TODO
+====
+
+- 2 working sets of batteries
+- fix charger
+- fix guns
+- fix walking gait
+- com protocol between Arduino and Android
+- hit pin on targeting plate (9)
+- wrap cables
+- better phone mounting
+- gun siting
+- packing list for trip
+  - how to ship?
