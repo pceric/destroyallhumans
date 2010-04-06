@@ -5,7 +5,7 @@ import java.net.InetAddress;
 import java.util.Locale;
 import java.util.Random;
 
-//import com.example.android.apis.R;
+// import com.example.android.apis.R;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -16,6 +16,7 @@ import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
 import android.hardware.Camera;
+import android.hardware.SensorManager;
 import android.hardware.Camera.Parameters;
 import android.net.wifi.WifiManager;
 import android.opengl.GLSurfaceView;
@@ -42,31 +43,31 @@ import edu.dhbw.andopenglcam.OpenGLCamView;
 
 public class Receiver extends Activity implements Callback, TextToSpeech.OnInitListener
 {
-  public static Integer        controlPort   = 5555;
+  public static Integer        controlPort    = 5555;
 
-  public static Integer        videoPort     = 4444;
-  
-  private static Integer PREVIEW_HEIGHT = 800;
-  
-  private static Integer PREVIEW_WIDTH = 480;
-  
-  public static Integer JPEG_QUALITY = 20;
+  public static Integer        videoPort      = 4444;
+
+  private static Integer       PREVIEW_HEIGHT = 800;
+
+  private static Integer       PREVIEW_WIDTH  = 480;
+
+  public static Integer        JPEG_QUALITY   = 20;
 
   public static InetAddress    clientAddress;
 
-  private int                  sleepTime     = 200;
+  private int                  sleepTime      = 200;
 
-  protected String             tostText      = "";
+  protected String             tostText       = "";
 
-  protected String             logText       = "";
+  protected String             logText        = "";
 
-  public static Boolean        highQuality   = false;
+  public static Boolean        highQuality    = false;
 
-  boolean                      stopListening = false;
+  boolean                      stopListening  = false;
 
   RobotStateHandler            state;
 
-  private static Context       CONTEXT;
+  //private static Context       CONTEXT;
 
   // private Handler handler;
 
@@ -80,22 +81,28 @@ public class Receiver extends Activity implements Callback, TextToSpeech.OnInitL
 
   private CameraPreviewHandler cameraHandler;
 
-  private boolean              mPreviewing   = false;
+  private boolean              mPreviewing    = false;
 
-  private boolean              mPausing      = false;
+  private boolean              mPausing       = false;
 
-  private MarkerInfo           markerInfo    = new MarkerInfo();
+  private MarkerInfo           markerInfo     = new MarkerInfo();
 
-  public TextToSpeech mTts;
+  public TextToSpeech          mTts;
+
+  public static String         TAG            = "RoboBrain";
   
-  public static String TAG = "RoboBrain";
+  public static SensorManager sensorManager;
   
-  
+  public static Activity me = null; 
+
   /** Called when the activity is first created. */
   @Override
   public void onCreate(Bundle savedInstanceState)
   {
+    
     super.onCreate(savedInstanceState);
+    
+    me = this; 
 
     setFullscreen();
     disableScreenTurnOff();
@@ -114,71 +121,64 @@ public class Receiver extends Activity implements Callback, TextToSpeech.OnInitL
     glSurfaceView.getHolder().addCallback(this);
     setContentView(glSurfaceView);
 
-    CONTEXT = Receiver.this;
-    try
+   
+    if(sensorManager == null)
     {
-      state = RobotStateHandler.getInstance(handler);
-    }
-    catch (IOException e)
-    {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      sensorManager = (SensorManager) me.getSystemService(Context.SENSOR_SERVICE);
     }
 
-    
-    // Initialize text-to-speech. This is an asynchronous operation.
-    // The OnInitListener (second argument) is called after initialization completes.
-    mTts = new TextToSpeech(this,
-        this  // TextToSpeech.OnInitListener
-        );
   }
 
-  
   // Implements TextToSpeech.OnInitListener.
-  public void onInit(int status) {
-      // status can be either TextToSpeech.SUCCESS or TextToSpeech.ERROR.
-      if (status == TextToSpeech.SUCCESS) {
-          // Set preferred language to US english.
-          // Note that a language may not be available, and the result will indicate this.
-          int result = mTts.setLanguage(Locale.US);
-          // Try this someday for some interesting results.
-          // int result mTts.setLanguage(Locale.FRANCE);
-          if (result == TextToSpeech.LANG_MISSING_DATA ||
-              result == TextToSpeech.LANG_NOT_SUPPORTED) {
-             // Lanuage data is missing or the language is not supported.
-              Log.e(TAG, "Language is not available.");
-          } else {
-              // Check the documentation for other possible result codes.
-              // For example, the language may be available for the locale,
-              // but not for the specified country and variant.
-
-              // The TTS engine has been successfully initialized.
-              // Allow the user to press the button for the app to speak again.
-              //mAgainButton.setEnabled(true);
-              // Greet the user.
-              utterTaunt("Destroy all humans!");
-          }
-      } else {
-          // Initialization failed.
-          Log.e(TAG, "Could not initialize TextToSpeech.");
+  public void onInit(int status)
+  {
+    // status can be either TextToSpeech.SUCCESS or TextToSpeech.ERROR.
+    if (status == TextToSpeech.SUCCESS)
+    {
+      // Set preferred language to US english.
+      // Note that a language may not be available, and the result will indicate
+      // this.
+      int result = mTts.setLanguage(Locale.US);
+      // Try this someday for some interesting results.
+      // int result mTts.setLanguage(Locale.FRANCE);
+      if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED)
+      {
+        // Lanuage data is missing or the language is not supported.
+        Log.e(TAG, "Language is not available.");
       }
+      else
+      {
+        // Check the documentation for other possible result codes.
+        // For example, the language may be available for the locale,
+        // but not for the specified country and variant.
+
+        // The TTS engine has been successfully initialized.
+        // Allow the user to press the button for the app to speak again.
+        // mAgainButton.setEnabled(true);
+        // Greet the user.
+        utterTaunt("Robot Ready");
+      }
+    }
+    else
+    {
+      // Initialization failed.
+      Log.e(TAG, "Could not initialize TextToSpeech.");
+    }
   }
 
-  
+  private void utterTaunt(String taunt)
+  {
 
-  private void utterTaunt(String taunt) {
-
-      mTts.speak(taunt, TextToSpeech.QUEUE_FLUSH, null);
+    mTts.speak(taunt, TextToSpeech.QUEUE_FLUSH, null);
   }
-  
-  
+
   private Handler handler = new Handler()
                           {
 
                             @Override
                             public void handleMessage(Message msg)
                             {
-                              utterTaunt((String)msg.obj);
+                              utterTaunt((String) msg.obj);
                             }
 
                           };
@@ -207,57 +207,79 @@ public class Receiver extends Activity implements Callback, TextToSpeech.OnInitL
    * }
    */
 
-  private void startListening()
+  
+  
+  
+  private synchronized void startListening()
   {
+    Log.d(TAG, "startListening called");
+    if (state == null)
+    {
+      try
+      {
+        state = RobotStateHandler.getInstance(handler);
+      }
+      catch (IOException e)
+      {
+        // TODO Auto-generated catch block
+        Log.e(TAG, "error getting robot state handler instace", e);
+      }
+      // Initialize text-to-speech. This is an asynchronous operation.
+      // The OnInitListener (second argument) is called after initialization
+      // completes.
+      if (mTts == null)
+      {
+        mTts = new TextToSpeech(this, this // TextToSpeech.OnInitListener
+        );
+      }
+      
+      
+    }
 
     if (!state.listening)
     {
-      String msg = "IP:" + state.getLocalIpAddress() +":" + controlPort ;
+      String msg = "IP:" + state.getLocalIpAddress() + ":" + controlPort;
 
-      //Toast.makeText(CONTEXT, "Current IP:" + state.getLocalIpAddress(),   Toast.LENGTH_LONG);
+      // Toast.makeText(CONTEXT, "Current IP:" + state.getLocalIpAddress(),
+      // Toast.LENGTH_LONG);
 
-      ProgressDialog btDialog = ProgressDialog.show(CONTEXT, msg, "Searching for a Bluetooth serial port...");
-      
-      
+      ProgressDialog btDialog = ProgressDialog.show(me, msg, "Searching for a Bluetooth serial port...");
+
       String connectivity_context = Context.WIFI_SERVICE;
-      WifiManager wifi = (WifiManager)getSystemService(connectivity_context);
+      WifiManager wifi = (WifiManager) getSystemService(connectivity_context);
 
       /*
-      
-      if(!wifi.isWifiEnabled()){
-              if(wifi.getWifiState() != WifiManager.WIFI_STATE_ENABLING){
-                      wifi.setWifiEnabled(true);
-              }
-      }
-      */
-      
-      state.startListening(btDialog , wifi);
-      
+       * 
+       * if(!wifi.isWifiEnabled()){ if(wifi.getWifiState() !=
+       * WifiManager.WIFI_STATE_ENABLING){ wifi.setWifiEnabled(true); } }
+       */
+
       this.registerReceiver(state.mBatInfoReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 
       this.registerReceiver(state.mWifiInfoReceiver, new IntentFilter(WifiManager.RSSI_CHANGED_ACTION));
+      
+      state.startListening(btDialog, wifi);
 
     }
 
   }
 
-  private void stopListening()
+  private synchronized void stopListening()
   {
+
+    Log.d(TAG, "stopListening called");
+    this.unregisterReceiver(state.mBatInfoReceiver);
+
+    this.unregisterReceiver(state.mWifiInfoReceiver);
 
     if (state.isAlive())
     {
       state.stopListening();
     }
-    
-    this.unregisterReceiver(state.mBatInfoReceiver);
 
-    this.unregisterReceiver(state.mWifiInfoReceiver);
+    mTts.shutdown();
   }
 
-  public static Context getContext()
-  {
-    return CONTEXT;
-  }
 
   public void disableScreenTurnOff()
   {
@@ -295,21 +317,16 @@ public class Receiver extends Activity implements Callback, TextToSpeech.OnInitL
       // camera = Camera.open();
       camera = CameraHolder.instance().open();
       Parameters params = camera.getParameters();
-      
-      //480x320
-      params.setPreviewSize(PREVIEW_HEIGHT,PREVIEW_WIDTH);
+
+      // 480x320
+      params.setPreviewSize(PREVIEW_HEIGHT, PREVIEW_WIDTH);
       // params.setPreviewFrameRate(1);
       camera.setParameters(params);
       /*
-      if (Config.USE_ONE_SHOT_PREVIEW)
-      {
-        camera.setOneShotPreviewCallback(cameraHandler);
-      }
-      else
-      {
-        camera.setPreviewCallback(cameraHandler);
-      }
-      */
+       * if (Config.USE_ONE_SHOT_PREVIEW) {
+       * camera.setOneShotPreviewCallback(cameraHandler); } else {
+       * camera.setPreviewCallback(cameraHandler); }
+       */
       try
       {
         cameraHandler.init(camera);
