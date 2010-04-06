@@ -21,14 +21,15 @@ import hypermedia.net.*;
 import java.awt.Toolkit;
 import java.awt.MediaTracker;
 
-
 import processing.opengl.*;
 import processing.net.*;
-import procontroll.*;
 
+import procontroll.*;
 import controlP5.*;
 
-final String PHONE_IP = "192.168.1.100";
+final int SCREEN_WIDTH = 800;
+final int SCREEN_HEIGHT = 640;
+final String PHONE_IP = "192.168.1.109";
 final String JOYSTICK_NAME = "PLAYSTATION(R)3 Controller";
 //final String JOYSTICK_NAME = "Microsoft SideWinder Precision Pro (USB)";
 final int CONTROL_PORT = 5555;
@@ -65,22 +66,19 @@ int packetBuffPos = 0;
 
 float segLength = 50;
 
-int SCREEN_WIDTH = 800;
-int SCREEN_HEIGHT = 640;
-
 void setup(){
   size(SCREEN_WIDTH,SCREEN_HEIGHT,OPENGL);
-  //size(800,600,P3D);
   
   //fill(0);
   //frameRate(20);
-  //rectMode(CENTER);
+  rectMode(CENTER);
   fontA = loadFont("Ziggurat-HTF-Black-32.vlw");
 
   controlP5 = new ControlP5(this);
   controlP5.addTextfield("speech",100,600,300,20).setFocus(true);
   controlP5.addSlider("lifeBar",0,15,1,20,height-115,20,100).setNumberOfTickMarks(15);
-  controlP5.addSlider("powerBar",0,100,100,width-40,height-115,20,100);
+  controlP5.addSlider("robotPowerBar",0,100,100,width-100,height-115,20,100).setLabel("Robot");
+  controlP5.addSlider("androidPowerBar",0,100,100,width-50,height-115,20,100).setLabel("Phone");
 
   controll = ControllIO.getInstance(this);
   controll.printDevices();
@@ -101,7 +99,6 @@ void setup(){
   
   Arrays.fill(packetBuffer,0,packetBuffer.length, (byte)2);
   
-  
   try {
     println("Connecting to phone at " + PHONE_IP);
     myClient.connect(15000, PHONE_IP, CONTROL_PORT);
@@ -120,7 +117,7 @@ void draw(){
   float y;
   float z;
 
-vidServer.listen();
+  vidServer.listen();
 
   background(0);   
      
@@ -160,21 +157,27 @@ vidServer.listen();
   
   
   // GUI components
-  controlP5.controller("powerBar").setValue(thread.get_battery());
-  if ((controlP5.controller("powerBar").value() / controlP5.controller("powerBar").max()) <= 0.25)
-    controlP5.controller("powerBar").setColorForeground(color(255,0,0));
-  else
-    controlP5.controller("powerBar").setColorForeground(color(0,255,0));
   controlP5.controller("lifeBar").setValue(thread.get_hitPoints());
   if ((controlP5.controller("lifeBar").value() / controlP5.controller("lifeBar").max()) <= 0.25)
     controlP5.controller("lifeBar").setColorForeground(color(255,0,0));
   else
     controlP5.controller("lifeBar").setColorForeground(color(0,255,0));
+  controlP5.controller("androidPowerBar").setValue(thread.get_battery());
+  if ((controlP5.controller("androidPowerBar").value() / controlP5.controller("androidPowerBar").max()) <= 0.25)
+    controlP5.controller("androidPowerBar").setColorForeground(color(255,0,0));
+  else
+    controlP5.controller("androidPowerBar").setColorForeground(color(0,255,0));
+  controlP5.controller("robotPowerBar").setValue(thread.get_robotBattery());
+  if ((controlP5.controller("robotPowerBar").value() / controlP5.controller("robotPowerBar").max()) <= 0.25)
+    controlP5.controller("robotPowerBar").setColorForeground(color(255,0,0));
+  else
+    controlP5.controller("robotPowerBar").setColorForeground(color(0,255,0));
 
   fill(128,0,128); 
   pushMatrix();
   translate(500, 575);
   rotate(radians(thread.get_azimuth()));
+  rotateZ(radians(thread.get_pitch()));
   box(100, 50, 5);
   popMatrix();
   
@@ -184,8 +187,6 @@ vidServer.listen();
 // function based on the processing library's new PImage function
 // from http://processing.org/discourse/yabb2/YaBB.pl?num=1192330628
 PImage loadPImageFromBytes(byte[] b,PApplet p) {
-  
- 
   Image img = Toolkit.getDefaultToolkit().createImage(b);
   MediaTracker t = new MediaTracker(p);
   t.addImage(img,0);
