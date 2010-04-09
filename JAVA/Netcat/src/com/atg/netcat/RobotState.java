@@ -37,11 +37,11 @@ public class RobotState
     
     public float sonarDistance = 0;
     
-    public int dammage = 0;
+    public int damage = 0;
     
-    public int turrentElevation = 0;
+    public int turretElevation = 0;
     
-    public int turrentAzimuth = 0;
+    public int turretAzimuth = 0;
     
     public int servoSpeed = 0;
     
