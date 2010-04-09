@@ -13,6 +13,7 @@ public class DataThread extends Thread {
         if (object instanceof RobotState) {
           _rs = (RobotState)object;
           println("Server sent me RobotState.");
+          println(get_azimuth() + " " + get_pitch() + " " + get_roll());
         }
       }
     });
@@ -28,7 +29,7 @@ public class DataThread extends Thread {
         _client.sendTCP(cs);
         _client.update(0);
         cs.extraData="";
-        Thread.sleep(100);
+        Thread.sleep(200);
       }
       catch(IOException ex) {
         println(ex);
@@ -76,9 +77,9 @@ public class DataThread extends Thread {
       return 0.0;
   }
 
-  public float get_hitPoints() {
+  public float get_damage() {
     if (_rs != null)
-      return _rs.hitPoints;
+      return _rs.damage;
     else
       return 0.0;
   }
