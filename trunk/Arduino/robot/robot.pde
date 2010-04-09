@@ -51,7 +51,7 @@ const int OFFSET[] = {getOffset(ssmap[0]), getOffset(ssmap[1]), getOffset(ssmap[
 Messenger msg;
 ServoShield servos;
 boolean firstStep = true, LaserOn = false, LampOn = false;
-int MoveSpeed = 100, StrideOffset = 0;
+int MoveSpeed = 100, StrideOffset = 0, Damage = 0;
 
 Controller prev_joystick1;
 Controller joystick1;
@@ -69,6 +69,7 @@ void setup() {
   servos.start();                         //Start the servo shield
   msg = Messenger();
   msg.attach(msgReady);
+  attachInterrupt(0, plateHit, RISING);  // interrupt on pin 2 to signal plate hit
   Serial.println("Ready");
 }
 
@@ -76,6 +77,15 @@ void loop() {
   if (Serial.available()) {
     // read the incoming data
     msg.process(Serial.read());
+    Serial.print(analogRead(2));  // Battery level
+    Serial.print(" ");
+    Serial.print(Damage);
+    Serial.print(" ");
+    Serial.print(MoveSpeed);
+    Serial.print(" ");
+    Serial.print(StrideOffset);
+    Serial.print(" ");
+    Serial.println(servos.getposition(turret));
   } else {
     firstStep = true;
     movement(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, MoveSpeed);
@@ -186,15 +196,18 @@ void msgReady() {
         MoveSpeed -= 10;
       else
         MoveSpeed += 10;
-      Serial.println(MoveSpeed, DEC);
+      //Serial.println(MoveSpeed, DEC);
     }
     if (joystick1.Left || joystick1.Right) {
       if (joystick1.Left)
         StrideOffset -= 1;
       else
         StrideOffset += 1;
-      Serial.println(StrideOffset, DEC);
+      //Serial.println(StrideOffset, DEC);
     }
+  }
+  else if(msg.readChar() == 'R') {
+    Damage = 0;
   }
 }
 
@@ -274,4 +287,9 @@ int getOffset(int address) {
   int tmp = EEPROM.read(address * 2) << 8;
   tmp += EEPROM.read((address * 2) + 1);
   return tmp;
+}
+
+// Fires when a targeting plate is hit
+void plateHit() {
+  ++Damage;
 }
