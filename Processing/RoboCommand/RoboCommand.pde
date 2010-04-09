@@ -30,10 +30,11 @@ import controlP5.*;
 final int SCREEN_WIDTH = 800;
 final int SCREEN_HEIGHT = 640;
 final String PHONE_IP = "192.168.1.109";
-final String JOYSTICK_NAME = "PLAYSTATION(R)3 Controller";
-//final String JOYSTICK_NAME = "Microsoft SideWinder Precision Pro (USB)";
+//final String JOYSTICK_NAME = "PLAYSTATION(R)3 Controller";
+final String JOYSTICK_NAME = "Microsoft SideWinder Precision Pro (USB)";
 final int CONTROL_PORT = 5555;
 final int VIDEO_PORT = 4444;
+final int MAX_LIFE = 15;
 
 // Kryonet client for control
 com.esotericsoftware.kryonet.Client myClient; 
@@ -75,8 +76,10 @@ void setup(){
   fontA = loadFont("Ziggurat-HTF-Black-32.vlw");
 
   controlP5 = new ControlP5(this);
-  controlP5.addTextfield("speech",100,600,300,20).setFocus(true);
-  controlP5.addSlider("lifeBar",0,15,1,20,height-115,20,100).setNumberOfTickMarks(15);
+  controlP5.addTextfield("speech",100,height-40,300,20).setFocus(true);
+  controlP5.addSlider("lifeBar",0,MAX_LIFE,MAX_LIFE,20,height-115,20,100).setNumberOfTickMarks(15);
+  controlP5.controller("lifeBar").setLabel("Life");
+  controlP5.addKnob("azimuth",0,360,0,width-180,height-100,50).setLabel("Azimuth");
   controlP5.addSlider("robotPowerBar",0,100,100,width-100,height-115,20,100).setLabel("Robot");
   controlP5.addSlider("androidPowerBar",0,100,100,width-50,height-115,20,100).setLabel("Phone");
 
@@ -157,7 +160,7 @@ void draw(){
   
   
   // GUI components
-  controlP5.controller("lifeBar").setValue(thread.get_hitPoints());
+  controlP5.controller("lifeBar").setValue(MAX_LIFE - thread.get_damage());
   if ((controlP5.controller("lifeBar").value() / controlP5.controller("lifeBar").max()) <= 0.25)
     controlP5.controller("lifeBar").setColorForeground(color(255,0,0));
   else
@@ -167,17 +170,19 @@ void draw(){
     controlP5.controller("androidPowerBar").setColorForeground(color(255,0,0));
   else
     controlP5.controller("androidPowerBar").setColorForeground(color(0,255,0));
-  controlP5.controller("robotPowerBar").setValue(thread.get_robotBattery());
+  controlP5.controller("robotPowerBar").setValue((thread.get_robotBattery() - 500) / 2);
   if ((controlP5.controller("robotPowerBar").value() / controlP5.controller("robotPowerBar").max()) <= 0.25)
     controlP5.controller("robotPowerBar").setColorForeground(color(255,0,0));
   else
     controlP5.controller("robotPowerBar").setColorForeground(color(0,255,0));
+  controlP5.controller("azimuth").setValue(thread.get_azimuth());
 
-  fill(128,0,128); 
+  fill(128,0,128);
+  stroke(128);
   pushMatrix();
   translate(500, 575);
-  rotate(radians(thread.get_azimuth()));
-  rotateZ(radians(thread.get_pitch()));
+  rotateX(radians(thread.get_roll()));
+  rotateY(radians(thread.get_pitch()));
   box(100, 50, 5);
   popMatrix();
   
