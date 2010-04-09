@@ -37,7 +37,7 @@ public class RobotState
     
     public float sonarDistance = 0;
     
-    public int hitPoints = 0;
+    public int dammage = 0;
     
     public int turrentElevation = 0;
     
@@ -45,7 +45,7 @@ public class RobotState
     
     public int servoSpeed = 0;
     
-    public int ankleAngle = 0;
+    public int strideOffset = 0;
     
     public boolean moving = false;
     
