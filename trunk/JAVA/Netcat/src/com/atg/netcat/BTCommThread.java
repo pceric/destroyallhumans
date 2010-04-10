@@ -19,8 +19,6 @@ package com.atg.netcat;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.util.HashMap;
 import java.util.Set;
 import java.util.UUID;
 
@@ -118,8 +116,8 @@ class BTCommThread extends Thread
     istream = tmpIn;
     ostream = tmpOut;
 
-    if (dialog != null && dialog.isShowing())
-      dialog.dismiss();
+    //if (dialog != null && dialog.isShowing())
+     // dialog.dismiss();
 
   }
 
@@ -142,46 +140,14 @@ class BTCommThread extends Thread
         {
           try
           {
-            ostream.write(((ControllerState)msg.obj).toBytes());
+            ostream.write(((String)msg.obj).getBytes("ASCII"));
           }
           catch (IOException e)
           {
             Log.e(TAG, "exception during write", e);
           }
 
-          /*
-           * 
-           * 
-           * THIS IS CAUSING A DEADLOCK
-           */
-          try
-          {
-            int inChar;
-            while (istream.available() > 0)
-            {
-
-              inChar = istream.read();
- 
-              
-              if(inChar != 13 && inChar!= 10)//do not write carriage returns or newlines to the buffer
-              {
-                readBuffer.append((char)inChar);
-              }
-
-              if (inChar == 10)//look for newlines
-              {
-                String tmp = readBuffer.toString();
-                readBuffer.delete(0, readBuffer.length());
-                Log.d(TAG, "Data From Bot:" + tmp);
-                state.onBtDataRecive(tmp);
-              }
-            }
-          }
-
-          catch (Exception e)
-          {
-            Log.e(TAG, "exception during read", e);
-          }
+         
 
         }
       }
@@ -189,6 +155,43 @@ class BTCommThread extends Thread
 
     Looper.loop();
 
+  }
+  
+  public void read()
+  {
+    /*
+     * 
+     * 
+     * THIS IS CAUSING A DEADLOCK
+     */
+    try
+    {
+      int inChar;
+      while (istream.available() > 0)
+      {
+
+        inChar = istream.read();
+
+        
+        if(inChar != 13 && inChar!= 10)//do not write carriage returns or newlines to the buffer
+        {
+          readBuffer.append((char)inChar);
+        }
+
+        if (inChar == 10)//look for newlines
+        {
+          String tmp = readBuffer.toString();
+          readBuffer.delete(0, readBuffer.length());
+          Log.d(TAG, "Data From Bot:" + tmp);
+          state.onBtDataRecive(tmp);
+        }
+      }
+    }
+
+    catch (Exception e)
+    {
+      Log.e(TAG, "exception during read", e);
+    }
   }
 
 
