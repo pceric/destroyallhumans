@@ -101,7 +101,7 @@ public class ControllerState
      pressed += (int)(JOYMAX * this.rightX)+ delim;
      pressed += (int)(JOYMAX * this.rightY)+ delim;
 
-     pressed +="\n";
+     pressed +="\r";
 
      return pressed;
    }

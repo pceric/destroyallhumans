@@ -17,12 +17,10 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.Message;
-import android.speech.tts.TextToSpeech;
 import android.util.Log;
 
 /*
@@ -354,8 +352,9 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
           {
              lastTimeStamp = controllerState.timestamp;
              Message btMsg = bTcomThread.handler.obtainMessage();
-             btMsg.obj = controllerState;
-             btMsg.sendToTarget();             
+             btMsg.obj = controllerState.toString();
+             btMsg.sendToTarget();
+             bTcomThread.read();
           }
           clientConnection.sendTCP(state);
 
