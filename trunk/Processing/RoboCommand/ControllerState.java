@@ -36,10 +36,39 @@ public class ControllerState
    private float JOYMAX = (float) 127.0; 
 
   
-   
+   public byte[] toArduino() {
+	 // Control messages start with a 'C'
+     byte[] data = new byte[21];
+	 data[0] = 'C';
+	 data[1] = this.X ? 1 : 0;
+     data[2] = this.C ? 1 : 0;
+     data[3] = this.T ? 1 : 0;
+     data[4] = this.S ? 1 : 0;
+     data[5] = this.L1 ? 1 : 0;
+     data[6] = this.L2 ? 1 : 0;
+     data[7] = this.L3 ? 1 : 0;
+     data[8] = this.R1 ? 1 : 0;
+     data[9] = this.R2 ? 1 : 0;
+     data[10] = this.R3 ? 1 : 0;
+     data[11] = this.Select ? 1 : 0;
+     data[12] = this.Start ? 1 : 0;
+     data[13] = this.Up ? 1 : 0;
+     data[14] = this.Down ? 1 : 0;
+     data[15] = this.Left ? 1 : 0;
+     data[16] = this.Right ? 1 : 0;
+     data[17] = (byte)(JOYMAX * this.leftX);
+     data[18] = (byte)(JOYMAX * this.leftY);
+     data[19] = (byte)(JOYMAX * this.rightX);
+     data[20] = (byte)(JOYMAX * this.rightY);
+     return data;
+   }
+
    public String toString(){
-     String pressed = "";
+	 // Control messages start with a 'C'
+     String pressed = "C";
      String delim = " ";
+	
+	 pressed += delim + this.timestamp + delim;
 
      pressed += this.X ? "1" + delim : "0"  + delim;
      pressed += this.C ? "1" + delim : "0"  + delim;
@@ -54,13 +83,13 @@ public class ControllerState
      pressed += this.R2 ? "1" + delim : "0"  + delim;
      pressed += this.R3 ? "1" + delim : "0"  + delim;
 
+     pressed += this.Select ? "1" + delim : "0"  + delim;
+     pressed += this.Start ? "1" + delim : "0"  + delim;
+
      pressed += this.Up ? "1" + delim : "0"  + delim;
      pressed += this.Down ? "1" + delim : "0"  + delim;
      pressed += this.Left ? "1" + delim : "0"  + delim;
      pressed += this.Right ? "1" + delim : "0"  + delim;
-
-     pressed += this.Select ? "1" + delim : "0"  + delim;
-     pressed += this.Start ? "1" + delim : "0"  + delim;
 
      pressed += (int)(JOYMAX * this.leftX) + delim;
      pressed += (int)(JOYMAX * this.leftY) + delim;
