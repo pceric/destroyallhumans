@@ -143,6 +143,23 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
   {
     btInBuffer.append(data);
     state.blueToothConnected = true;
+    
+    String[] botData = data.split(" ");
+    
+    try {
+      state.botBatteryLevel = Integer.parseInt(botData[0]);
+      state.damage = Integer.parseInt(botData[1]);
+      state.servoSpeed = Integer.parseInt(botData[2]);
+      state.strideOffset  = Integer.parseInt(botData[3]);
+      state.turretAzimuth  = Integer.parseInt(botData[4]);
+      //state.turretElevation  = Integer.parseInt(botData[3]);
+    }
+    catch(Exception e)
+    {
+      Log.e(TAG, "Error parsing robot data: ",e);
+    }
+    
+    
     //handler.sendEmptyMessage(0);
 
   }
@@ -337,10 +354,9 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
           {
              lastTimeStamp = controllerState.timestamp;
              Message btMsg = bTcomThread.handler.obtainMessage();
-             btMsg.obj = controllerState.toString();
+             btMsg.obj = controllerState;
              btMsg.sendToTarget();             
           }
-          bTcomThread.read();
           clientConnection.sendTCP(state);
 
         }
