@@ -45,7 +45,8 @@ class BTCommThread extends Thread
 
   StringBuffer             sb;
 
-  byte[]                   buffer;              // buffer store for the stream
+  byte[]                   prevBuffer;              // buffer store for the stream
+  byte[]                   sendBuffer;              // buffer store for the stream
 
   int                      bytes;               // bytes returned from read()
 
@@ -65,7 +66,6 @@ class BTCommThread extends Thread
     setName("BlueTooth Com");
 
     sb = new StringBuffer();
-    buffer = new byte[1024]; // buffer store for the stream
 
     readBuffer = new StringBuffer();
 
@@ -139,8 +139,15 @@ class BTCommThread extends Thread
         if (ostream != null)
         {
           try
-          {
-            ostream.write(((String)msg.obj).getBytes("ASCII"));
+          { 
+            sendBuffer = ((ControllerState)msg.obj).toBytes();
+            
+            //this is to avoid sending the same thing twice
+            if(sendBuffer != prevBuffer)
+            {
+              ostream.write(sendBuffer);
+              prevBuffer = sendBuffer;
+            }
           }
           catch (IOException e)
           {

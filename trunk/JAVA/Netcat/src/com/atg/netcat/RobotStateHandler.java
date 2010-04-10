@@ -352,7 +352,7 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
           {
              lastTimeStamp = controllerState.timestamp;
              Message btMsg = bTcomThread.handler.obtainMessage();
-             btMsg.obj = controllerState.toString();
+             btMsg.obj = controllerState;
              btMsg.sendToTarget();
              bTcomThread.read();
           }
