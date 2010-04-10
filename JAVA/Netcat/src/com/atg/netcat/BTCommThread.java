@@ -19,6 +19,7 @@ package com.atg.netcat;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.UUID;
@@ -46,17 +47,17 @@ class BTCommThread extends Thread
 
   StringBuffer             sb;
 
-  byte[]                   buffer; // buffer store for the stream
+  byte[]                   buffer;              // buffer store for the stream
 
-  int                      bytes;  // bytes returned from read()
+  int                      bytes;               // bytes returned from read()
 
   RobotStateHandler        state;
 
   public Handler           handler;
-  
+
   public StringBuffer      readBuffer;
-  
-  public static String TAG = "BtCommThread";
+
+  public static String     TAG = "BtCommThread";
 
   public BTCommThread(BluetoothAdapter adapter, ProgressDialog dialog, RobotStateHandler rState)
   {
@@ -67,7 +68,7 @@ class BTCommThread extends Thread
 
     sb = new StringBuffer();
     buffer = new byte[1024]; // buffer store for the stream
-    
+
     readBuffer = new StringBuffer();
 
   }
@@ -76,7 +77,6 @@ class BTCommThread extends Thread
   {
     if (adapter == null)
       return;
-    
 
     Set<BluetoothDevice> devices = adapter.getBondedDevices();
     BluetoothDevice device = null;
@@ -125,99 +125,87 @@ class BTCommThread extends Thread
 
   public void run()
   {
-    
+
     connect();
-    
+
     Looper.prepare();
-    
- 
-    
+
     handler = new Handler()
     {
 
       @Override
       public void handleMessage(Message msg)
       {
-        
-        Log.e(TAG, "Handeling Message" + msg.obj);
+
+        Log.d(TAG, "Handeling Message" + msg.obj);
         if (ostream != null)
         {
           try
           {
-            ostream.write( ( (String) msg.obj ).getBytes());
+            ostream.write(((ControllerState)msg.obj).toBytes());
           }
           catch (IOException e)
           {
             Log.e(TAG, "exception during write", e);
           }
-          
+
           /*
+           * 
+           * 
+           * THIS IS CAUSING A DEADLOCK
+           */
           try
           {
-              bytes = istream.read(buffer);
+            int inChar;
+            while (istream.available() > 0)
+            {
 
-              if (bytes > 0)
+              inChar = istream.read();
+ 
+              
+              if(inChar != 13 && inChar!= 10)//do not write carriage returns or newlines to the buffer
               {
-                //Message outMsg = state.obtainMessage();
-                //msg.obj = new String(buffer, 0, bytes);
-                //msg.sendToTarget();
-                
-                readBuffer.append(new String(buffer, 0, bytes));
-                
-                //state.onBtDataRecive();
+                readBuffer.append((char)inChar);
+              }
+
+              if (inChar == 10)//look for newlines
+              {
+                String tmp = readBuffer.toString();
+                readBuffer.delete(0, readBuffer.length());
+                Log.d(TAG, "Data From Bot:" + tmp);
+                state.onBtDataRecive(tmp);
               }
             }
-           
-          catch (IOException e)
+          }
+
+          catch (Exception e)
           {
             Log.e(TAG, "exception during read", e);
           }
-          */
-          
+
         }
       }
     };
-    
-    
+
     Looper.loop();
 
-  
   }
-  
-  
-  public synchronized String read()
-  {
-    String str = readBuffer.toString();
-    readBuffer.delete(0, readBuffer.length());
-    return str;
-  }
-  
+
+
   public void quit()
   {
-    Log.i(TAG,"quit callled");
+    Log.i(TAG, "quit callled");
 
-    
     /*
-    if(handler != null)
-    {
-      handler.getLooper().quit();
-    }
-
-    
-    
-    try
-    {
-      
-      socket.close();
-    }
-    catch (Exception e)
-    {
-      Log.e(TAG, "exception closing socket", e);
-    }
-    
-    */
+     * if(handler != null) { handler.getLooper().quit(); }
+     * 
+     * 
+     * 
+     * try {
+     * 
+     * socket.close(); } catch (Exception e) { Log.e(TAG,
+     * "exception closing socket", e); }
+     */
   }
-  
 
- 
 }
