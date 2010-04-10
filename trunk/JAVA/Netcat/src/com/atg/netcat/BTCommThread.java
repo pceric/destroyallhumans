@@ -45,8 +45,7 @@ class BTCommThread extends Thread
 
   StringBuffer             sb;
 
-  byte[]                   prevBuffer;              // buffer store for the stream
-  byte[]                   sendBuffer;              // buffer store for the stream
+  byte[]                   prevBuffer;          // buffer store for the stream
 
   int                      bytes;               // bytes returned from read()
 
@@ -66,6 +65,8 @@ class BTCommThread extends Thread
     setName("BlueTooth Com");
 
     sb = new StringBuffer();
+
+    prevBuffer = new byte[128];
 
     readBuffer = new StringBuffer();
 
@@ -116,8 +117,8 @@ class BTCommThread extends Thread
     istream = tmpIn;
     ostream = tmpOut;
 
-    //if (dialog != null && dialog.isShowing())
-     // dialog.dismiss();
+    // if (dialog != null && dialog.isShowing())
+    // dialog.dismiss();
 
   }
 
@@ -136,30 +137,30 @@ class BTCommThread extends Thread
       {
 
         Log.d(TAG, "Handeling Message" + msg.obj);
-         write(((ControllerState)msg.obj).toBytes());
+        byte[] bytes = ( (ControllerState) msg.obj ).toBytes();
 
-         read();
+        write(bytes);
+        // java.io.IOException: Transport endpoint is not connected
 
+        read();
       }
     };
 
     Looper.loop();
 
   }
-  
-  private void write(byte[] msg)
+
+  private void write(byte[] bytes)
   {
     if (ostream != null)
     {
       try
-      { 
-        sendBuffer = msg;
-        
-        //this is to avoid sending the same thing twice
-        if(sendBuffer.equals(prevBuffer))
+      {
+        // this is to avoid sending the same thing twice
+        if (!prevBuffer.equals(bytes))
         {
-          ostream.write(sendBuffer);
-          prevBuffer = sendBuffer;
+          ostream.write(bytes);
+          prevBuffer = bytes;
         }
       }
       catch (IOException e)
@@ -167,64 +168,67 @@ class BTCommThread extends Thread
         Log.e(TAG, "exception during write", e);
       }
     }
-  
+
   }
-  
+
   private void read()
   {
-    /*
-     * 
-     * 
-     * THIS IS CAUSING A DEADLOCK
-     */
-    try
+    if (istream != null)
     {
-      int inChar;
-      while (istream.available() > 0)
+      try
       {
-
-        inChar = istream.read();
-
-        
-        if(inChar != 13 && inChar!= 10)//do not write carriage returns or newlines to the buffer
+        int inChar;
+        while (istream.available() > 0)
         {
-          readBuffer.append((char)inChar);
-        }
 
-        if (inChar == 10)//look for newlines
-        {
-          String tmp = readBuffer.toString();
-          readBuffer.delete(0, readBuffer.length());
-          Log.i(TAG, "Data From Bot:" + tmp);
-          if(!tmp.contains("L"))
-          {  
-            state.onBtDataRecive(tmp);
+          inChar = istream.read();
+
+          if (inChar != 13 && inChar != 10)// do not write carriage returns or
+                                           // newlines to the buffer
+          {
+            readBuffer.append((char) inChar);
+          }
+
+          if (inChar == 10)// look for newlines
+          {
+            String tmp = readBuffer.toString();
+            readBuffer.delete(0, readBuffer.length());
+            Log.i(TAG, "Data From Bot:" + tmp);
+            if (!tmp.contains("L"))
+            {
+              state.onBtDataRecive(tmp);
+            }
           }
         }
       }
-    }
 
-    catch (Exception e)
-    {
-      Log.e(TAG, "exception during read", e);
+      catch (Exception e)
+      {
+        Log.e(TAG, "exception during read", e);
+      }
     }
   }
-
 
   public void quit()
   {
     Log.i(TAG, "quit callled");
 
-    /*
-     * if(handler != null) { handler.getLooper().quit(); }
-     * 
-     * 
-     * 
-     * try {
-     * 
-     * socket.close(); } catch (Exception e) { Log.e(TAG,
-     * "exception closing socket", e); }
-     */
+    if (handler != null)
+    {
+      handler.getLooper().quit();
+    }
+
+    try
+    {
+
+      socket.close();
+    }
+    catch (Exception e)
+    {
+      Log.e(TAG, "exception closing socket", e);
+
+    }
+
   }
 
 }
