@@ -22,6 +22,9 @@
 #include "Controller.h"
 #include "ServoShieldPins.h"
 
+// Print out debug info
+#define DEBUG 1
+
 // From ServoShield specs
 #define STEPS_PER_DEGREE 5.55
 
@@ -66,7 +69,7 @@ void setup() {
   }
   servos.start();                         //Start the servo shield
   attachInterrupt(0, plateHit, RISING);  // interrupt on pin 2 to signal plate hit
-  Serial.println("Ready");
+  LOG("Ready");
 }
 
 void loop() {
@@ -83,11 +86,40 @@ void loop() {
 }
 
 void msgReady() {
-  float StrideLengthLeft, StrideLengthRight;
-  prev_joystick1 = joystick1;
   char message = Serial.read();
   if (message == 'C') {
-    //joystick1.timestamp = msg.readLong();
+    LOG("Got C code");
+    prev_joystick1 = joystick1;
+    readJoystick();
+    handleJoystick();
+  }
+  else if(message == 'R') {
+    LOG("Got R code");
+    Damage = 0;
+  }
+  sendStatus();
+}
+
+// Sends status back to Android
+void sendStatus() {
+    LOG("Replying");
+    // Send some info back
+    Serial.print(analogRead(2));  // Battery level
+    Serial.print(" ");
+    Serial.print(Damage);
+    Serial.print(" ");
+    Serial.print(MoveSpeed);
+    Serial.print(" ");
+    Serial.print(StrideOffset);
+    Serial.print(" ");
+    Serial.print(servos.getposition(turret));
+    Serial.print("\n");
+}
+
+// Waits for enough data and gets joystick state
+void readJoystick() {
+    while (Serial.available() < 20)
+      delay(1);
     joystick1.X = Serial.read();
     joystick1.C = Serial.read();
     joystick1.T = Serial.read();
@@ -108,102 +140,92 @@ void msgReady() {
     joystick1.LeftY = Serial.read();
     joystick1.RightX = Serial.read();
     joystick1.RightY = Serial.read();
+}
 
-    // Movement
-    if (joystick1.LeftY > DEAD_ZONE || joystick1.LeftY < -DEAD_ZONE) {
-      if (joystick1.LeftY > DEAD_ZONE) {
-        StrideLengthLeft = -(joystick1.LeftY / 3); // -STRIDE;
-        StrideLengthRight = -(joystick1.LeftY / 3); // -STRIDE;
-        if (StrideOffset < 0)
-          StrideLengthLeft += -StrideOffset;
-        else if (StrideOffset > 0)
-          StrideLengthRight += StrideOffset;
-      } else {
-        StrideLengthLeft = STRIDE;
-        StrideLengthRight = STRIDE;
-        if (StrideOffset < 0)
-          StrideLengthLeft -= -StrideOffset;
-        else if (StrideOffset > 0)
-          StrideLengthRight -= StrideOffset;
-      }
-      // Normal walk - too much top weight to work correctly
-      if (firstStep)
-        movement(0.0, 0.0, 0.0, -LEAN, 0.0, 0.0, MoveSpeed);  // Lean right
-      movement(LEAN, StrideLengthRight, StrideLengthRight, -LEAN, -StrideLengthLeft, -StrideLengthLeft, MoveSpeed);  // Step left
-      movement(-LEAN, StrideLengthRight, StrideLengthRight, LEAN, -StrideLengthLeft, -StrideLengthLeft, MoveSpeed);  // Lean left
-      movement(-LEAN, -StrideLengthRight, -StrideLengthRight, LEAN, StrideLengthLeft, StrideLengthLeft, MoveSpeed);  // Step right
-      movement(LEAN, -StrideLengthRight, -StrideLengthRight, -LEAN, StrideLengthLeft, StrideLengthLeft, MoveSpeed);  // Lean right
-      firstStep = false;
+// Handles joystick input
+void handleJoystick() {
+  float StrideLengthLeft, StrideLengthRight;
+  // Movement
+  if (joystick1.LeftY > DEAD_ZONE || joystick1.LeftY < -DEAD_ZONE) {
+    if (joystick1.LeftY > DEAD_ZONE) {
+      StrideLengthLeft = -(joystick1.LeftY / 3); // -STRIDE;
+      StrideLengthRight = -(joystick1.LeftY / 3); // -STRIDE;
+      if (StrideOffset < 0)
+        StrideLengthLeft += -StrideOffset;
+      else if (StrideOffset > 0)
+        StrideLengthRight += StrideOffset;
+    } else {
+      StrideLengthLeft = STRIDE;
+      StrideLengthRight = STRIDE;
+      if (StrideOffset < 0)
+        StrideLengthLeft -= -StrideOffset;
+      else if (StrideOffset > 0)
+        StrideLengthRight -= StrideOffset;
     }
-    if (joystick1.LeftX > (DEAD_ZONE + 100)) {
-      movement(0.0,-35.0,-40.0,  0.0, 35.0, 37.0, MoveSpeed + 100.0);
-      movement(0.0, 35.0, 37.0,  0.0,-35.0,-40.0, MoveSpeed + 100.0);
-      movement(-16.0, 35.0, 37.0, 20.0,-35.0,-40.0, MoveSpeed + 100.0);
-      movement(-16.0, 35.0, 37.0, 20.0,  0.0,  0.0, MoveSpeed + 100.0);
-      movement(20.0,  0.0,  0.0,-16.0,  0.0,  0.0, MoveSpeed + 100.0);
-    }
-    else if (joystick1.LeftX < (-DEAD_ZONE - 100)) {
-      movement(0.0, 35.0, 37.0,  0.0,-35.0,-40.0, MoveSpeed + 100.0);
-      movement(0.0,-35.0,-40.0,  0.0, 35.0, 37.0, MoveSpeed + 100.0);
-      movement(20.0,-35.0,-40.0,-14.0, 35.0, 37.0, MoveSpeed + 100.0);
-      movement(20.0,  0.0,  0.0,-14.0, 35.0, 37.0, MoveSpeed + 100.0);
-      movement(-14.0,  0.0,  0.0, 20.0,  0.0,  0.0, MoveSpeed + 100.0);
-    }
-    if (joystick1.L1)
-      digitalWrite(lgunPin, HIGH);
-    else
-      digitalWrite(lgunPin, LOW);
-    if (joystick1.R1)
-      digitalWrite(rgunPin, HIGH);
-    else
-      digitalWrite(rgunPin, LOW);
-    if (joystick1.Select != prev_joystick1.Select)
-      toggleLaser();
-    if (joystick1.C != prev_joystick1.C)
-      doPing();
-    if (joystick1.S != prev_joystick1.S)
-      toggleLamp();
-    if (joystick1.X)
-      movement(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, MoveSpeed);
-    // Turret control
-    if (joystick1.RightX > DEAD_ZONE || joystick1.RightX < -DEAD_ZONE) {
-      int ta = (joystick1.RightX * 2) + 1500;
-      servos.setposition(turret, constrain(ta, 1200, 1800));
-    }
-    if (joystick1.RightY > DEAD_ZONE || joystick1.RightY < -DEAD_ZONE) {
-      int hips = (joystick1.RightX * 2) + 1500;
-      servos.setposition(righthip, hips);
-      servos.setposition(lefthip, hips);
-    }
-    // Adjustments
-    if (joystick1.Up || joystick1.Down) {
-      if (joystick1.Up)
-        MoveSpeed -= 10;
-      else
-        MoveSpeed += 10;
-      //Serial.println(MoveSpeed, DEC);
-    }
-    if (joystick1.Left || joystick1.Right) {
-      if (joystick1.Left)
-        StrideOffset -= 1;
-      else
-        StrideOffset += 1;
-      //Serial.println(StrideOffset, DEC);
-    }
-    // Send some info back
-    Serial.print(analogRead(2));  // Battery level
-    Serial.print(" ");
-    Serial.print(Damage);
-    Serial.print(" ");
-    Serial.print(MoveSpeed);
-    Serial.print(" ");
-    Serial.print(StrideOffset);
-    Serial.print(" ");
-    Serial.print(servos.getposition(turret));
-    Serial.print("\n");
+    // Normal walk - too much top weight to work correctly
+    if (firstStep)
+      movement(0.0, 0.0, 0.0, -LEAN, 0.0, 0.0, MoveSpeed);  // Lean right
+    movement(LEAN, StrideLengthRight, StrideLengthRight, -LEAN, -StrideLengthLeft, -StrideLengthLeft, MoveSpeed);  // Step left
+    movement(-LEAN, StrideLengthRight, StrideLengthRight, LEAN, -StrideLengthLeft, -StrideLengthLeft, MoveSpeed);  // Lean left
+    movement(-LEAN, -StrideLengthRight, -StrideLengthRight, LEAN, StrideLengthLeft, StrideLengthLeft, MoveSpeed);  // Step right
+    movement(LEAN, -StrideLengthRight, -StrideLengthRight, -LEAN, StrideLengthLeft, StrideLengthLeft, MoveSpeed);  // Lean right
+    firstStep = false;
   }
-  else if(message == 'R') {
-    Damage = 0;
+  if (joystick1.LeftX > (DEAD_ZONE + 100)) {
+    movement(0.0,-35.0,-40.0,  0.0, 35.0, 37.0, MoveSpeed + 100.0);
+    movement(0.0, 35.0, 37.0,  0.0,-35.0,-40.0, MoveSpeed + 100.0);
+    movement(-16.0, 35.0, 37.0, 20.0,-35.0,-40.0, MoveSpeed + 100.0);
+    movement(-16.0, 35.0, 37.0, 20.0,  0.0,  0.0, MoveSpeed + 100.0);
+    movement(20.0,  0.0,  0.0,-16.0,  0.0,  0.0, MoveSpeed + 100.0);
+  }
+  else if (joystick1.LeftX < (-DEAD_ZONE - 100)) {
+    movement(0.0, 35.0, 37.0,  0.0,-35.0,-40.0, MoveSpeed + 100.0);
+    movement(0.0,-35.0,-40.0,  0.0, 35.0, 37.0, MoveSpeed + 100.0);
+    movement(20.0,-35.0,-40.0,-14.0, 35.0, 37.0, MoveSpeed + 100.0);
+    movement(20.0,  0.0,  0.0,-14.0, 35.0, 37.0, MoveSpeed + 100.0);
+    movement(-14.0,  0.0,  0.0, 20.0,  0.0,  0.0, MoveSpeed + 100.0);
+  }
+  if (joystick1.L1)
+    digitalWrite(lgunPin, HIGH);
+  else
+    digitalWrite(lgunPin, LOW);
+  if (joystick1.R1)
+    digitalWrite(rgunPin, HIGH);
+  else
+    digitalWrite(rgunPin, LOW);
+  if (joystick1.Select != prev_joystick1.Select)
+    toggleLaser();
+  if (joystick1.C != prev_joystick1.C)
+    doPing();
+  if (joystick1.S != prev_joystick1.S)
+    toggleLamp();
+  // Reset position
+  if (joystick1.X)
+    movement(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, MoveSpeed);
+  // Turret control
+  if (joystick1.RightX > DEAD_ZONE || joystick1.RightX < -DEAD_ZONE) {
+    int ta = (joystick1.RightX * 2) + 1500;
+    servos.setposition(turret, constrain(ta, 1200, 1800));
+  }
+  if (joystick1.RightY > DEAD_ZONE || joystick1.RightY < -DEAD_ZONE) {
+    int hips = (joystick1.RightX * 2) + 1500;
+    servos.setposition(righthip, hips);
+    servos.setposition(lefthip, hips);
+  }
+  // Adjustments
+  if (joystick1.Up || joystick1.Down) {
+    if (joystick1.Up)
+      MoveSpeed -= 10;
+    else
+      MoveSpeed += 10;
+    //Serial.println(MoveSpeed, DEC);
+  }
+  if (joystick1.Left || joystick1.Right) {
+    if (joystick1.Left)
+      StrideOffset -= 1;
+    else
+      StrideOffset += 1;
+    //Serial.println(StrideOffset, DEC);
   }
 }
 
@@ -288,4 +310,13 @@ int getOffset(int address) {
 // Fires when a targeting plate is hit
 void plateHit() {
   ++Damage;
+}
+
+// Prints text to serial port if DEBUG is set
+void LOG(char* text) {
+  if(DEBUG) {
+    Serial.print("L ");
+    Serial.print(text);
+    Serial.print("\n");
+  }
 }
