@@ -136,27 +136,10 @@ class BTCommThread extends Thread
       {
 
         Log.d(TAG, "Handeling Message" + msg.obj);
-        if (ostream != null)
-        {
-          try
-          { 
-            sendBuffer = ((ControllerState)msg.obj).toBytes();
-            
-            //this is to avoid sending the same thing twice
-            if(sendBuffer != prevBuffer)
-            {
-              ostream.write(sendBuffer);
-              prevBuffer = sendBuffer;
-            }
-          }
-          catch (IOException e)
-          {
-            Log.e(TAG, "exception during write", e);
-          }
+         write(((ControllerState)msg.obj).toBytes());
 
-         
+         read();
 
-        }
       }
     };
 
@@ -164,7 +147,30 @@ class BTCommThread extends Thread
 
   }
   
-  public void read()
+  private void write(byte[] msg)
+  {
+    if (ostream != null)
+    {
+      try
+      { 
+        sendBuffer = msg;
+        
+        //this is to avoid sending the same thing twice
+        if(sendBuffer.equals(prevBuffer))
+        {
+          ostream.write(sendBuffer);
+          prevBuffer = sendBuffer;
+        }
+      }
+      catch (IOException e)
+      {
+        Log.e(TAG, "exception during write", e);
+      }
+    }
+  
+  }
+  
+  private void read()
   {
     /*
      * 
@@ -189,8 +195,11 @@ class BTCommThread extends Thread
         {
           String tmp = readBuffer.toString();
           readBuffer.delete(0, readBuffer.length());
-          Log.d(TAG, "Data From Bot:" + tmp);
-          state.onBtDataRecive(tmp);
+          Log.i(TAG, "Data From Bot:" + tmp);
+          if(!tmp.contains("L"))
+          {  
+            state.onBtDataRecive(tmp);
+          }
         }
       }
     }

@@ -156,7 +156,7 @@ public class Receiver extends Activity implements Callback, TextToSpeech.OnInitL
         // Allow the user to press the button for the app to speak again.
         // mAgainButton.setEnabled(true);
         // Greet the user.
-        utterTaunt("Robot Ready");
+        utterTaunt("R");
       }
     }
     else
