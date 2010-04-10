@@ -18,7 +18,6 @@
 
 #include <avr/sleep.h>
 #include <EEPROM.h>
-#include <Messenger.h>
 #include <ServoShield.h>
 #include "Controller.h"
 #include "ServoShieldPins.h"
@@ -48,7 +47,6 @@ const float LEAN = 15;
 const int OFFSET[] = {getOffset(ssmap[0]), getOffset(ssmap[1]), getOffset(ssmap[2]), getOffset(ssmap[3]), getOffset(ssmap[4]), getOffset(ssmap[5]), 0};
 
 // Some global vars
-Messenger msg;
 ServoShield servos;
 boolean firstStep = true, LaserOn = false, LampOn = false;
 int MoveSpeed = 100, StrideOffset = 0, Damage = 0;
@@ -67,25 +65,13 @@ void setup() {
     servos.setposition(ssmap[servo], 1500 + OFFSET[servo]);      //Set the initial position of the servo
   }
   servos.start();                         //Start the servo shield
-  msg = Messenger();
-  msg.attach(msgReady);
   attachInterrupt(0, plateHit, RISING);  // interrupt on pin 2 to signal plate hit
   Serial.println("Ready");
 }
 
 void loop() {
   if (Serial.available()) {
-    // read the incoming data
-    msg.process(Serial.read());
-    Serial.print(analogRead(2));  // Battery level
-    Serial.print(" ");
-    Serial.print(Damage);
-    Serial.print(" ");
-    Serial.print(MoveSpeed);
-    Serial.print(" ");
-    Serial.print(StrideOffset);
-    Serial.print(" ");
-    Serial.println(servos.getposition(turret));
+    msgReady();
   } else {
     firstStep = true;
     movement(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, MoveSpeed);
@@ -99,28 +85,29 @@ void loop() {
 void msgReady() {
   float StrideLengthLeft, StrideLengthRight;
   prev_joystick1 = joystick1;
-  if (msg.readChar() == 'C') {
-    joystick1.timestamp = msg.readLong();
-    joystick1.X = msg.readChar();
-    joystick1.C = msg.readChar();
-    joystick1.T = msg.readChar();
-    joystick1.S = msg.readChar();
-    joystick1.L1 = msg.readChar();
-    joystick1.L2 = msg.readChar();
-    joystick1.L3 = msg.readChar();
-    joystick1.R1 = msg.readChar();
-    joystick1.R2 = msg.readChar();
-    joystick1.R3 = msg.readChar();
-    joystick1.Select = msg.readChar();
-    joystick1.Start = msg.readChar();
-    joystick1.Up = msg.readChar();
-    joystick1.Down = msg.readChar();
-    joystick1.Left = msg.readChar();
-    joystick1.Right = msg.readChar();
-    joystick1.LeftX = msg.readChar();
-    joystick1.LeftY = msg.readChar();
-    joystick1.RightX = msg.readChar();
-    joystick1.RightY = msg.readChar();
+  char message = Serial.read();
+  if (message == 'C') {
+    //joystick1.timestamp = msg.readLong();
+    joystick1.X = Serial.read();
+    joystick1.C = Serial.read();
+    joystick1.T = Serial.read();
+    joystick1.S = Serial.read();
+    joystick1.L1 = Serial.read();
+    joystick1.L2 = Serial.read();
+    joystick1.L3 = Serial.read();
+    joystick1.R1 = Serial.read();
+    joystick1.R2 = Serial.read();
+    joystick1.R3 = Serial.read();
+    joystick1.Select = Serial.read();
+    joystick1.Start = Serial.read();
+    joystick1.Up = Serial.read();
+    joystick1.Down = Serial.read();
+    joystick1.Left = Serial.read();
+    joystick1.Right = Serial.read();
+    joystick1.LeftX = Serial.read();
+    joystick1.LeftY = Serial.read();
+    joystick1.RightX = Serial.read();
+    joystick1.RightY = Serial.read();
 
     // Movement
     if (joystick1.LeftY > DEAD_ZONE || joystick1.LeftY < -DEAD_ZONE) {
@@ -162,16 +149,14 @@ void msgReady() {
       movement(20.0,  0.0,  0.0,-14.0, 35.0, 37.0, MoveSpeed + 100.0);
       movement(-14.0,  0.0,  0.0, 20.0,  0.0,  0.0, MoveSpeed + 100.0);
     }
-    if (joystick1.L1) {
+    if (joystick1.L1)
       digitalWrite(lgunPin, HIGH);
-      delay(2500);
+    else
       digitalWrite(lgunPin, LOW);
-    }
-    if (joystick1.R1) {
+    if (joystick1.R1)
       digitalWrite(rgunPin, HIGH);
-      delay(2500);
+    else
       digitalWrite(rgunPin, LOW);
-    }
     if (joystick1.Select != prev_joystick1.Select)
       toggleLaser();
     if (joystick1.C != prev_joystick1.C)
@@ -205,8 +190,19 @@ void msgReady() {
         StrideOffset += 1;
       //Serial.println(StrideOffset, DEC);
     }
+    // Send some info back
+    Serial.print(analogRead(2));  // Battery level
+    Serial.print(" ");
+    Serial.print(Damage);
+    Serial.print(" ");
+    Serial.print(MoveSpeed);
+    Serial.print(" ");
+    Serial.print(StrideOffset);
+    Serial.print(" ");
+    Serial.print(servos.getposition(turret));
+    Serial.print("\n");
   }
-  else if(msg.readChar() == 'R') {
+  else if(message == 'R') {
     Damage = 0;
   }
 }
