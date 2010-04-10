@@ -66,11 +66,11 @@ public class ControllerState
    }
 
    public String toString(){
-	 // Control messages start with a 'C'
+     // Control messages start with a 'C'
      String pressed = "C";
      String delim = " ";
 	
-	 pressed += delim + this.timestamp + delim;
+     pressed += delim + this.timestamp + delim;
 
      pressed += this.X ? "1" + delim : "0"  + delim;
      pressed += this.C ? "1" + delim : "0"  + delim;
@@ -99,7 +99,7 @@ public class ControllerState
      pressed += (int)(JOYMAX * this.rightX)+ delim;
      pressed += (int)(JOYMAX * this.rightY)+ delim;
 
-     pressed +="\n";
+     pressed +="\r";
 
      return pressed;
    }
