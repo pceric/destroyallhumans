@@ -51,14 +51,14 @@ const int OFFSET[] = {getOffset(ssmap[0]), getOffset(ssmap[1]), getOffset(ssmap[
 
 // Some global vars
 ServoShield servos;
-boolean firstStep = true, LaserOn = false, LampOn = false;
-int MoveSpeed = 100, StrideOffset = 0, Damage = 0;
+boolean firstStep = true, leftStep = true, LaserOn = false, LampOn = false;
+int MoveSpeed = 150, StrideOffset = 0, Damage = 0;
 
 Controller prev_joystick1;
 Controller joystick1;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(57600);
   analogWrite(lampPin, 0);
   pinMode(laserPin, OUTPUT);
   pinMode(rgunPin, OUTPUT);
@@ -113,6 +113,8 @@ void sendStatus() {
     Serial.print(StrideOffset);
     Serial.print(" ");
     Serial.print(servos.getposition(turret));
+    Serial.print(" ");
+    Serial.print(servos.getposition(lefthip));
     Serial.print("\n");
 }
 
@@ -163,13 +165,19 @@ void handleJoystick() {
         StrideLengthRight -= StrideOffset;
     }
     // Normal walk - too much top weight to work correctly
-    if (firstStep)
+    if (firstStep) {
       movement(0.0, 0.0, 0.0, -LEAN, 0.0, 0.0, MoveSpeed);  // Lean right
-    movement(LEAN, StrideLengthRight, StrideLengthRight, -LEAN, -StrideLengthLeft, -StrideLengthLeft, MoveSpeed);  // Step left
-    movement(-LEAN, StrideLengthRight, StrideLengthRight, LEAN, -StrideLengthLeft, -StrideLengthLeft, MoveSpeed);  // Lean left
-    movement(-LEAN, -StrideLengthRight, -StrideLengthRight, LEAN, StrideLengthLeft, StrideLengthLeft, MoveSpeed);  // Step right
-    movement(LEAN, -StrideLengthRight, -StrideLengthRight, -LEAN, StrideLengthLeft, StrideLengthLeft, MoveSpeed);  // Lean right
-    firstStep = false;
+      firstStep = false;
+    }
+    if (leftStep) {
+      movement(LEAN, StrideLengthRight, StrideLengthRight, -LEAN, -StrideLengthLeft, -StrideLengthLeft, MoveSpeed);  // Step left
+      movement(-LEAN, StrideLengthRight, StrideLengthRight, LEAN, -StrideLengthLeft, -StrideLengthLeft, MoveSpeed);  // Lean left
+      leftStep = false;
+    } else {
+      movement(-LEAN, -StrideLengthRight, -StrideLengthRight, LEAN, StrideLengthLeft, StrideLengthLeft, MoveSpeed);  // Step right
+      movement(LEAN, -StrideLengthRight, -StrideLengthRight, -LEAN, StrideLengthLeft, StrideLengthLeft, MoveSpeed);  // Lean right
+      leftStep = true;
+    }
   }
   if (joystick1.LeftX > (DEAD_ZONE + 100)) {
     movement(0.0,-35.0,-40.0,  0.0, 35.0, 37.0, MoveSpeed + 100.0);
@@ -218,14 +226,12 @@ void handleJoystick() {
       MoveSpeed -= 10;
     else
       MoveSpeed += 10;
-    //Serial.println(MoveSpeed, DEC);
   }
   if (joystick1.Left || joystick1.Right) {
     if (joystick1.Left)
       StrideOffset -= 1;
     else
       StrideOffset += 1;
-    //Serial.println(StrideOffset, DEC);
   }
 }
 
@@ -282,6 +288,7 @@ void toggleLaser() {
 // Operate our Ping))
 long doPing() {
   long duration;
+  char tmp[17];
   // The PING))) is triggered by a HIGH pulse of 2 or more microseconds.
   // Give a short LOW pulse beforehand to ensure a clean HIGH pulse:
   pinMode(pingPin, OUTPUT);
@@ -297,7 +304,7 @@ long doPing() {
   pinMode(pingPin, INPUT);
   duration = pulseIn(pingPin, HIGH, 20000);
   
-  Serial.print(duration);
+  LOG(itoa(duration, tmp, 10));
 }
 
 // Reads a signed int from EEPROM.  127 addresses
