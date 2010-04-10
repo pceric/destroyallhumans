@@ -36,26 +36,28 @@ public class ControllerState
    private float JOYMAX = (float) 127.0; 
 
   
-   public byte[] toArduino() {
-	 // Control messages start with a 'C'
+   public byte[] toBytes() {
+     // Control messages start with a 'C'
+     byte T = (byte)1;
+     byte F = (byte)0;
      byte[] data = new byte[21];
-	 data[0] = 'C';
-	 data[1] = this.X ? 1 : 0;
-     data[2] = this.C ? 1 : 0;
-     data[3] = this.T ? 1 : 0;
-     data[4] = this.S ? 1 : 0;
-     data[5] = this.L1 ? 1 : 0;
-     data[6] = this.L2 ? 1 : 0;
-     data[7] = this.L3 ? 1 : 0;
-     data[8] = this.R1 ? 1 : 0;
-     data[9] = this.R2 ? 1 : 0;
-     data[10] = this.R3 ? 1 : 0;
-     data[11] = this.Select ? 1 : 0;
-     data[12] = this.Start ? 1 : 0;
-     data[13] = this.Up ? 1 : 0;
-     data[14] = this.Down ? 1 : 0;
-     data[15] = this.Left ? 1 : 0;
-     data[16] = this.Right ? 1 : 0;
+     data[0] = 'C';
+     data[1] = this.X ? T : F;
+     data[2] = this.C ? T : F;
+     data[3] = this.T ? T : F;
+     data[4] = this.S ? T : F;
+     data[5] = this.L1 ? T : F;
+     data[6] = this.L2 ? T : F;
+     data[7] = this.L3 ? T : F;
+     data[8] = this.R1 ? T : F;
+     data[9] = this.R2 ? T : F;
+     data[10] = this.R3 ? T : F;
+     data[11] = this.Select ? T : F;
+     data[12] = this.Start ? T : F;
+     data[13] = this.Up ? T : F;
+     data[14] = this.Down ? T : F;
+     data[15] = this.Left ? T : F;
+     data[16] = this.Right ? T : F;
      data[17] = (byte)(JOYMAX * this.leftX);
      data[18] = (byte)(JOYMAX * this.leftY);
      data[19] = (byte)(JOYMAX * this.rightX);
