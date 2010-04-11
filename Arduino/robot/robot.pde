@@ -23,7 +23,7 @@
 #include "ServoShieldPins.h"
 
 // Print out debug info
-#define DEBUG 1
+#define DEBUG 0
 
 // From ServoShield specs
 #define STEPS_PER_DEGREE 5.55
@@ -51,8 +51,8 @@ const int OFFSET[] = {getOffset(ssmap[0]), getOffset(ssmap[1]), getOffset(ssmap[
 
 // Some global vars
 ServoShield servos;
-boolean firstStep = true, leftStep = true, LaserOn = false, LampOn = false;
-int MoveSpeed = 150, StrideOffset = 0, Damage = 0;
+boolean firstStep = true, leftStep = true, turretAbsolute = true, LaserOn = false, LampOn = false;
+int MoveSpeed = 150, StrideOffset = 0, turretElevation = 0, Damage = 0;
 
 Controller prev_joystick1;
 Controller joystick1;
@@ -90,7 +90,8 @@ void msgReady() {
   if (message == 'C') {
     LOG("Got C code");
     prev_joystick1 = joystick1;
-    readJoystick();
+    if (!readJoystick())
+      return;
     handleJoystick();
   }
   else if(message == 'R') {
@@ -102,7 +103,6 @@ void msgReady() {
 
 // Sends status back to Android
 void sendStatus() {
-    LOG("Replying");
     // Send some info back
     Serial.print(analogRead(2));  // Battery level
     Serial.print(" ");
@@ -114,34 +114,52 @@ void sendStatus() {
     Serial.print(" ");
     Serial.print(servos.getposition(turret));
     Serial.print(" ");
-    Serial.print(servos.getposition(lefthip));
+    Serial.print(turretElevation);
     Serial.print("\n");
 }
 
 // Waits for enough data and gets joystick state
-void readJoystick() {
-    while (Serial.available() < 20)
+boolean readJoystick() {
+    char buffer[21], checksum = 0;
+
+    while (Serial.available() < 21)
       delay(1);
-    joystick1.X = Serial.read();
-    joystick1.C = Serial.read();
-    joystick1.T = Serial.read();
-    joystick1.S = Serial.read();
-    joystick1.L1 = Serial.read();
-    joystick1.L2 = Serial.read();
-    joystick1.L3 = Serial.read();
-    joystick1.R1 = Serial.read();
-    joystick1.R2 = Serial.read();
-    joystick1.R3 = Serial.read();
-    joystick1.Select = Serial.read();
-    joystick1.Start = Serial.read();
-    joystick1.Up = Serial.read();
-    joystick1.Down = Serial.read();
-    joystick1.Left = Serial.read();
-    joystick1.Right = Serial.read();
-    joystick1.LeftX = Serial.read();
-    joystick1.LeftY = Serial.read();
-    joystick1.RightX = Serial.read();
-    joystick1.RightY = Serial.read();
+
+    for (int i = 0; i < 20; i++) {
+      buffer[i] = Serial.read();
+      checksum ^= buffer[i];
+    }
+    buffer[20] = Serial.read();
+
+    if (checksum != buffer[20]) {
+      char msg[64];
+      sprintf(msg, "Checksum Error. Expected %d got %d.", checksum, buffer[20]);
+      LOG(msg);
+      return false;
+    }
+
+    joystick1.X = buffer[0];
+    joystick1.C = buffer[1];
+    joystick1.T = buffer[2];
+    joystick1.S = buffer[3];
+    joystick1.L1 = buffer[4];
+    joystick1.L2 = buffer[5];
+    joystick1.L3 = buffer[6];
+    joystick1.R1 = buffer[7];
+    joystick1.R2 = buffer[8];
+    joystick1.R3 = buffer[9];
+    joystick1.Select = buffer[10];
+    joystick1.Start = buffer[11];
+    joystick1.Up = buffer[12];
+    joystick1.Down = buffer[13];
+    joystick1.Left = buffer[14];
+    joystick1.Right = buffer[15];
+    joystick1.LeftX = buffer[16];
+    joystick1.LeftY = buffer[17];
+    joystick1.RightX = buffer[18];
+    joystick1.RightY = buffer[19];
+
+    return true;
 }
 
 // Handles joystick input
@@ -149,7 +167,7 @@ void handleJoystick() {
   float StrideLengthLeft, StrideLengthRight;
   // Movement
   if (joystick1.LeftY > DEAD_ZONE || joystick1.LeftY < -DEAD_ZONE) {
-    if (joystick1.LeftY > DEAD_ZONE) {
+    if (joystick1.LeftY > 0) {
       StrideLengthLeft = -(joystick1.LeftY / 3); // -STRIDE;
       StrideLengthRight = -(joystick1.LeftY / 3); // -STRIDE;
       if (StrideOffset < 0)
@@ -157,8 +175,8 @@ void handleJoystick() {
       else if (StrideOffset > 0)
         StrideLengthRight += StrideOffset;
     } else {
-      StrideLengthLeft = STRIDE;
-      StrideLengthRight = STRIDE;
+      StrideLengthLeft = -(joystick1.LeftY / 3); // STRIDE;
+      StrideLengthRight = -(joystick1.LeftY / 3); // STRIDE;
       if (StrideOffset < 0)
         StrideLengthLeft -= -StrideOffset;
       else if (StrideOffset > 0)
@@ -179,14 +197,14 @@ void handleJoystick() {
       leftStep = true;
     }
   }
-  if (joystick1.LeftX > (DEAD_ZONE + 100)) {
+  if (joystick1.LeftX > 120) {
     movement(0.0,-35.0,-40.0,  0.0, 35.0, 37.0, MoveSpeed + 100.0);
     movement(0.0, 35.0, 37.0,  0.0,-35.0,-40.0, MoveSpeed + 100.0);
     movement(-16.0, 35.0, 37.0, 20.0,-35.0,-40.0, MoveSpeed + 100.0);
     movement(-16.0, 35.0, 37.0, 20.0,  0.0,  0.0, MoveSpeed + 100.0);
     movement(20.0,  0.0,  0.0,-16.0,  0.0,  0.0, MoveSpeed + 100.0);
   }
-  else if (joystick1.LeftX < (-DEAD_ZONE - 100)) {
+  else if (joystick1.LeftX < -120) {
     movement(0.0, 35.0, 37.0,  0.0,-35.0,-40.0, MoveSpeed + 100.0);
     movement(0.0,-35.0,-40.0,  0.0, 35.0, 37.0, MoveSpeed + 100.0);
     movement(20.0,-35.0,-40.0,-14.0, 35.0, 37.0, MoveSpeed + 100.0);
@@ -201,6 +219,8 @@ void handleJoystick() {
     digitalWrite(rgunPin, HIGH);
   else
     digitalWrite(rgunPin, LOW);
+  if (!joystick1.R3 && prev_joystick1.R3)
+    turretAbsolute = !turretAbsolute;
   if (!joystick1.Select && prev_joystick1.Select)
     toggleLaser();
   if (!joystick1.C && prev_joystick1.C)
@@ -208,17 +228,20 @@ void handleJoystick() {
   if (!joystick1.S && prev_joystick1.S)
     toggleLamp();
   // Reset position
-  if (joystick1.X)
+  if (joystick1.X) {
+    turretElevation = 0;
+    servos.setposition(turret, 1500);
     movement(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, MoveSpeed);
-  // Turret control
-  if (joystick1.RightX > DEAD_ZONE || joystick1.RightX < -DEAD_ZONE) {
-    int ta = (joystick1.RightX * 2) + 1500;
-    servos.setposition(turret, constrain(ta, 1200, 1800));
   }
-  if (joystick1.RightY > DEAD_ZONE || joystick1.RightY < -DEAD_ZONE) {
-    int hips = (joystick1.RightX * 2) + 1500;
-    servos.setposition(righthip, hips);
-    servos.setposition(lefthip, -hips);
+  // Turret control
+  if (turretAbsolute == true) {
+    servos.setposition(turret, constrain(1500 + (joystick1.RightX * 2), 1167, 1833));  // 60 degree constrain
+    turretElevation = joystick1.RightY;  // ~30 degree range
+  } else {
+    if (joystick1.RightX != 0)
+      servos.setposition(turret, constrain(servos.getposition(turret) + joystick1.RightX, 1167, 1833));
+    if (joystick1.RightY != 0)
+      turretElevation = constrain(turretElevation + joystick1.RightY, 1333, 1666);
   }
   // Adjustments
   if (joystick1.Up || joystick1.Down) {
@@ -247,10 +270,10 @@ void movement(float ra, float rk, float rh, float la, float lk, float lh, float 
   // Get distance to travel
   int radist = (int(ra * STEPS_PER_DEGREE) + 1500 + OFFSET[3]) - rastart;
   int rkdist = (int(rk * STEPS_PER_DEGREE) + 1500 + OFFSET[4]) - rkstart;
-  int rhdist = (int(rh * STEPS_PER_DEGREE) + 1500 + OFFSET[5]) - rhstart;
+  int rhdist = (int(rh * STEPS_PER_DEGREE) + 1500 + OFFSET[5] + turretElevation) - rhstart;
   int ladist = (int(-la * STEPS_PER_DEGREE) + 1500 + OFFSET[0]) - lastart;  // Left side must be made negative because servos are "backwards"
   int lkdist = (int(-lk * STEPS_PER_DEGREE) + 1500 + OFFSET[1]) - lkstart;
-  int lhdist = (int(-lh * STEPS_PER_DEGREE) + 1500 + OFFSET[2]) - lhstart;
+  int lhdist = (int(-lh * STEPS_PER_DEGREE) + 1500 + OFFSET[2] - turretElevation) - lhstart;
   // Loop till we're done
   for (int i = 1; i <= int(speed); i++) {
     servos.setposition(rightankle, rastart + int(radist * (i / speed)));
@@ -270,7 +293,7 @@ void toggleLamp() {
     analogWrite(lampPin, 0);
   } else {
     LampOn = true;
-    analogWrite(lampPin, 170);
+    analogWrite(lampPin, 150);
   }
 }
 
