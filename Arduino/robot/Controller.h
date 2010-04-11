@@ -4,22 +4,22 @@
 typedef struct {
   long timestamp;
   
-  uint8_t X;
-  uint8_t C;
-  uint8_t T; 
-  uint8_t S;
-  uint8_t L1;
-  uint8_t L2;
-  uint8_t L3;
-  uint8_t R1;
-  uint8_t R2;
-  uint8_t R3;
-  uint8_t Select;
-  uint8_t Start;
-  uint8_t Up;
-  uint8_t Down;
-  uint8_t Left;
-  uint8_t Right;
+  char X;
+  char C;
+  char T; 
+  char S;
+  char L1;
+  char L2;
+  char L3;
+  char R1;
+  char R2;
+  char R3;
+  char Select;
+  char Start;
+  char Up;
+  char Down;
+  char Left;
+  char Right;
   
   char LeftX;
   char LeftY;
