@@ -40,7 +40,7 @@ public class ControllerState
      // Control messages start with a 'C'
      byte T = (byte)1;
      byte F = (byte)0;
-     byte[] data = new byte[21];
+     byte[] data = new byte[22];
      data[0] = 'C';
      data[1] = this.X ? T : F;
      data[2] = this.C ? T : F;
@@ -62,15 +62,23 @@ public class ControllerState
      data[18] = (byte)(JOYMAX * this.leftY);
      data[19] = (byte)(JOYMAX * this.rightX);
      data[20] = (byte)(JOYMAX * this.rightY);
+     
+     data[21] = 0;
+     
+     for(int i = 1; i<=20;i++)
+     {
+       data[21] = (byte) ( data[21] ^ data[i] ); 
+     }
+     
      return data;
    }
 
    public String toString(){
-     // Control messages start with a 'C'
+	 // Control messages start with a 'C'
      String pressed = "C";
      String delim = " ";
 	
-     pressed += delim + this.timestamp + delim;
+	 pressed += delim + this.timestamp + delim;
 
      pressed += this.X ? "1" + delim : "0"  + delim;
      pressed += this.C ? "1" + delim : "0"  + delim;
