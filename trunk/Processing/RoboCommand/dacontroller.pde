@@ -108,9 +108,9 @@ class DAController
   private void mapPlaystation3()
   {
     leftStick = gamepad.getStick(0);
-    leftStick.setTolerance(0.08f);
+    leftStick.setTolerance(0.1f);
     rightStick = gamepad.getStick(1);
-    rightStick.setTolerance(0.08f);
+    rightStick.setTolerance(0.1f);
     T = gamepad.getButton(12);
     C = gamepad.getButton(13);
     X = gamepad.getButton(14);
@@ -268,9 +268,9 @@ class DAController
     cs.leftX = leftStick.getX()*i;
     i = (invertRightX ? -1 : 1);
     cs.rightX = rightStick.getX()*i;
-    i = (invertLeftY ? 1 : -1);
+    i = (invertLeftY ? -1 : 1);
     cs.leftY = leftStick.getY()*i;
-    i = (invertRightY ? 1 : -1);
+    i = (invertRightY ? -1 : 1);
     cs.rightY = rightStick.getY()*i;
     cs.X = X.pressed(); 
     cs.C = C.pressed(); 

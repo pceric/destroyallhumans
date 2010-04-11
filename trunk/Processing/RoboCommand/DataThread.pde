@@ -12,7 +12,6 @@ public class DataThread extends Thread {
       public void received (Connection connection, Object object) {
         if (object instanceof RobotState) {
           _rs = (RobotState)object;
-          println("Server sent me RobotState.");
           println(get_azimuth() + " " + get_pitch() + " " + get_roll());
         }
       }
@@ -63,18 +62,18 @@ public class DataThread extends Thread {
       return 0.0;
   }
   
-  public float get_battery() {
+  public int get_battery() {
     if (_rs != null)
       return _rs.phoneBatteryLevel;
     else
-      return 0.0;
+      return 0;
   }
 
-  public float get_robotBattery() {
+  public int get_robotBattery() {
     if (_rs != null)
       return _rs.botBatteryLevel;
     else
-      return 0.0;
+      return 0;
   }
 
   public int get_damage() {
