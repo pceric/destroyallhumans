@@ -77,11 +77,18 @@ public class DataThread extends Thread {
       return 0.0;
   }
 
-  public float get_damage() {
+  public int get_damage() {
     if (_rs != null)
       return _rs.damage;
     else
-      return 0.0;
+      return 0;
+  }
+  
+  public int get_speed() {
+    if (_rs != null)
+      return _rs.servoSpeed;
+    else
+      return 0;
   }
 }
 
