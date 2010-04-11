@@ -243,7 +243,7 @@ public class Receiver extends Activity implements Callback, TextToSpeech.OnInitL
       // Toast.makeText(CONTEXT, "Current IP:" + state.getLocalIpAddress(),
       // Toast.LENGTH_LONG);
 
-      ProgressDialog btDialog = ProgressDialog.show(me, msg, "Searching for a Bluetooth serial port...");
+      ProgressDialog btDialog =  null;//ProgressDialog.show(me, msg, "Searching for a Bluetooth serial port...");
 
       String connectivity_context = Context.WIFI_SERVICE;
       WifiManager wifi = (WifiManager) getSystemService(connectivity_context);

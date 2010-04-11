@@ -19,6 +19,7 @@ package com.atg.netcat;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
 
@@ -117,8 +118,8 @@ class BTCommThread extends Thread
     istream = tmpIn;
     ostream = tmpOut;
 
-    // if (dialog != null && dialog.isShowing())
-    // dialog.dismiss();
+    if (dialog != null && dialog.isShowing())
+      dialog.dismiss();
 
   }
 
@@ -157,7 +158,7 @@ class BTCommThread extends Thread
       try
       {
         // this is to avoid sending the same thing twice
-        if (!prevBuffer.equals(bytes))
+        if (!Arrays.equals(bytes,prevBuffer))
         {
           ostream.write(bytes);
           prevBuffer = bytes;
@@ -193,11 +194,11 @@ class BTCommThread extends Thread
           {
             String tmp = readBuffer.toString();
             readBuffer.delete(0, readBuffer.length());
-            Log.i(TAG, "Data From Bot:" + tmp);
-            if (!tmp.contains("L"))
-            {
+            //Log.i(TAG, "Data From Bot:" + tmp);
+            //if (!tmp.contains("L"))
+            //{
               state.onBtDataRecive(tmp);
-            }
+            //}
           }
         }
       }

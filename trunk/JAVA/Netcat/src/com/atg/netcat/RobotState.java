@@ -1,6 +1,5 @@
 package com.atg.netcat;
 
-
 /*
  * This is a Singlton class to store the state of the robot. 
  * 
@@ -31,11 +30,11 @@ public class RobotState
      
     //these values come from the Arduino
     
-    public float botBatteryLevel = 0;
+    public int botBatteryLevel = 0;
     
-    public float irDistance = 0;
+    public int irDistance = 0;
     
-    public float sonarDistance = 0;
+    public int sonarDistance = 0;
     
     public int damage = 0;
     
@@ -49,4 +48,5 @@ public class RobotState
     
     public boolean moving = false;
     
+    public String message = "";
 }

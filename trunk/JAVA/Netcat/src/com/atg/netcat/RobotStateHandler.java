@@ -30,14 +30,10 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
 {
   private Server                   server;
 
-  private StringBuffer             btInBuffer;
-
   private BTCommThread             bTcomThread;
 
   private ProgressDialog           btDialog;
 
-  //private ProgressDialog           ipDialog;
-  
   private WifiManager              wifi;
 
   private Handler                  uiHandler;
@@ -95,7 +91,6 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
   public RobotStateHandler(Handler h) throws IOException
   {
 
-    btInBuffer = new StringBuffer();
 
     uiHandler = h;
 
@@ -139,8 +134,15 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
 
   public void onBtDataRecive(String data)
   {
-    btInBuffer.append(data);
+    //btInBuffer.append(data);
     state.blueToothConnected = true;
+    
+    if(data.startsWith("L"))
+    {
+      state.message += data; 
+    }
+    else
+    {
     
     String[] botData = data.split(" ");
     
@@ -150,13 +152,13 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
       state.servoSpeed = Integer.parseInt(botData[2]);
       state.strideOffset  = Integer.parseInt(botData[3]);
       state.turretAzimuth  = Integer.parseInt(botData[4]);
-      //state.turretElevation  = Integer.parseInt(botData[3]);
+      state.turretElevation  = Integer.parseInt(botData[3]);
     }
     catch(Exception e)
     {
       Log.e(TAG, "Error parsing robot data: ",e);
     }
-    
+    }
     
     //handler.sendEmptyMessage(0);
 
@@ -354,9 +356,9 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
              Message btMsg = bTcomThread.handler.obtainMessage();
              btMsg.obj = controllerState;
              btMsg.sendToTarget();
-             //bTcomThread.read();
           }
           clientConnection.sendTCP(state);
+          state.message = "";
 
         }
         
