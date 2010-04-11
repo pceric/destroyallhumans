@@ -58,7 +58,7 @@ Controller prev_joystick1;
 Controller joystick1;
 
 void setup() {
-  Serial.begin(57600);
+  Serial.begin(19200);
   analogWrite(lampPin, 0);
   pinMode(laserPin, OUTPUT);
   pinMode(rgunPin, OUTPUT);
@@ -201,11 +201,11 @@ void handleJoystick() {
     digitalWrite(rgunPin, HIGH);
   else
     digitalWrite(rgunPin, LOW);
-  if (joystick1.Select != prev_joystick1.Select)
+  if (!joystick1.Select && prev_joystick1.Select)
     toggleLaser();
-  if (joystick1.C != prev_joystick1.C)
+  if (!joystick1.C && prev_joystick1.C)
     doPing();
-  if (joystick1.S != prev_joystick1.S)
+  if (!joystick1.S && prev_joystick1.S)
     toggleLamp();
   // Reset position
   if (joystick1.X)
@@ -218,7 +218,7 @@ void handleJoystick() {
   if (joystick1.RightY > DEAD_ZONE || joystick1.RightY < -DEAD_ZONE) {
     int hips = (joystick1.RightX * 2) + 1500;
     servos.setposition(righthip, hips);
-    servos.setposition(lefthip, hips);
+    servos.setposition(lefthip, -hips);
   }
   // Adjustments
   if (joystick1.Up || joystick1.Down) {
