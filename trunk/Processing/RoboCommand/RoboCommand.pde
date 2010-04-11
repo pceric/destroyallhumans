@@ -78,7 +78,7 @@ void setup(){
   fontA = loadFont("Ziggurat-HTF-Black-32.vlw");
 
   controlP5 = new ControlP5(this);
-  speedLabel = new Textlabel(this,"Speed: 150",100,height-80);
+  speedLabel = new Textlabel(this,"Speed: 150",100,height-80,200,40);
   controlP5.addTextfield("speech",100,height-40,300,20).setFocus(true);
   controlP5.addSlider("lifeBar",0,MAX_LIFE,MAX_LIFE,20,height-115,20,100).setNumberOfTickMarks(15);
   controlP5.controller("lifeBar").setLabel("Life");

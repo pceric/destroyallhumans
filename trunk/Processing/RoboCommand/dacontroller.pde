@@ -29,6 +29,8 @@ class DAController
   public boolean invertLeftY;
   public boolean invertRightX;
   public boolean invertRightY;
+  public boolean swapLeftXY;
+  public boolean swapRightXY;
 
   DAController(ControllDevice d, Object o)
   {
@@ -38,6 +40,7 @@ class DAController
     //gamepad.printButtons();
     //gamepad.printSliders();
     invertLeftX = invertLeftY = invertRightX = invertRightY = false;
+    swapLeftXY = swapRightXY = false;
     if ( gamepad.getName().equals("USB Force Feedback Joypad (MP-8888)") )
     {
       mapJoybox();
@@ -109,8 +112,10 @@ class DAController
   {
     leftStick = gamepad.getStick(0);
     leftStick.setTolerance(0.1f);
+    swapLeftXY = true;
     rightStick = gamepad.getStick(1);
     rightStick.setTolerance(0.1f);
+    swapRightXY = true;
     T = gamepad.getButton(12);
     C = gamepad.getButton(13);
     X = gamepad.getButton(14);
@@ -264,14 +269,28 @@ class DAController
   ControllerState getState() {
     int i;
     cs.timestamp = System.nanoTime() / 1000;
-    i = (invertLeftX ? -1 : 1);
-    cs.leftX = leftStick.getX()*i;
-    i = (invertRightX ? -1 : 1);
-    cs.rightX = rightStick.getX()*i;
-    i = (invertLeftY ? -1 : 1);
-    cs.leftY = leftStick.getY()*i;
-    i = (invertRightY ? -1 : 1);
-    cs.rightY = rightStick.getY()*i;
+    if (swapLeftXY)  {
+      i = (invertLeftX ? -1 : 1);
+      cs.leftY = leftStick.getX()*i;
+      i = (invertLeftY ? -1 : 1);
+      cs.leftX = leftStick.getY()*i;
+    } else {
+      i = (invertLeftX ? -1 : 1);
+      cs.leftX = leftStick.getX()*i;
+      i = (invertLeftY ? -1 : 1);
+      cs.leftY = leftStick.getY()*i;
+    }
+    if (swapRightXY) {
+      i = (invertRightX ? -1 : 1);
+      cs.rightY = rightStick.getX()*i;
+      i = (invertRightY ? -1 : 1);
+      cs.rightX = rightStick.getY()*i;
+    } else {
+      i = (invertRightX ? -1 : 1);
+      cs.rightX = rightStick.getX()*i;
+      i = (invertRightY ? -1 : 1);
+      cs.rightY = rightStick.getY()*i;
+    }
     cs.X = X.pressed(); 
     cs.C = C.pressed(); 
     cs.T = T.pressed(); 

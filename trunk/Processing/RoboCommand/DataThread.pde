@@ -89,5 +89,12 @@ public class DataThread extends Thread {
     else
       return 0;
   }
+  
+  public String get_message() {
+    if (_rs != null)
+      return _rs.message;
+    else
+      return "";
+  }    
 }
 
