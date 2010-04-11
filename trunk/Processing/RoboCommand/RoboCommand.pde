@@ -67,6 +67,8 @@ int packetBuffPos = 0;
 
 float segLength = 50;
 
+Textlabel speedLabel;
+
 void setup(){
   size(SCREEN_WIDTH,SCREEN_HEIGHT,OPENGL);
   
@@ -76,6 +78,7 @@ void setup(){
   fontA = loadFont("Ziggurat-HTF-Black-32.vlw");
 
   controlP5 = new ControlP5(this);
+  speedLabel = new Textlabel(this,"Speed: 150",100,height-80);
   controlP5.addTextfield("speech",100,height-40,300,20).setFocus(true);
   controlP5.addSlider("lifeBar",0,MAX_LIFE,MAX_LIFE,20,height-115,20,100).setNumberOfTickMarks(15);
   controlP5.controller("lifeBar").setLabel("Life");
@@ -89,8 +92,6 @@ void setup(){
   device = controll.getDevice(JOYSTICK_NAME);
   ps3 = new DAController(device, this);
 
-  //vidServer = new processing.net.Server(this, VIDEO_PORT);
-  
   myClient = new com.esotericsoftware.kryonet.Client();
   
   thread = new DataThread(myClient, ps3);
@@ -109,9 +110,9 @@ void setup(){
     println(e + ".  Bye Bye.");
     System.exit(0);
   }
-  
+
   vidServer = new UDP(this, VIDEO_PORT);
-  vidServer.setReceiveHandler( "videoPacketHandler"); 
+  vidServer.setReceiveHandler("videoPacketHandler"); 
 }
 
 
@@ -158,8 +159,9 @@ void draw(){
     popMatrix();      
   }
   
-  
   // GUI components
+  speedLabel.setValue("Speed: " + Integer.toString(thread.get_speed()));
+  speedLabel.draw(this);
   controlP5.controller("lifeBar").setValue(MAX_LIFE - thread.get_damage());
   if ((controlP5.controller("lifeBar").value() / controlP5.controller("lifeBar").max()) <= 0.25)
     controlP5.controller("lifeBar").setColorForeground(color(255,0,0));
@@ -185,7 +187,6 @@ void draw(){
   rotateY(radians(thread.get_pitch()));
   box(100, 50, 5);
   popMatrix();
-  
 }
 
 
@@ -207,49 +208,26 @@ PImage loadPImageFromBytes(byte[] b,PApplet p) {
 }
 
 
-void segment(float x, float y, float a) {
-  translate(x, y);
-  rotate(a);
-  line(0, 0, segLength, 0);
-}
-
+// callback for speech text box
 public void speech(String theText) {
-  // receiving text from controller texting
-  println("a textfield event for controller 'speech': "+theText);
+  println("Speaking: " + theText);
   ps3.getState().extraData = theText;
 }
 
+
 void videoPacketHandler(byte[] message, String ip, int port) {
-   
- println("Server send me video packet of length: "+message.length);
+  //println("Server send me video packet of length: "+message.length);
 
- int msgPos = 0;
- while( msgPos < message.length)
-   {
-     packetBuffer[packetBuffPos] = message[msgPos];             
-     packetBuffPos++;
-     msgPos++;
-   }
-    //if(sumLast32() == 0) {
-      //println("found end");
-      imageBuffer = new byte[packetBuffPos];
-      System.arraycopy(packetBuffer,0,imageBuffer,0,packetBuffPos - 32);
-      android = loadPImageFromBytes(imageBuffer, this);
-      packetBuffPos = 0;
-    //}
- }
-
-
-int sumLast32()
-{
-  if(packetBuffPos < 32)
-    return -1;
-  
-  int sum = 0;
-  for(int i = packetBuffPos - 32; i < packetBuffPos; i++)
+  int msgPos = 0;
+  while( msgPos < message.length)
   {
-     sum += packetBuffer[i]; 
+    packetBuffer[packetBuffPos] = message[msgPos];             
+    packetBuffPos++;
+    msgPos++;
   }
-  return sum;
+  imageBuffer = new byte[packetBuffPos];
+  System.arraycopy(packetBuffer,0,imageBuffer,0,packetBuffPos - 32);
+  android = loadPImageFromBytes(imageBuffer, this);
+  packetBuffPos = 0;
 }
 

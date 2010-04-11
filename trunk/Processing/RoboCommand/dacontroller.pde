@@ -58,7 +58,7 @@ class DAController
     {
       mapPlaystation3();
     }
-    else if (match(gamepad.getName(), "SideWinder") != null)
+    else if (match(gamepad.getName(), "SideWinder Precision Pro") != null)
       mapSidewinder();
     else 
     {
