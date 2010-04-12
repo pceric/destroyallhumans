@@ -167,6 +167,7 @@ void handleJoystick() {
   float StrideLengthLeft, StrideLengthRight;
   // Movement
   if (joystick1.LeftY > DEAD_ZONE || joystick1.LeftY < -DEAD_ZONE) {
+    StrideOffset += (joystick1.LeftX / 10);  // Try and gently turn direction
     if (joystick1.LeftY > 0) {
       StrideLengthLeft = -(joystick1.LeftY / 3); // -STRIDE;
       StrideLengthRight = -(joystick1.LeftY / 3); // -STRIDE;
@@ -197,14 +198,14 @@ void handleJoystick() {
       leftStep = true;
     }
   }
-  if (joystick1.LeftX > 120) {
+  if (joystick1.LeftX < -120) {
     movement(0.0,-35.0,-40.0,  0.0, 35.0, 37.0, MoveSpeed + 100.0);
     movement(0.0, 35.0, 37.0,  0.0,-35.0,-40.0, MoveSpeed + 100.0);
     movement(-16.0, 35.0, 37.0, 20.0,-35.0,-40.0, MoveSpeed + 100.0);
     movement(-16.0, 35.0, 37.0, 20.0,  0.0,  0.0, MoveSpeed + 100.0);
     movement(20.0,  0.0,  0.0,-16.0,  0.0,  0.0, MoveSpeed + 100.0);
   }
-  else if (joystick1.LeftX < -120) {
+  else if (joystick1.LeftX > 120) {
     movement(0.0, 35.0, 37.0,  0.0,-35.0,-40.0, MoveSpeed + 100.0);
     movement(0.0,-35.0,-40.0,  0.0, 35.0, 37.0, MoveSpeed + 100.0);
     movement(20.0,-35.0,-40.0,-14.0, 35.0, 37.0, MoveSpeed + 100.0);
