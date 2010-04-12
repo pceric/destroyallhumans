@@ -1,3 +1,5 @@
+
+
 public class ControllerState
 {
   
@@ -65,9 +67,9 @@ public class ControllerState
      
      data[21] = 0;
      
-     for(int i = 1; i<=20;i++)
+     for(int i = 1; i<21;i++)
      {
-       data[21] = (byte) ( data[21] ^ data[i] ); 
+       data[21] ^= data[i]; 
      }
      
      return data;
@@ -114,3 +116,4 @@ public class ControllerState
 
    
 }
+

@@ -12,7 +12,11 @@ public class DataThread extends Thread {
       public void received (Connection connection, Object object) {
         if (object instanceof RobotState) {
           _rs = (RobotState)object;
-          println(get_azimuth() + " " + get_pitch() + " " + get_roll());
+          //println(get_azimuth() + " " + get_pitch() + " " + get_roll());
+          if(_rs.message.length() > 0)
+          {
+            println(_rs.message);
+          }
         }
       }
     });
@@ -20,7 +24,7 @@ public class DataThread extends Thread {
   
   public void run() {
     while (_client != null) {
-      //print(Long.toString(_controller.timestamp) + _controller.getState());
+      //print(_controller.getState());
       try {
         ControllerState cs = _controller.getState();
         Date sent = new Date();
@@ -69,7 +73,7 @@ public class DataThread extends Thread {
       return 0;
   }
 
-  public int get_robotBattery() {
+  public float get_robotBattery() {
     if (_rs != null)
       return _rs.botBatteryLevel;
     else

@@ -30,8 +30,8 @@ import controlP5.*;
 final int SCREEN_WIDTH = 800;
 final int SCREEN_HEIGHT = 640;
 final String PHONE_IP = "192.168.1.109";
-//final String JOYSTICK_NAME = "PLAYSTATION(R)3 Controller";
-final String JOYSTICK_NAME = "Microsoft SideWinder Precision Pro (USB)";
+final String JOYSTICK_NAME = "PLAYSTATION(R)3 Controller";
+//final String JOYSTICK_NAME = "Microsoft SideWinder Precision Pro (USB)";
 final int CONTROL_PORT = 5555;
 final int VIDEO_PORT = 4444;
 final int MAX_LIFE = 15;
@@ -50,6 +50,7 @@ DAController ps3;
 
 // GUI
 ControlP5 controlP5;
+Crosshair crosshair;
 
 // Communication thread
 DataThread thread;
@@ -79,6 +80,8 @@ void setup(){
 
   controlP5 = new ControlP5(this);
   speedLabel = new Textlabel(this,"Speed: 150",100,height-80,200,40);
+  crosshair = new Crosshair(controlP5,"L",width/2,height/2,30,30);
+  
   controlP5.addTextfield("speech",100,height-40,300,20).setFocus(true);
   controlP5.addSlider("lifeBar",0,MAX_LIFE,MAX_LIFE,20,height-115,20,100).setNumberOfTickMarks(15);
   controlP5.controller("lifeBar").setLabel("Life");
@@ -229,5 +232,45 @@ void videoPacketHandler(byte[] message, String ip, int port) {
   System.arraycopy(packetBuffer,0,imageBuffer,0,packetBuffPos - 32);
   android = loadPImageFromBytes(imageBuffer, this);
   packetBuffPos = 0;
+}
+
+
+
+class Crosshair extends Controller {
+
+  // 4 fields for the 2D controller-handle
+  int cWidth=2, cHeight=2; 
+
+  Crosshair (ControlP5 theControlP5, String theName, int theX, int theY, int theWidth, int theHeight) {
+    // the super class Controller needs to be initialized with the below parameters
+    super(theControlP5,  (Tab)(theControlP5.getTab("default")), theName, theX, theY, theWidth, theWidth);
+  }
+
+
+  // overwrite the draw method for the controller's visual representation.
+  public void draw(PApplet theApplet) {
+    // use pushMatrix and popMatrix when drawing
+    // the controller.
+    theApplet.pushMatrix();
+    theApplet.translate(position().x(), position().y());
+    // draw the background of the controller.
+    // draw the controller-handle
+    
+    fill(0,255,0);
+    rect(0,-14,cWidth,30);
+    rect(-14,0,30,cHeight);
+
+    theApplet.popMatrix();
+  } 
+
+ 
+ public void setValue(float theValue) {
+    
+  }
+  // needs to be implemented since it is an abstract method in controlP5.Controller
+  // nothing needs to be set since this method is only relevant for saving 
+  // controller settings and only applies to (most) default Controllers.
+  public void addToXMLElement(ControlP5XMLElement theElement) {
+  }
 }
 
