@@ -23,7 +23,7 @@
 #include "ServoShieldPins.h"
 
 // Print out debug info
-#define DEBUG 0
+#define DEBUG 1
 
 // From ServoShield specs
 #define STEPS_PER_DEGREE 5.55
@@ -40,8 +40,8 @@ const int ssmap[16] = {SSP1,SSP2,SSP3,SSP4,SSP5,SSP6,SSP7,SSP8,SSP9,SSP10,SSP11,
 // SN754410 pins on Duem
 const int lampPin = 11;  // Don't use pins 5 or 6 if possible
 const int laserPin = 12;
-const int rgunPin = 14;
-const int lgunPin = 15;
+const int lgunPin = 14;
+const int rgunPin = 15;
 // Other devices on Duem
 const int pingPin = 4;
 // Misc constants
@@ -51,7 +51,7 @@ const int OFFSET[] = {getOffset(ssmap[0]), getOffset(ssmap[1]), getOffset(ssmap[
 
 // Some global vars
 ServoShield servos;
-boolean firstStep = true, leftStep = true, turretAbsolute = true, LaserOn = false, LampOn = false;
+boolean firstStep = true, leftStep = true, turretAbsolute = false, LaserOn = false, LampOn = false;
 int MoveSpeed = 150, StrideOffset = 0, turretElevation = 0, Damage = 0;
 
 Controller prev_joystick1;
@@ -239,9 +239,9 @@ void handleJoystick() {
     turretElevation = joystick1.RightY;  // ~30 degree range
   } else {
     if (joystick1.RightX != 0)
-      servos.setposition(turret, constrain(servos.getposition(turret) + joystick1.RightX, 1167, 1833));
+      servos.setposition(turret, constrain(servos.getposition(turret) + (joystick1.RightX / 10), 1167, 1833));
     if (joystick1.RightY != 0)
-      turretElevation = constrain(turretElevation + joystick1.RightY, 1333, 1666);
+      turretElevation = constrain(turretElevation + (joystick1.RightY / 10), -166, 166);
   }
   // Adjustments
   if (joystick1.Up || joystick1.Down) {
