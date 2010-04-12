@@ -73,7 +73,8 @@ public class DataThread extends Thread {
       return 0;
   }
 
-  public float get_robotBattery() {
+  public int get_robotBattery() {
+
     if (_rs != null)
       return _rs.botBatteryLevel;
     else
