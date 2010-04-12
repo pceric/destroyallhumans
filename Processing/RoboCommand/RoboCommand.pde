@@ -105,7 +105,7 @@ void setup(){
   kryo.register(RobotState.class);
   
   Arrays.fill(packetBuffer,0,packetBuffer.length, (byte)2);
-  
+
   try {
     println("Connecting to phone at " + PHONE_IP);
     myClient.connect(15000, PHONE_IP, CONTROL_PORT);
@@ -186,7 +186,7 @@ void draw(){
   stroke(128);
   pushMatrix();
   translate(500, 575);
-  rotateX(radians(thread.get_roll()));
+  rotateX(radians(thread.get_roll()) + HALF_PI);
   rotateY(radians(thread.get_pitch()));
   box(100, 50, 5);
   popMatrix();
