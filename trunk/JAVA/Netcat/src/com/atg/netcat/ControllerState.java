@@ -65,12 +65,14 @@ public class ControllerState
      data[19] = (byte)(JOYMAX * this.rightX);
      data[20] = (byte)(JOYMAX * this.rightY);
      
-     data[21] = 0;
+     byte checksum = 0;
      
-     for(int i = 1; i<=20;i++)
+     for(int i = 1; i<22;i++)
      {
-       data[21] = (byte) ( data[21] ^ data[i] ); 
+       checksum = (byte) ( checksum ^ data[i] ); 
      }
+     
+     data[21] = (byte) checksum;
      
      return data;
    }

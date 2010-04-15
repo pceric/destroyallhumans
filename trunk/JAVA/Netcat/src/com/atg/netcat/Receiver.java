@@ -318,9 +318,15 @@ public class Receiver extends Activity implements Callback, TextToSpeech.OnInitL
       camera = CameraHolder.instance().open();
       Parameters params = camera.getParameters();
 
-      // 480x320
+      //preview-size-values=1280x720,800x480,720x480,640x480,576x432,480x320,384x288,352x288,320x240,240x160,176x144
       params.setPreviewSize(PREVIEW_HEIGHT, PREVIEW_WIDTH);
-      // params.setPreviewFrameRate(1);
+      params.setPreviewFrameRate(10);
+      //whitebalance-values=auto,incandescent,fluorescent,daylight,cloudy-daylight
+      params.setWhiteBalance(Parameters.WHITE_BALANCE_FLUORESCENT);
+      //preview-format=yuv420sp
+      params.setColorEffect(Parameters.EFFECT_NONE);
+      params.setFocusMode(Parameters.FOCUS_MODE_INFINITY);
+      params.setAntibanding(Parameters.ANTIBANDING_OFF);
       camera.setParameters(params);
       /*
        * if (Config.USE_ONE_SHOT_PREVIEW) {

@@ -11,6 +11,9 @@
  */
 
 
+
+#include <framebuffet.h>
+
 #include <jni.h>
 #include <preview_handler_jni.h>
 
@@ -31,7 +34,7 @@
 
 #include <jerror.h>
 
-#define DEBUG_LOGGING
+//#define DEBUG_LOGGING
 
 #define UINT16 unsigned short
 #define UINT32 unsigned int
@@ -41,6 +44,9 @@ int WIDTH   = 480;
 int HEIGHT  = 800;
 int QUALITY = 20;
 
+int CB_OFFSET = -128;
+int CR_OFFSET = -128;
+
 
 UINT32 img_size = 1152000;
 BYTE out_buffer[1152000];
@@ -48,8 +54,18 @@ BYTE out_buffer[1152000];
 unsigned char cbData[288000];
 unsigned char crData[288000];
 
+int blocks = 32;
+long blockTmp[32][32];
+
 BYTE frameTerminator[32];
 //unsigned char *out_buffer;
+
+
+typedef struct
+{
+    int cb;
+    int cr;
+}Color;
 
 
 int SocketFD;
@@ -294,6 +310,168 @@ int put_jpeg_yuv420p_memory(unsigned char *dest_image, int image_size,
 }
 
 
+
+/* put_jpeg_yuv420p_memory converts an input image in the YUV420P format into a jpeg image and puts
+
+ */
+int getAvgColor(unsigned char *input_image, int width, int height)
+{
+	long i, j, jpeg_image_size, chroma_size;
+	unsigned char tmp;
+	unsigned char *chroma_start;
+
+
+	long cbAvg = 0;
+
+	long crAvg = 0;
+
+
+	chroma_size = (width*height)/4;
+	chroma_start = input_image + width * height;
+
+	//
+	for(j=0; j<chroma_size; j++)
+	{
+		//the color balance seems to be off ! --floruencent
+		cbAvg += chroma_start[j*2] + CB_OFFSET;
+		crAvg += chroma_start[j*2 + 1] + CR_OFFSET;
+	}
+
+	cbAvg = cbAvg/chroma_size;
+	crAvg = crAvg/chroma_size;
+
+	__android_log_print(ANDROID_LOG_INFO,"FRAMEBUFFET","Got color avg cb=%d cr=%d",cbAvg,crAvg);
+
+	return 0;
+}
+
+
+
+
+Color getBlockAvg(unsigned char *input_image, int width, int height,int x,int y)
+{
+
+	//u = cb
+	//v = cr
+
+
+
+	int i, j;
+	unsigned long  k, chroma_size, cr, cb;
+	unsigned char *chroma_start;
+
+	int chroma_height = height/2;
+	int chroma_width = width/2;
+
+	int blockWidth = chroma_width/blocks;
+
+	int blockHeight = chroma_height/blocks;
+
+	chroma_start = input_image + (width * height);
+
+	Color avg;
+
+
+	for(i=0;i<blockHeight;i++) {
+		for(j=0;j<blockWidth;j++) {
+
+
+            k = ((i+(blockHeight*y))*chroma_width*2) + ((j+(blockWidth * x))*2);
+
+			cb += chroma_start[k] + CB_OFFSET;
+			cr += chroma_start[k + 1] + CR_OFFSET;
+
+		}
+	}
+
+
+	avg.cb = cb/(blockWidth * blockHeight);
+	avg.cr = cr/(blockWidth * blockHeight);
+
+    return avg;
+}
+
+
+/* put_jpeg_yuv420p_memory converts an input image in the YUV420P format into a jpeg image and puts
+
+ */
+int getBestBlock( unsigned char *input_image, int width, int height, int u, int v, int tolarance)
+{
+
+	//u = cb
+	//v = cr
+
+
+
+	int i, j, cr, cb, bestX ,bestY;
+	unsigned long  k, chroma_size;
+	unsigned char *tmp;
+	unsigned char *chroma_start;
+
+	int chroma_height = height/2;
+	int chroma_width = width/2;
+
+	int blockWidth = chroma_width/blocks;
+
+	int blockHeight = chroma_height/blocks;
+
+	chroma_size = (width*height)/4;
+	chroma_start = input_image + (width * height);
+
+
+
+	for(i=0;i<blocks;i++) {
+		for(j=0;j<blocks;j++) {
+			blockTmp[i][j] = 0;
+
+		}
+	}
+
+
+	for(i=0;i<chroma_height;i++) {
+		for(j=0;j<chroma_width;j++) {
+
+            k = (i*chroma_width*2) + (j*2);
+			cb = chroma_start[k] + CB_OFFSET;
+			cr = chroma_start[k + 1] + CR_OFFSET;
+
+
+			blockTmp[j/blockWidth][i/blockHeight] += abs(u-cb) + abs(v-cr);
+
+		}
+	}
+
+	bestX = 0;
+	bestY = 0;
+	long score = (blockWidth * blockHeight * tolarance) + 1;
+	for(i=0;i<blocks;i++) {
+			for(j=0;j<blocks;j++) {
+				if( blockTmp[i][j] < score)
+				{
+					bestX = i;
+					bestY = j;
+					score = blockTmp[bestX][bestY];
+				}
+
+			}
+		}
+
+    if(score < (blockWidth * blockHeight * tolarance))
+    {
+      Color avg;
+      avg = getBlockAvg(input_image,width,height,bestX,bestY);
+
+	  __android_log_print(ANDROID_LOG_INFO,"FRAMEBUFFET","Found Target       Cb=%d Cr=%d   x=%d y=%d score=%d",avg.cb, avg.cr, bestX, bestY, score);
+	  return (bestY*blocks)+bestX;
+    }
+    else
+    {
+       return -1;
+    }
+}
+
+
+
 /* put_jpeg_grey_memory converts an input image in the grayscale format into a jpeg image
  * Inputs:
  * - image_size is the size of the input image buffer.
@@ -496,6 +674,24 @@ JNIEXPORT int JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_sendJPEG
 	//release arrays:
 	(*env)->ReleaseByteArrayElements(env, pinArray, inArray, 0);
 	return compressed_size;
+}
+
+
+
+JNIEXPORT int JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_detectTargetBlob
+(JNIEnv* env, jobject object, jbyteArray pinArray, jint width, jint height, jint target_cb, jint target_cr, jint tolerance) {
+
+	jbyte *inArray;
+		inArray = (*env)->GetByteArrayElements(env, pinArray, JNI_FALSE);
+
+	int sucess = getAvgColor(inArray,width,height);
+
+	sucess = getBestBlock(inArray,width,height,target_cb,target_cr,tolerance);
+
+
+    (*env)->ReleaseByteArrayElements(env, pinArray, inArray, 0);
+
+	return sucess;
 }
 
 
