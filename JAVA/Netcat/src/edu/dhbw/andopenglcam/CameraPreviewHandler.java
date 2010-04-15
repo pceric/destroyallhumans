@@ -101,6 +101,17 @@ public class CameraPreviewHandler implements PreviewCallback {
 	    System.loadLibrary( "framebuffet" );  
 	} 
 
+	   /**
+     * native function, that finds a color
+     * @param in
+     * @param width
+     * @param height
+     * @param textureSize
+     * @param out
+     */
+    public native int detectTargetBlob(byte[] in, int width, int height, int target_cb, int target_cr, int tolerance);
+    
+	
 	
 	/**
      * native function, that sends a jpeg
@@ -174,6 +185,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 	 */
 	public void init(Camera camera) throws Exception {
 	    mCamera= camera;
+	    listAllCameraMethods();
 	    
 	    start = new Date();
 	    proccessedFrameCount = 0;
@@ -260,6 +272,7 @@ public class CameraPreviewHandler implements PreviewCallback {
         rawFrameCount++;		
 		if(convWorker.nextFrame(data))
 		{
+		 // markerInfo.detectMarkers(data);
 	      proccessedFrameCount++;
 		}
 		else
@@ -332,6 +345,17 @@ public class CameraPreviewHandler implements PreviewCallback {
             // TODO Auto-generated catch block
             Log.i("AR",e.toString());
         }
+        
+        try {
+          Class c = Class.forName("android.hardware.Camera.Parameters");
+          Method[] m = c.getMethods();
+          for(int i=0; i<m.length; i++){
+              Log.i("AR","  method:"+m[i].toString());
+          }
+      } catch (Exception e) {
+          // TODO Auto-generated catch block
+          Log.i("AR",e.toString());
+      }
     }
     
     /**
@@ -453,11 +477,16 @@ public class CameraPreviewHandler implements PreviewCallback {
 					    {
 					      //Log.d("PreviewHandler", "calling sendJPEG");
 					      sendJPEG(curFrame);
-					    }		  
-						//color:
-						yuv420sp2rgb(curFrame, previewFrameWidth, previewFrameHeight, textureSize, frame);   
-						//Log.d("ConversionWorker","handing frame over to sink");						
-						//frameSink.setNextFrame(ByteBuffer.wrap(frame));
+					    }
+					    else
+					    {
+					        //pink marker
+					        detectTargetBlob(curFrame, previewFrameWidth, previewFrameHeight, 112 , 22, 12);
+    						//color:
+    						yuv420sp2rgb(curFrame, previewFrameWidth, previewFrameHeight, textureSize, frame);   
+    						//Log.d("ConversionWorker","handing frame over to sink");						
+    						frameSink.setNextFrame(ByteBuffer.wrap(frame));
+					    }
 						break;
 					case MODE_GRAY:
 						//luminace: 

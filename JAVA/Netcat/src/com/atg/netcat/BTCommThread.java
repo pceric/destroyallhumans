@@ -137,7 +137,7 @@ class BTCommThread extends Thread
       public void handleMessage(Message msg)
       {
 
-        Log.d(TAG, "Handeling Message" + msg.obj);
+        //Log.d(TAG, "Handeling Message" + msg.obj);
         byte[] bytes = ( (ControllerState) msg.obj ).toBytes();
 
         write(bytes);
@@ -158,7 +158,7 @@ class BTCommThread extends Thread
       try
       {
         // this is to avoid sending the same thing twice
-        if (!Arrays.equals(bytes,prevBuffer))
+        if (!Arrays.equals(bytes,prevBuffer) && bytes[bytes.length -1] == 0)
         {
           ostream.write(bytes);
           prevBuffer = bytes;
