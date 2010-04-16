@@ -61,14 +61,7 @@ BYTE frameTerminator[32];
 //unsigned char *out_buffer;
 
 
-typedef struct
-{
-    int luma;
-	int cb;
-    int cr;
-    int x;
-    int y;
-}Color;
+
 
 Color avgColor;
 
@@ -319,7 +312,7 @@ int put_jpeg_yuv420p_memory(unsigned char *dest_image, int image_size,
 /* put_jpeg_yuv420p_memory converts an input image in the YUV420P format into a jpeg image and puts
 
  */
-int getAvgColor(unsigned char *input_image, int width, int height)
+Color getAvgColor(unsigned char *input_image, int width, int height)
 {
 	long i, j, jpeg_image_size, chroma_size;
 	unsigned char tmp;
@@ -342,12 +335,15 @@ int getAvgColor(unsigned char *input_image, int width, int height)
 		crAvg += chroma_start[j*2 + 1] + CR_OFFSET;
 	}
 
-	cbAvg = cbAvg/chroma_size;
-	crAvg = crAvg/chroma_size;
 
-	__android_log_print(ANDROID_LOG_INFO,"FRAMEBUFFET","Got color avg cb=%d cr=%d",cbAvg,crAvg);
+	Color avg;
+	avg.cb = cbAvg/chroma_size;
+	avg.cr = crAvg/chroma_size;
 
-	return 0;
+
+	__android_log_print(ANDROID_LOG_INFO,"FRAMEBUFFET","Got color avg cb=%d cr=%d",avg.cb,avg.cr);
+
+	return avg;
 }
 
 
@@ -684,7 +680,32 @@ JNIEXPORT int JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_sendJPEG
 	(*env)->ReleaseByteArrayElements(env, pinArray, inArray, 0);
 	return compressed_size;
 }
+JNIEXPORT int JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_getAvgColor
+  (JNIEnv * env, jobject object, jbyteArray pinArray, jint width, jint height, jint cbOffset, jint crOffset, jint percent, jobject blob)
+{
 
+	jbyte *inArray;
+
+    inArray = (*env)->GetByteArrayElements(env, pinArray, JNI_FALSE);
+
+	Color c;
+
+    c = getAvgColor(inArray, width, height);
+
+
+    jclass cls = (*env)->GetObjectClass(env,blob);
+
+    jfieldID fid = (*env)->GetFieldID(env, cls, "chromaBlue", "I");
+          (*env)->SetIntField(env, blob, fid, c.cb);
+
+    fid = (*env)->GetFieldID(env, cls, "chromaRed", "I");
+          (*env)->SetIntField(env, blob, fid, c.cr);
+
+
+    (*env)->ReleaseByteArrayElements(env, pinArray, inArray, 0);
+
+  return 0;
+}
 
 
 JNIEXPORT int JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_detectTargetBlob

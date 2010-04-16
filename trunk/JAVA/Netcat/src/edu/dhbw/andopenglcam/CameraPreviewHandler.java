@@ -30,6 +30,7 @@ import javax.microedition.khronos.opengles.GL10;
 import com.atg.netcat.Receiver;
 import com.atg.netcat.RobotStateHandler;
 import com.atg.netcat.TargetBlob;
+import com.atg.netcat.TargetSettings;
 
 import edu.dhbw.andopenglcam.interfaces.PreviewFrameSink;
 import android.content.res.Resources;
@@ -104,15 +105,22 @@ public class CameraPreviewHandler implements PreviewCallback {
 
 	   /**
      * native function, that finds a color
-     * @param in
-     * @param width
-     * @param height
-     * @param textureSize
-     * @param out
+
      */
     public native int detectTargetBlob(byte[] in, int width, int height, int target_cb, int target_cr, int tolerance, TargetBlob marker);
     
 	
+    /**
+     * native function, that gets avg color for calibration
+     * @param in  = the byte array of the picture
+     * @param width 
+     * @param height
+     * @param percentOfView = how much of the area to use for the avg, allways uses the center;
+
+     */
+    public native int getAvgColor(byte[] in, int width, int height, int CrOffset, int CbOffset, int percentOfView, TargetBlob marker);
+    
+    
 	
 	/**
      * native function, that sends a jpeg
@@ -268,6 +276,11 @@ public class CameraPreviewHandler implements PreviewCallback {
             start = new Date();
                           
             Log.i("AR","fps raw:" +rawFps + "fps processed:"+ camFps);
+            
+            TargetBlob avgColor = new TargetBlob();
+            
+            getAvgColor(data, previewFrameWidth, previewFrameHeight, -128 , -128, 100, avgColor);
+            
         }
         
         rawFrameCount++;		
@@ -481,15 +494,27 @@ public class CameraPreviewHandler implements PreviewCallback {
 					    }
 					    else
 					    {
-					        //pink marker
-					        TargetBlob b = new TargetBlob();
-					        int result = detectTargetBlob(curFrame, previewFrameWidth, previewFrameHeight, 120 , 30, 12, b);
-					        if(result >= 0)
-					        Log.d("TARGET BLOB","found blob with error :" + result + b.toString());  
     						//color:
     						yuv420sp2rgb(curFrame, previewFrameWidth, previewFrameHeight, textureSize, frame);   
     						//Log.d("ConversionWorker","handing frame over to sink");						
     						frameSink.setNextFrame(ByteBuffer.wrap(frame));
+					    }
+					    
+					    TargetSettings ts = RobotStateHandler.getTargetSettings();
+					    
+	                    //pink marker
+					    if(ts != null)
+					    {
+					      TargetBlob b = new TargetBlob();
+                          int result = detectTargetBlob(curFrame, previewFrameWidth, previewFrameHeight, ts.targetChromaBlue ,ts.targetChromaRed, ts.tollerance, b);
+					    
+                          if(result >= 0)
+                          {
+                            Date d = new Date();
+                            b.timestamp = d.getTime();
+                            Log.d("TARGET BLOB","found blob with error : " + result + " " + b.toString()); 
+                            RobotStateHandler.onTargetBlobFound(b);
+                          }
 					    }
 						break;
 					case MODE_GRAY:

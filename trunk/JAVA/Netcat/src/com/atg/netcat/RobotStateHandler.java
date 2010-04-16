@@ -43,13 +43,19 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
   private Connection               clientConnection = null;
 
   RobotState                       state;
+  
+  TargetBlob                       targetBlob;
+  
+  TargetSettings                   targetSettings;
 
   private static RobotStateHandler instance         = null;
 
   public boolean                   listening        = false;
 
-  private long                     lastTimeStamp = 0; 
+  private long                     lastControllerTimeStamp = 0; 
   
+  private long                     lastTargetBlobTimeStamp = 0; 
+
   public static String TAG = "RobotStateHandler";
   
   
@@ -88,6 +94,25 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
      instance.state.processFrameRate = processed;
   }
 
+  public static TargetSettings getTargetSettings()
+  {
+
+    if (instance == null)
+      return null;
+    
+    return instance.targetSettings;
+  }
+  
+  
+  public static void onTargetBlobFound(TargetBlob blob)
+  {
+
+    if (instance == null)
+      return ;
+    
+     instance.targetBlob = blob;
+  }
+  
   public RobotStateHandler(Handler h) throws IOException
   {
 
@@ -100,6 +125,8 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
 
     server.start();
 
+    targetSettings = new TargetSettings();
+    
     setName("Robot State Handler");
 
     server.bind(Receiver.controlPort);
@@ -107,6 +134,9 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
     Kryo kryo = server.getKryo();
     kryo.register(ControllerState.class);
     kryo.register(RobotState.class);
+    kryo.register(TargetBlob.class);
+    kryo.register(TargetSettings.class);
+    
 
     server.addListener(new Listener()
     {
@@ -350,16 +380,29 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
         if (clientConnection != null)
         {
           
-          if (bTcomThread != null && controllerState != null && controllerState.timestamp != lastTimeStamp)
+          if (bTcomThread != null && controllerState != null && controllerState.timestamp != lastControllerTimeStamp)
           {
-             lastTimeStamp = controllerState.timestamp;
+             lastControllerTimeStamp = controllerState.timestamp;
              Message btMsg = bTcomThread.handler.obtainMessage();
              btMsg.obj = controllerState;
              btMsg.sendToTarget();
           }
           clientConnection.sendTCP(state);
           state.message = "";
-
+          
+          if (targetBlob != null && targetBlob.timestamp != lastTargetBlobTimeStamp)
+          {
+             lastTargetBlobTimeStamp = controllerState.timestamp;
+             /*
+              * TODO: auto aim the head if needed. 
+              * 
+             Message btMsg = bTcomThread.handler.obtainMessage();
+             btMsg.obj = controllerState;
+             btMsg.sendToTarget();
+             */
+             clientConnection.sendTCP(targetBlob);
+             
+          }
         }
         
       try
