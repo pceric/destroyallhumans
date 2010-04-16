@@ -103,6 +103,8 @@ void setup(){
   Kryo kryo = myClient.getKryo();
   kryo.register(ControllerState.class);
   kryo.register(RobotState.class);
+  kryo.register(TargetBlob.class);
+  kryo.register(TargetSettings.class);
   
   Arrays.fill(packetBuffer,0,packetBuffer.length, (byte)2);
 
@@ -160,6 +162,20 @@ void draw(){
     vertex(x, y + android.height, x, y + android.height);
     endShape(CLOSE);
     popMatrix();      
+  }
+  
+  TargetBlob tb = thread.getTargetBlob();
+  
+  if(tb != null)
+  {
+     float ratio = (float)width/(float)android.width;
+     noFill();
+     stroke(255,0,251);
+
+     x = tb.x * ratio;
+     y = tb.y * ratio;
+     
+    rect(x, y, tb.width * ratio, tb.height * ratio);
   }
   
   // GUI components
