@@ -63,9 +63,14 @@ BYTE frameTerminator[32];
 
 typedef struct
 {
-    int cb;
+    int luma;
+	int cb;
     int cr;
+    int x;
+    int y;
 }Color;
+
+Color avgColor;
 
 
 int SocketFD;
@@ -387,6 +392,9 @@ Color getBlockAvg(unsigned char *input_image, int width, int height,int x,int y)
 
 	avg.cb = cb/(blockWidth * blockHeight);
 	avg.cr = cr/(blockWidth * blockHeight);
+    avg.x = (blockWidth * x + (blockWidth/2))*2;
+    avg.y = (blockHeight * y + (blockHeight/2))*2;
+
 
     return avg;
 }
@@ -458,11 +466,12 @@ int getBestBlock( unsigned char *input_image, int width, int height, int u, int 
 
     if(score < (blockWidth * blockHeight * tolarance))
     {
-      Color avg;
-      avg = getBlockAvg(input_image,width,height,bestX,bestY);
 
-	  __android_log_print(ANDROID_LOG_INFO,"FRAMEBUFFET","Found Target       Cb=%d Cr=%d   x=%d y=%d score=%d",avg.cb, avg.cr, bestX, bestY, score);
-	  return (bestY*blocks)+bestX;
+      avgColor = getBlockAvg(input_image,width,height,bestX,bestY);
+
+
+	 // __android_log_print(ANDROID_LOG_INFO,"FRAMEBUFFET","Found Target       Cb=%d Cr=%d   x=%d y=%d score=%d",avgColor.cb, avgColor.cr, bestX, bestY, score);
+	  return score;
     }
     else
     {
@@ -679,14 +688,42 @@ JNIEXPORT int JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_sendJPEG
 
 
 JNIEXPORT int JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_detectTargetBlob
-(JNIEnv* env, jobject object, jbyteArray pinArray, jint width, jint height, jint target_cb, jint target_cr, jint tolerance) {
+(JNIEnv* env, jobject object, jbyteArray pinArray, jint width, jint height, jint target_cb, jint target_cr, jint tolerance, jobject blob) {
 
 	jbyte *inArray;
 		inArray = (*env)->GetByteArrayElements(env, pinArray, JNI_FALSE);
 
-	int sucess = getAvgColor(inArray,width,height);
+    int sucess;
+
+
+	//sucess = getAvgColor(inArray,width,height);
 
 	sucess = getBestBlock(inArray,width,height,target_cb,target_cr,tolerance);
+
+
+    if( sucess  >= 0)
+    {
+      jclass cls = (*env)->GetObjectClass(env,blob);
+      jfieldID fid = (*env)->GetFieldID(env, cls, "x", "I");
+      (*env)->SetIntField(env, blob, fid, avgColor.x);
+
+      fid = (*env)->GetFieldID(env, cls, "y", "I");
+      (*env)->SetIntField(env, blob, fid, avgColor.y);
+
+      fid = (*env)->GetFieldID(env, cls, "chromaBlue", "I");
+      (*env)->SetIntField(env, blob, fid, avgColor.cb);
+
+      fid = (*env)->GetFieldID(env, cls, "chromaRed", "I");
+      (*env)->SetIntField(env, blob, fid, avgColor.cr);
+
+      fid = (*env)->GetFieldID(env, cls, "width", "I");
+      (*env)->SetIntField(env, blob, fid, width/blocks);
+
+      fid = (*env)->GetFieldID(env, cls, "height", "I");
+      (*env)->SetIntField(env, blob, fid, height/blocks);
+    }
+
+    //int value = env->GetIntField(obj, fid);
 
 
     (*env)->ReleaseByteArrayElements(env, pinArray, inArray, 0);
