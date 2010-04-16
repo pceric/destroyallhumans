@@ -15,11 +15,18 @@ public class TargetSettings
     
     public int targetChromaRed = 24;
      
-    //public int redBalance = -64;
+    //public int redBalance = -128;
      
-    ///public int blueBalance = -64;
+    ///public int blueBalance = -128;
     
-    public int tollerance = 32;
-        
+    public int tolerance = 24;
+    
+    public int leftCrossHairX = 256;
+    
+    public int leftCrossHairY = 256;   
+    
+    public int rightCrossHairX = 256;
+    
+    public int rightCrossHairY = 256;
     
 }

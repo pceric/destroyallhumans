@@ -281,6 +281,8 @@ public class CameraPreviewHandler implements PreviewCallback {
             
             getAvgColor(data, previewFrameWidth, previewFrameHeight, -128 , -128, 100, avgColor);
             
+            RobotStateHandler.onColorCalibrate(avgColor);
+            
         }
         
         rawFrameCount++;		
@@ -506,7 +508,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 					    if(ts != null)
 					    {
 					      TargetBlob b = new TargetBlob();
-                          int result = detectTargetBlob(curFrame, previewFrameWidth, previewFrameHeight, ts.targetChromaBlue ,ts.targetChromaRed, ts.tollerance, b);
+                          int result = detectTargetBlob(curFrame, previewFrameWidth, previewFrameHeight, ts.targetChromaBlue ,ts.targetChromaRed, ts.tolerance, b);
 					    
                           if(result >= 0)
                           {
