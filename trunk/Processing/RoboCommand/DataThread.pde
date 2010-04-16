@@ -4,6 +4,7 @@ public class DataThread extends Thread {
   private com.esotericsoftware.kryonet.Client _client;
   private DAController _controller;
   private RobotState _rs = null;
+  private TargetBlob _targetBlob = null;
   
   public DataThread(com.esotericsoftware.kryonet.Client c, DAController d) {
     _client = c;
@@ -18,6 +19,10 @@ public class DataThread extends Thread {
             println(_rs.message);
           }
         }
+        if (object instanceof TargetBlob) {
+            _targetBlob = (TargetBlob) object;          
+            println("got target blob" + _targetBlob);
+         }
       }
     });
   }
@@ -93,6 +98,13 @@ public class DataThread extends Thread {
       return _rs.servoSpeed;
     else
       return 0;
+  }
+  
+  public TargetBlob getTargetBlob()
+  {
+    TargetBlob tb = _targetBlob;
+    _targetBlob = null;
+    return tb;
   }
   
   public String get_message() {
