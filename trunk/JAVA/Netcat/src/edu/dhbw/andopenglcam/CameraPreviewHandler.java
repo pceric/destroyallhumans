@@ -29,6 +29,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 import com.atg.netcat.Receiver;
 import com.atg.netcat.RobotStateHandler;
+import com.atg.netcat.TargetBlob;
 
 import edu.dhbw.andopenglcam.interfaces.PreviewFrameSink;
 import android.content.res.Resources;
@@ -109,7 +110,7 @@ public class CameraPreviewHandler implements PreviewCallback {
      * @param textureSize
      * @param out
      */
-    public native int detectTargetBlob(byte[] in, int width, int height, int target_cb, int target_cr, int tolerance);
+    public native int detectTargetBlob(byte[] in, int width, int height, int target_cb, int target_cr, int tolerance, TargetBlob marker);
     
 	
 	
@@ -481,7 +482,10 @@ public class CameraPreviewHandler implements PreviewCallback {
 					    else
 					    {
 					        //pink marker
-					        detectTargetBlob(curFrame, previewFrameWidth, previewFrameHeight, 112 , 22, 12);
+					        TargetBlob b = new TargetBlob();
+					        int result = detectTargetBlob(curFrame, previewFrameWidth, previewFrameHeight, 120 , 30, 12, b);
+					        if(result >= 0)
+					        Log.d("TARGET BLOB","found blob with error :" + result + b.toString());  
     						//color:
     						yuv420sp2rgb(curFrame, previewFrameWidth, previewFrameHeight, textureSize, frame);   
     						//Log.d("ConversionWorker","handing frame over to sink");						
