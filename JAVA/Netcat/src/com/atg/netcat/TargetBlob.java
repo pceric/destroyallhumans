@@ -26,9 +26,9 @@ public class TargetBlob
     
     public int height = 0;
     
-    private int degAz = 0;
+    public float ratioAz = 0;
     
-    private int degElv = 0;
+    public float ratioElv = 0;
     
     
     public String toString()
@@ -39,9 +39,10 @@ public class TargetBlob
     
     public void calculateAimpoints(TargetSettings targetSettings)
     {
-      degAz = (Receiver.FIELD_OF_VIEW / 2) * ((x - targetSettings.rightCrossHairX) / Receiver.PREVIEW_WIDTH);
-      degElv = (Receiver.FIELD_OF_VIEW / 4) * ((y - targetSettings.rightCrossHairY) / Receiver.PREVIEW_HEIGHT);
-      Log.i("TARGET BLOB" ,"AZ += "+ degAz + "ELV += " + degElv);
+      ratioAz = (((float)x - targetSettings.rightCrossHairX) / Receiver.PREVIEW_WIDTH);
+      ratioElv = (((float)y - targetSettings.rightCrossHairY) / Receiver.PREVIEW_HEIGHT);
+      
+      Log.i("TARGET BLOB" ,"AZ += "+ ratioAz + "ELV += " + ratioElv);
     }
     
     
@@ -49,8 +50,8 @@ public class TargetBlob
       // AutoAim messages start with a 'A'
       byte[] data = new byte[3];
       data[0] = 'A';
-      data[1] = (byte) degAz;
-      data[2] = (byte) degElv;
+      data[1] = (byte) ( (byte) ratioAz * Receiver.FIELD_OF_VIEW );
+      data[2] = (byte) ( (byte) ratioElv * Receiver.FIELD_OF_VIEW );
  
       return data;
     } 
