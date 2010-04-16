@@ -47,4 +47,6 @@ public class RobotState
     public boolean moving = false;
     
     public String message = "";
+    
+    public boolean autoAimOn = false;
 }

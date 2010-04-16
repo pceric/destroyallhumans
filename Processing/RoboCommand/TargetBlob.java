@@ -23,6 +23,9 @@ public class TargetBlob
     
     public int height = 0;
     
+    public float ratioAz = 0;
+    
+    public float ratioElv = 0;
     
     public String toString()
     {
