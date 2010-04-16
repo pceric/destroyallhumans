@@ -94,6 +94,11 @@ void msgReady() {
       return;
     handleJoystick();
   }
+  else if(message == 'A') {
+    LOG("Got A code");
+     servos.setposition(turret, constrain(servos.getposition(turret) + Serial.read(), 1167, 1833));
+     turretElevation = constrain(turretElevation + Serial.read(), -166, 166);
+  }
   else if(message == 'R') {
     LOG("Got R code");
     Damage = 0;
