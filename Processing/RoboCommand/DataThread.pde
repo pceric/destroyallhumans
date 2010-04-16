@@ -100,6 +100,13 @@ public class DataThread extends Thread {
       return 0;
   }
   
+  public int get_strideOffset() {
+    if (_rs != null)
+      return _rs.strideOffset;
+    else
+      return 0;
+  }
+
   public TargetBlob getTargetBlob()
   {
     TargetBlob tb = _targetBlob;

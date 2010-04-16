@@ -1,5 +1,3 @@
-//package com.atg.netcat;
-
 /*
  * This is a Singlton class to store the state of the robot. 
  * 

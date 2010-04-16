@@ -50,10 +50,13 @@ DAController ps3;
 
 // GUI
 ControlP5 controlP5;
+Textlabel speedLabel, offsetLabel;
 Crosshair crosshair;
 
 // Communication thread
 DataThread thread;
+
+TargetSettings ts = new TargetSettings();
 
 PFont fontA;
 
@@ -68,8 +71,6 @@ int packetBuffPos = 0;
 
 float segLength = 50;
 
-Textlabel speedLabel;
-
 void setup(){
   size(SCREEN_WIDTH,SCREEN_HEIGHT,OPENGL);
   
@@ -79,9 +80,14 @@ void setup(){
   fontA = loadFont("Ziggurat-HTF-Black-32.vlw");
 
   controlP5 = new ControlP5(this);
+  //controlP5.load("controlP5.xml");
+
   speedLabel = new Textlabel(this,"Speed: 150",100,height-80,200,40);
+  offsetLabel = new Textlabel(this,"Offset: 0",275,height-80,100,40);
   crosshair = new Crosshair(controlP5,"L",width/2,height/2,30,30);
-  
+  controlP5.addSlider("cb",-127,127,ts.targetChromaBlue,100,height-125,100,20).setLabel("Blue");
+  controlP5.addSlider("cr",-127,127,ts.targetChromaRed,225,height-125,100,20).setLabel("Red");
+  controlP5.addSlider("tolerance",0,ts.tollerance,16,350,height-125,100,20).setLabel("Tolerance");
   controlP5.addTextfield("speech",100,height-40,300,20).setFocus(true);
   controlP5.addSlider("lifeBar",0,MAX_LIFE,MAX_LIFE,20,height-115,20,100).setNumberOfTickMarks(15);
   controlP5.controller("lifeBar").setLabel("Life");
@@ -181,6 +187,8 @@ void draw(){
   // GUI components
   speedLabel.setValue("Speed: " + Integer.toString(thread.get_speed()));
   speedLabel.draw(this);
+  offsetLabel.setValue("Offset: " + Integer.toString(thread.get_strideOffset()));
+  offsetLabel.draw(this);
   controlP5.controller("lifeBar").setValue(MAX_LIFE - thread.get_damage());
   if ((controlP5.controller("lifeBar").value() / controlP5.controller("lifeBar").max()) <= 0.25)
     controlP5.controller("lifeBar").setColorForeground(color(255,0,0));
@@ -233,6 +241,29 @@ public void speech(String theText) {
   ps3.getState().extraData = theText;
 }
 
+// callback for Blue slider
+public void cb(float theValue) {
+  if (ts.targetChromaBlue != (int)theValue) {
+    ts.targetChromaBlue = (int)theValue;
+    myClient.sendTCP(ts);
+  }
+}
+
+// callback for Red slider
+public void cr(float theValue) {
+  if (ts.targetChromaRed != (int)theValue) {
+    ts.targetChromaRed = (int)theValue;
+    myClient.sendTCP(ts);
+  }
+}
+
+// callback for Tolerance slider
+public void tolerance(float theValue) {
+  if (ts.tollerance != (int)theValue) {
+    ts.tollerance = (int)theValue;
+    myClient.sendTCP(ts);
+  }
+}
 
 void videoPacketHandler(byte[] message, String ip, int port) {
   //println("Server send me video packet of length: "+message.length);
@@ -249,8 +280,6 @@ void videoPacketHandler(byte[] message, String ip, int port) {
   android = loadPImageFromBytes(imageBuffer, this);
   packetBuffPos = 0;
 }
-
-
 
 class Crosshair extends Controller {
 
@@ -280,9 +309,10 @@ class Crosshair extends Controller {
   } 
 
  
- public void setValue(float theValue) {
+  public void setValue(float theValue) {
     
   }
+
   // needs to be implemented since it is an abstract method in controlP5.Controller
   // nothing needs to be set since this method is only relevant for saving 
   // controller settings and only applies to (most) default Controllers.
