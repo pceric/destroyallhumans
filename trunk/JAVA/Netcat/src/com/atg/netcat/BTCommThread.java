@@ -19,6 +19,7 @@ package com.atg.netcat;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
@@ -138,9 +139,21 @@ class BTCommThread extends Thread
       {
 
         //Log.d(TAG, "Handeling Message" + msg.obj);
-        byte[] bytes = ( (ControllerState) msg.obj ).toBytes();
+        
+        if(msg.obj instanceof ControllerState)
+        {
+          byte[] bytes = ( (ControllerState) msg.obj ).toBytes();
 
-        write(bytes);
+          write(bytes);
+        }
+        
+        if(msg.obj instanceof TargetBlob)
+        {
+          byte[] bytes = ( (TargetBlob) msg.obj ).toBytes();
+          
+
+          write(bytes);
+        }
         // java.io.IOException: Transport endpoint is not connected
 
         read();

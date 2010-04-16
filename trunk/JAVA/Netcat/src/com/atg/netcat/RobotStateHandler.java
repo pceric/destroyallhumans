@@ -55,7 +55,7 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
   private long                     lastControllerTimeStamp = 0; 
   
   private long                     lastTargetBlobTimeStamp = 0; 
-
+   
   public static String TAG = "RobotStateHandler";
   
   
@@ -164,6 +164,11 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
             say.obj = controllerState.extraData;
             say.sendToTarget();
           }
+        }
+        
+        if( object instanceof TargetSettings)
+        {
+          targetSettings = (TargetSettings) object;
         }
       }
 
@@ -391,6 +396,12 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
           
           if (bTcomThread != null && controllerState != null && controllerState.timestamp != lastControllerTimeStamp)
           {
+             if(controllerState.R3)
+             {
+               //toggle autoaim
+               state.autoAimOn = ! state.autoAimOn;
+             }
+            
              lastControllerTimeStamp = controllerState.timestamp;
              Message btMsg = bTcomThread.handler.obtainMessage();
              btMsg.obj = controllerState;
@@ -409,8 +420,19 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
              btMsg.obj = controllerState;
              btMsg.sendToTarget();
              */
+             
+             targetBlob.calculateAimpoints(targetSettings);
+             
              clientConnection.sendTCP(targetBlob);
              
+             if(bTcomThread != null && state.autoAimOn)
+             {
+               Message btMsg = bTcomThread.handler.obtainMessage();
+               btMsg.obj = targetBlob;
+               btMsg.sendToTarget();   
+             }
+             
+             targetBlob = null;
           }
         }
         

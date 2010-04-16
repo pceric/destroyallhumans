@@ -5,7 +5,7 @@ package com.atg.netcat;
  * 
  */
 public class RobotState
-{
+{  
     public boolean blueToothConnected = false;
     
     public float azimuth = 0,  pitch = 0, roll = 0;
@@ -49,4 +49,6 @@ public class RobotState
     public boolean moving = false;
     
     public String message = "";
+    
+    public boolean autoAimOn = false;
 }
