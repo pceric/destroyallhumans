@@ -78,6 +78,7 @@ void setup(){
   //frameRate(20);
   rectMode(CENTER);
   fontA = loadFont("Ziggurat-HTF-Black-32.vlw");
+  textFont(fontA);
 
   controlP5 = new ControlP5(this);
   //controlP5.load("controlP5.xml");
@@ -87,7 +88,7 @@ void setup(){
   crosshair = new Crosshair(controlP5,"L",width/2,height/2,30,30);
   controlP5.addSlider("cb",-127,127,ts.targetChromaBlue,100,height-125,100,20).setLabel("Blue");
   controlP5.addSlider("cr",-127,127,ts.targetChromaRed,225,height-125,100,20).setLabel("Red");
-  controlP5.addSlider("tolerance",0,ts.tollerance,16,350,height-125,100,20).setLabel("Tolerance");
+  controlP5.addSlider("tolerance",0,ts.tolerance,16,350,height-125,100,20).setLabel("Tolerance");
   controlP5.addTextfield("speech",100,height-40,300,20).setFocus(true);
   controlP5.addSlider("lifeBar",0,MAX_LIFE,MAX_LIFE,20,height-115,20,100).setNumberOfTickMarks(15);
   controlP5.controller("lifeBar").setLabel("Life");
@@ -134,7 +135,11 @@ void draw(){
 
   vidServer.listen();
 
-  background(0);   
+  background(0);
+  
+  // Framerate
+  fill(255);
+  text(thread.get_processFrameRate(), width + 200, -250, -500);
      
   /*
   fill(0,0,255);
@@ -259,8 +264,8 @@ public void cr(float theValue) {
 
 // callback for Tolerance slider
 public void tolerance(float theValue) {
-  if (ts.tollerance != (int)theValue) {
-    ts.tollerance = (int)theValue;
+  if (ts.tolerance != (int)theValue) {
+    ts.tolerance = (int)theValue;
     myClient.sendTCP(ts);
   }
 }
