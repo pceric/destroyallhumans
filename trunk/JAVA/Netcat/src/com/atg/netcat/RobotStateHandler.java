@@ -103,6 +103,15 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
     return instance.targetSettings;
   }
   
+  public static void onColorCalibrate(TargetBlob blob)
+  {
+
+    if (instance == null)
+      return ;
+    
+     instance.state.message += "Avg Color:" + blob.chromaBlue +", " + blob.chromaRed;
+  }
+  
   
   public static void onTargetBlobFound(TargetBlob blob)
   {
