@@ -21,12 +21,12 @@ public class TargetSettings
     
     public int tolerance = 24;
     
-    public int leftCrossHairX = 256;
+    public int leftCrossHairX = 400;
     
-    public int leftCrossHairY = 256;   
+    public int leftCrossHairY = 260;   
     
-    public int rightCrossHairX = 256;
+    public int rightCrossHairX = 400;
     
-    public int rightCrossHairY = 256;
-    
+    public int rightCrossHairY = 260;
+        
 }

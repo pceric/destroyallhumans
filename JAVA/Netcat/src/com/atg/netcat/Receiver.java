@@ -47,9 +47,11 @@ public class Receiver extends Activity implements Callback, TextToSpeech.OnInitL
 
   public static Integer        videoPort      = 4444;
 
-  private static Integer       PREVIEW_HEIGHT = 800;
+  public static Integer        PREVIEW_HEIGHT = 480;
 
-  private static Integer       PREVIEW_WIDTH  = 480;
+  public static Integer        PREVIEW_WIDTH  = 800;
+  
+  public static int           FIELD_OF_VIEW     = 60;
 
   public static Integer        JPEG_QUALITY   = 20;
 
@@ -319,7 +321,7 @@ public class Receiver extends Activity implements Callback, TextToSpeech.OnInitL
       Parameters params = camera.getParameters();
 
       //preview-size-values=1280x720,800x480,720x480,640x480,576x432,480x320,384x288,352x288,320x240,240x160,176x144
-      params.setPreviewSize(PREVIEW_HEIGHT, PREVIEW_WIDTH);
+      params.setPreviewSize(PREVIEW_WIDTH, PREVIEW_HEIGHT);
       params.setPreviewFrameRate(10);
       //whitebalance-values=auto,incandescent,fluorescent,daylight,cloudy-daylight
       params.setWhiteBalance(Parameters.WHITE_BALANCE_FLUORESCENT);
