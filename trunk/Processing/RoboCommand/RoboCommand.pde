@@ -129,34 +129,13 @@ void setup(){
 
 
 void draw(){
-  float x;
-  float y;
-  float z;
+  float x = 0;
+  float y = 0;
+  float z = 1;
 
   vidServer.listen();
 
   background(0);
-  
-  // Framerate
-  fill(0, 255, 0);
-  text("FPS: " + thread.get_processFrameRate(), width-75, 20);
-  text("Light: " + thread.get_lightLevel(), width-75, 40);
-  text("Mac Test", width/2, height/2);
-  
-  /*
-  fill(0,0,255);
-  x = width/2 + ((width/2) *  ps3.leftX());
-  y = height/2 + ((height/2) * ps3.leftY());
-  rect(x,y,20,20);
-  x =  width/2 + ((width/2) *  ps3.rightX());
-  y =  height/2 + ((height/2) * ps3.rightY());
-  fill(255,0,0);
-  rect(x,y,20,20);
-  */
-
-  x = 0; 
-  y = 0;
-  z = 1;
   
   if(android != null)
   {
@@ -177,6 +156,11 @@ void draw(){
     popMatrix();      
   }
   
+  // Framerate
+  fill(0, 255, 0);
+  text("FPS: " + thread.get_processFrameRate(), width-75, 20);
+  text("Light: " + thread.get_lightLevel(), width-75, 40);
+
   TargetBlob tb = thread.getTargetBlob();
   
   if(tb != null)
@@ -253,7 +237,7 @@ public void speech(String theText) {
 public void cb(float theValue) {
   if (ts.targetChromaBlue != (int)theValue) {
     ts.targetChromaBlue = (int)theValue;
-    myClient.sendUDP(ts);
+    myClient.sendTCP(ts);
   }
 }
 
@@ -261,7 +245,7 @@ public void cb(float theValue) {
 public void cr(float theValue) {
   if (ts.targetChromaRed != (int)theValue) {
     ts.targetChromaRed = (int)theValue;
-    myClient.sendUDP(ts);
+    myClient.sendTCP(ts);
   }
 }
 
@@ -269,7 +253,7 @@ public void cr(float theValue) {
 public void tolerance(float theValue) {
   if (ts.tolerance != (int)theValue) {
     ts.tolerance = (int)theValue;
-    myClient.sendUDP(ts);
+    myClient.sendTCP(ts);
   }
 }
 
