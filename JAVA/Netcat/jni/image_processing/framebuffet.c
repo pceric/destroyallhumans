@@ -44,9 +44,6 @@ int WIDTH   = 480;
 int HEIGHT  = 800;
 int QUALITY = 20;
 
-int CB_OFFSET = -128;
-int CR_OFFSET = -128;
-
 
 UINT32 img_size = 1152000;
 BYTE out_buffer[1152000];
@@ -55,7 +52,9 @@ unsigned char cbData[288000];
 unsigned char crData[288000];
 
 int blocks = 32;
-long blockTmp[32][32];
+unsigned long blockTmp[32][32];
+long maxError;
+int  bestX ,bestY;
 
 BYTE frameTerminator[32];
 //unsigned char *out_buffer;
@@ -312,40 +311,56 @@ int put_jpeg_yuv420p_memory(unsigned char *dest_image, int image_size,
 /* put_jpeg_yuv420p_memory converts an input image in the YUV420P format into a jpeg image and puts
 
  */
-Color getAvgColor(unsigned char *input_image, int width, int height)
+/*
+Color getAvgColor(unsigned char *input_image, int width, int height, int percent)
 {
-	long i, j, jpeg_image_size, chroma_size;
-	unsigned char tmp;
+	long i, j, k, chroma_size;
 	unsigned char *chroma_start;
 
+	int chroma_height = height/2;
+	int chroma_width = width/2;
 
-	long cbAvg = 0;
+	unsigned long long cbAvg = 0;
 
-	long crAvg = 0;
+	unsigned long long crAvg = 0;
 
+    float divisor = 100.0/percent;
 
 	chroma_size = (width*height)/4;
 	chroma_start = input_image + width * height;
 
-	//
-	for(j=0; j<chroma_size; j++)
-	{
-		//the color balance seems to be off ! --floruencent
-		cbAvg += chroma_start[j*2] + CB_OFFSET;
-		crAvg += chroma_start[j*2 + 1] + CR_OFFSET;
+	int p_width  = chroma_width / divisor;
+	int p_height  = chroma_height / divisor;
+
+	int x_start = (width - p_width)/2;
+	int y_start = (height - p_height)/2;
+
+
+	__android_log_print(ANDROID_LOG_INFO,"FRAMEBUFFET","in avgColor %d %d %d %d",p_width,p_height,x_start,y_start);
+
+
+	for(i=0;i<p_height;i++) {
+		for(j=0;j<p_width;j++) {
+
+            k = ((i + y_start) * chroma_width * 2) + ((j+x_start)*2);
+
+            cbAvg += chroma_start[k];
+            crAvg += chroma_start[k + 1];
+
+		}
 	}
 
 
 	Color avg;
-	avg.cb = cbAvg/chroma_size;
-	avg.cr = crAvg/chroma_size;
+	avg.cb = cbAvg / (p_width * p_height);
+	avg.cr = crAvg / (p_width * p_height);
 
 
 	__android_log_print(ANDROID_LOG_INFO,"FRAMEBUFFET","Got color avg cb=%d cr=%d",avg.cb,avg.cr);
 
 	return avg;
 }
-
+*/
 
 
 
@@ -355,23 +370,26 @@ Color getBlockAvg(unsigned char *input_image, int width, int height,int x,int y)
 	//u = cb
 	//v = cr
 
-
-
 	int i, j;
 	unsigned long  k, chroma_size, cr, cb;
 	unsigned char *chroma_start;
-
 	int chroma_height = height/2;
 	int chroma_width = width/2;
+
+
 
 	int blockWidth = chroma_width/blocks;
 
 	int blockHeight = chroma_height/blocks;
 
+	int blockSize = blockWidth * blockHeight;
+
 	chroma_start = input_image + (width * height);
 
 	Color avg;
 
+	cb = 0;
+	cr = 0;
 
 	for(i=0;i<blockHeight;i++) {
 		for(j=0;j<blockWidth;j++) {
@@ -379,15 +397,15 @@ Color getBlockAvg(unsigned char *input_image, int width, int height,int x,int y)
 
             k = ((i+(blockHeight*y))*chroma_width*2) + ((j+(blockWidth * x))*2);
 
-			cb += chroma_start[k] + CB_OFFSET;
-			cr += chroma_start[k + 1] + CR_OFFSET;
+			cb += chroma_start[k];
+			cr += chroma_start[k + 1];
 
 		}
 	}
 
 
-	avg.cb = cb/(blockWidth * blockHeight);
-	avg.cr = cr/(blockWidth * blockHeight);
+	avg.cb = cb/(blockSize);
+	avg.cr = cr/(blockSize);
     avg.x = (blockWidth * x + (blockWidth/2))*2;
     avg.y = (blockHeight * y + (blockHeight/2))*2;
 
@@ -405,11 +423,8 @@ int getBestBlock( unsigned char *input_image, int width, int height, int u, int 
 	//u = cb
 	//v = cr
 
-
-
-	int i, j, cr, cb, bestX ,bestY;
+	int i, j, cr, cb;
 	unsigned long  k, chroma_size;
-	unsigned char *tmp;
 	unsigned char *chroma_start;
 
 	int chroma_height = height/2;
@@ -436,18 +451,17 @@ int getBestBlock( unsigned char *input_image, int width, int height, int u, int 
 		for(j=0;j<chroma_width;j++) {
 
             k = (i*chroma_width*2) + (j*2);
-			cb = chroma_start[k] + CB_OFFSET;
-			cr = chroma_start[k + 1] + CR_OFFSET;
+			cb = chroma_start[k];
+			cr = chroma_start[k + 1];
 
-
-			blockTmp[j/blockWidth][i/blockHeight] += abs(u-cb) + abs(v-cr);
-
+			blockTmp[j/blockWidth][i/blockHeight] += abs(u - cb) + abs(v - cr);
 		}
 	}
 
 	bestX = 0;
 	bestY = 0;
-	long score = (blockWidth * blockHeight * tolarance) + 1;
+	maxError = blockWidth * blockHeight * tolarance;
+	long score = blockWidth * blockHeight * 255;
 	for(i=0;i<blocks;i++) {
 			for(j=0;j<blocks;j++) {
 				if( blockTmp[i][j] < score)
@@ -460,17 +474,16 @@ int getBestBlock( unsigned char *input_image, int width, int height, int u, int 
 			}
 		}
 
-    if(score < (blockWidth * blockHeight * tolarance))
+    if(score < maxError)
     {
 
       avgColor = getBlockAvg(input_image,width,height,bestX,bestY);
-
-
-	 // __android_log_print(ANDROID_LOG_INFO,"FRAMEBUFFET","Found Target       Cb=%d Cr=%d   x=%d y=%d score=%d",avgColor.cb, avgColor.cr, bestX, bestY, score);
+	 __android_log_print(ANDROID_LOG_INFO,"FRAMEBUFFET","Found Target       Cb=%d Cr=%d   x=%d y=%d score=%d",avgColor.cb, avgColor.cr, bestX, bestY, score);
 	  return score;
     }
     else
     {
+       __android_log_print(ANDROID_LOG_INFO,"FRAMEBUFFET","Did not find target, best score was %d ",score);
        return -1;
     }
 }
@@ -681,7 +694,7 @@ JNIEXPORT int JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_sendJPEG
 	return compressed_size;
 }
 JNIEXPORT int JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_getAvgColor
-  (JNIEnv * env, jobject object, jbyteArray pinArray, jint width, jint height, jint cbOffset, jint crOffset, jint percent, jobject blob)
+  (JNIEnv * env, jobject object, jbyteArray pinArray, jint width, jint height, jint percent, jobject blob)
 {
 
 	jbyte *inArray;
@@ -690,7 +703,13 @@ JNIEXPORT int JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_getAvgColo
 
 	Color c;
 
-    c = getAvgColor(inArray, width, height);
+	long l;
+    int i;
+
+	//long is 4
+	//__android_log_print(ANDROID_LOG_INFO,"FRAMEBUFFET","Size of long is : %d, size of int is%d\n, ", sizeof(l),  sizeof(i));
+
+    c = getBlockAvg(inArray, width, height, 16, 16);
 
 
     jclass cls = (*env)->GetObjectClass(env,blob);
@@ -706,6 +725,9 @@ JNIEXPORT int JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_getAvgColo
 
   return 0;
 }
+
+
+
 
 
 JNIEXPORT int JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_detectTargetBlob
@@ -724,12 +746,55 @@ JNIEXPORT int JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_detectTarg
 
     if( sucess  >= 0)
     {
+      int left = 0;
+      int right =0;
+      int up = 0;
+      int down = 0;
+
+      while((bestX - left) >= 0 && blockTmp[bestX - left][bestY] < maxError)
+      {
+         left ++;
+      }
+
+
+      while((bestX + right) < blocks && blockTmp[bestX + right][bestY] < maxError)
+      {
+         right ++;
+      }
+
+
+      while((bestY - up) >= 0 && blockTmp[bestX][bestY-up] < maxError)
+      {
+         up ++;
+      }
+
+
+      while((bestY + down) >= 0 && blockTmp[bestX][bestY+down] < maxError)
+      {
+         down ++;
+      }
+
+
+
+      int minX = ((bestX - left) * (width/blocks)) ;
+      int maxX = ((bestX + right) * (width/blocks)) ;
+      int minY = ((bestY - up) * (height/blocks)) ;
+      int maxY = ((bestY + down) * (height/blocks)) ;// + (height/blocks)/2;
+
+      int blob_width = maxX - minX;
+      int blob_height = maxY - minY;
+
+      int x = minX + (blob_width/ 2);
+      int y = minY + (blob_height/ 2);
+
+
+
       jclass cls = (*env)->GetObjectClass(env,blob);
       jfieldID fid = (*env)->GetFieldID(env, cls, "x", "I");
-      (*env)->SetIntField(env, blob, fid, avgColor.x);
+      (*env)->SetIntField(env, blob, fid, x);
 
       fid = (*env)->GetFieldID(env, cls, "y", "I");
-      (*env)->SetIntField(env, blob, fid, avgColor.y);
+      (*env)->SetIntField(env, blob, fid, y);
 
       fid = (*env)->GetFieldID(env, cls, "chromaBlue", "I");
       (*env)->SetIntField(env, blob, fid, avgColor.cb);
@@ -738,10 +803,10 @@ JNIEXPORT int JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_detectTarg
       (*env)->SetIntField(env, blob, fid, avgColor.cr);
 
       fid = (*env)->GetFieldID(env, cls, "width", "I");
-      (*env)->SetIntField(env, blob, fid, width/blocks);
+      (*env)->SetIntField(env, blob, fid, blob_width);
 
       fid = (*env)->GetFieldID(env, cls, "height", "I");
-      (*env)->SetIntField(env, blob, fid, height/blocks);
+      (*env)->SetIntField(env, blob, fid, blob_height);
     }
 
     //int value = env->GetIntField(obj, fid);
