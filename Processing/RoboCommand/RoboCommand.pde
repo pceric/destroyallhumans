@@ -30,8 +30,8 @@ import controlP5.*;
 final int SCREEN_WIDTH = 800;
 final int SCREEN_HEIGHT = 640;
 final String PHONE_IP = "192.168.1.109";
-//final String JOYSTICK_NAME = "PLAYSTATION(R)3 Controller";
-final String JOYSTICK_NAME = "Microsoft SideWinder Precision Pro (USB)";
+final String JOYSTICK_NAME = "PLAYSTATION(R)3 Controller";
+//final String JOYSTICK_NAME = "Microsoft SideWinder Precision Pro (USB)";
 final int CONTROL_PORT = 5555;
 final int VIDEO_PORT = 4444;
 final int MAX_LIFE = 15;
@@ -114,14 +114,14 @@ void setup(){
   kryo.register(TargetSettings.class);
   
   Arrays.fill(packetBuffer,0,packetBuffer.length, (byte)2);
-/*
+
   try {
     println("Connecting to phone at " + PHONE_IP);
     myClient.connect(15000, PHONE_IP, CONTROL_PORT);
   } catch (IOException e) {
     println(e + ".  Bye Bye.");
     System.exit(0);
-  }*/
+  }
 
   vidServer = new UDP(this, VIDEO_PORT);
   vidServer.setReceiveHandler("videoPacketHandler"); 
@@ -133,7 +133,7 @@ void draw(){
   float y;
   float z;
 
-  //vidServer.listen();
+  vidServer.listen();
 
   background(0);
   
