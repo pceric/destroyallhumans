@@ -141,7 +141,8 @@ void draw(){
   fill(0, 255, 0);
   text("FPS: " + thread.get_processFrameRate(), width-75, 20);
   text("Light: " + thread.get_lightLevel(), width-75, 40);
-     
+  text("Mac Test", width/2, height/2);
+  
   /*
   fill(0,0,255);
   x = width/2 + ((width/2) *  ps3.leftX());
@@ -252,7 +253,7 @@ public void speech(String theText) {
 public void cb(float theValue) {
   if (ts.targetChromaBlue != (int)theValue) {
     ts.targetChromaBlue = (int)theValue;
-    myClient.sendTCP(ts);
+    myClient.sendUDP(ts);
   }
 }
 
@@ -260,7 +261,7 @@ public void cb(float theValue) {
 public void cr(float theValue) {
   if (ts.targetChromaRed != (int)theValue) {
     ts.targetChromaRed = (int)theValue;
-    myClient.sendTCP(ts);
+    myClient.sendUDP(ts);
   }
 }
 
@@ -268,7 +269,7 @@ public void cr(float theValue) {
 public void tolerance(float theValue) {
   if (ts.tolerance != (int)theValue) {
     ts.tolerance = (int)theValue;
-    myClient.sendTCP(ts);
+    myClient.sendUDP(ts);
   }
 }
 
