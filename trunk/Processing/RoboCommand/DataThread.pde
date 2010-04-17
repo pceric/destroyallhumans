@@ -78,15 +78,35 @@ public class DataThread extends Thread {
       return 0;
   }
 
+  public int get_batteryTemp() {
+    if (_rs != null)
+      return _rs.phoneBatteryTemp;
+    else
+      return 0;
+  }
+
   public float get_processFrameRate() {
     if (_rs != null)
       return _rs.processFrameRate;
     else
       return 0.0;
   }
+  
+  public int get_wifiStrength() {
+    if (_rs != null)
+      return _rs.wifiStrength;
+    else
+      return 0;
+  }
+
+  public float get_lightLevel() {
+    if (_rs != null)
+      return _rs.lightLevel;
+    else
+      return 0.0;
+  }
 
   public int get_robotBattery() {
-
     if (_rs != null)
       return _rs.botBatteryLevel;
     else
