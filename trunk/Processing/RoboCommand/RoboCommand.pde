@@ -77,8 +77,8 @@ void setup(){
   //fill(0);
   //frameRate(20);
   rectMode(CENTER);
-  fontA = loadFont("Ziggurat-HTF-Black-32.vlw");
-  textFont(fontA);
+  //fontA = loadFont("Ziggurat-HTF-Black-32.vlw");
+  //textFont(fontA);
 
   controlP5 = new ControlP5(this);
   //controlP5.load("controlP5.xml");
@@ -139,7 +139,7 @@ void draw(){
   
   // Framerate
   fill(255);
-  text(thread.get_processFrameRate(), width + 200, -250, -500);
+  text(thread.get_processFrameRate(), width-50, 20);
      
   /*
   fill(0,0,255);
