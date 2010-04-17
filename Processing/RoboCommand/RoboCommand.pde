@@ -86,9 +86,9 @@ void setup(){
   speedLabel = new Textlabel(this,"Speed: 150",100,height-80,200,40);
   offsetLabel = new Textlabel(this,"Offset: 0",275,height-80,100,40);
   crosshair = new Crosshair(controlP5,"L",width/2,height/2,30,30);
-  controlP5.addSlider("cb",-127,127,ts.targetChromaBlue,100,height-125,100,20).setLabel("Blue");
-  controlP5.addSlider("cr",-127,127,ts.targetChromaRed,225,height-125,100,20).setLabel("Red");
-  controlP5.addSlider("tolerance",0,ts.tolerance,16,350,height-125,100,20).setLabel("Tolerance");
+  controlP5.addSlider("cb",0,255,ts.targetChromaBlue,100,height-125,100,20).setLabel("Blue");
+  controlP5.addSlider("cr",0,255,ts.targetChromaRed,225,height-125,100,20).setLabel("Red");
+  controlP5.addSlider("tolerance",0,32,ts.tolerance,350,height-125,100,20).setLabel("Tolerance");
   controlP5.addTextfield("speech",100,height-40,300,20).setFocus(true);
   controlP5.addSlider("lifeBar",0,MAX_LIFE,MAX_LIFE,20,height-115,20,100).setNumberOfTickMarks(15);
   controlP5.controller("lifeBar").setLabel("Life");
