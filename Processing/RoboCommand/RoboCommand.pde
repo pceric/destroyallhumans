@@ -117,7 +117,7 @@ void setup(){
 
   try {
     println("Connecting to phone at " + PHONE_IP);
-    myClient.connect(15000, PHONE_IP, CONTROL_PORT);
+    myClient.connect(15000, PHONE_IP, CONTROL_PORT, CONTROL_PORT + 1);
   } catch (IOException e) {
     println(e + ".  Bye Bye.");
     System.exit(0);
