@@ -118,7 +118,7 @@ public class CameraPreviewHandler implements PreviewCallback {
      * @param percentOfView = how much of the area to use for the avg, allways uses the center;
 
      */
-    public native int getAvgColor(byte[] in, int width, int height, int CrOffset, int CbOffset, int percentOfView, TargetBlob marker);
+    public native int getAvgColor(byte[] in, int width, int height, int percentOfView, TargetBlob marker);
     
     
 	
@@ -279,7 +279,7 @@ public class CameraPreviewHandler implements PreviewCallback {
             
             TargetBlob avgColor = new TargetBlob();
             
-            getAvgColor(data, previewFrameWidth, previewFrameHeight, -128 , -128, 100, avgColor);
+            getAvgColor(data, previewFrameWidth, previewFrameHeight, 50, avgColor);
             
             RobotStateHandler.onColorCalibrate(avgColor);
             

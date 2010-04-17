@@ -138,7 +138,7 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
     
     setName("Robot State Handler");
 
-    server.bind(Receiver.controlPort);
+    server.bind(Receiver.controlPort,Receiver.controlPort+1);
 
     Kryo kryo = server.getKryo();
     kryo.register(ControllerState.class);
@@ -168,6 +168,7 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
         
         if( object instanceof TargetSettings)
         {
+          Log.i(TAG,"got target setings");
           targetSettings = (TargetSettings) object;
         }
       }
@@ -379,7 +380,7 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
       btDialog.dismiss();
 
     if (bTcomThread != null)
-      bTcomThread.quit();
+     // bTcomThread.stop();
     bTcomThread = null;
     
     this.stop();
