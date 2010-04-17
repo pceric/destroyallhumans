@@ -31,7 +31,7 @@ JNIEXPORT jint JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_detectTar
  * Signature: ([BIIIIILcom/atg/netcat/TargetBlob;)I
  */
 JNIEXPORT jint JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_getAvgColor
-  (JNIEnv *, jobject, jbyteArray, jint, jint, jint, jint, jint, jobject);
+  (JNIEnv *, jobject, jbyteArray, jint, jint, jint, jobject);
 
 /*
  * Class:     edu_dhbw_andopenglcam_CameraPreviewHandler

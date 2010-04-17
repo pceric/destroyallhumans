@@ -9,7 +9,6 @@ typedef struct
     int y;
 }Color;
 
-
-Color getAvgColor(unsigned char *input_image, int width, int height);
+Color getAvgColor(unsigned char *input_image, int width, int height,int percent);
 Color getBlockAvg(unsigned char *input_image, int width, int height,int x,int y);
 int getBestBlock( unsigned char *input_image, int width, int height, int u, int v, int tolarance);
