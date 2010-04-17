@@ -34,7 +34,7 @@ public class DataThread extends Thread {
         ControllerState cs = _controller.getState();
         Date sent = new Date();
         cs.timestamp= sent.getTime();
-        _client.sendTCP(cs);
+        _client.sendUDP(cs);
         _client.update(0);
         cs.extraData="";
         Thread.sleep(200);
