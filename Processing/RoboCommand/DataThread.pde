@@ -37,7 +37,7 @@ public class DataThread extends Thread {
         _client.sendTCP(cs);
         _client.update(0);
         cs.extraData="";
-        Thread.sleep(200);
+        Thread.sleep(100);
       }
       catch(IOException ex) {
         println(ex);

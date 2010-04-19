@@ -173,6 +173,7 @@ void draw(){
      y = tb.y * ratio;
      
     rect(x, y, tb.width * ratio, tb.height * ratio);
+    text(tb.chromaBlue + "," + tb.chromaRed, x - 10, y - 10);
   }
   
   // GUI components
