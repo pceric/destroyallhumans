@@ -85,9 +85,9 @@ public class DataThread extends Thread {
       return 0;
   }
 
-  public float get_processFrameRate() {
+  public float get_camFrameRate() {
     if (_rs != null)
-      return _rs.processFrameRate;
+      return _rs.camFrameRate;
     else
       return 0.0;
   }
@@ -120,6 +120,20 @@ public class DataThread extends Thread {
       return 0;
   }
   
+  public int get_turretX() {
+    if (_rs != null)
+      return _rs.turretAzimuth;
+    else
+      return 0;
+  }
+
+  public int get_turretY() {
+    if (_rs != null)
+      return _rs.turretElevation;
+    else
+      return 0;
+  }
+
   public int get_speed() {
     if (_rs != null)
       return _rs.servoSpeed;
