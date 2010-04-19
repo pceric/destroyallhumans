@@ -67,7 +67,7 @@ public class ControllerState
      
      byte checksum = 0;
      
-     for(int i = 1; i<22;i++)
+     for(int i = 1; i<21 ;i++)
      {
        checksum = (byte) ( checksum ^ data[i] ); 
      }
@@ -77,6 +77,20 @@ public class ControllerState
      return data;
    }
 
+   public boolean isAllZero()
+   {
+     byte[] arr = this.toBytes();
+     
+     for(int i = 1; i<21;i++)
+     {
+       if(arr[i] != 0)
+       {
+         return false;
+       }
+     }
+     return true;
+   }
+   
    public String toString(){
 	 // Control messages start with a 'C'
      String pressed = "C";
