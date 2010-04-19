@@ -483,7 +483,7 @@ int getBestBlock( unsigned char *input_image, int width, int height, int u, int 
     }
     else
     {
-       __android_log_print(ANDROID_LOG_INFO,"FRAMEBUFFET","Did not find target, best score was %d ",score);
+      // __android_log_print(ANDROID_LOG_INFO,"FRAMEBUFFET","Did not find target, best score was %d ",score);
        return -1;
     }
 }
@@ -774,8 +774,6 @@ JNIEXPORT int JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_detectTarg
          down ++;
       }
 
-
-
       int minX = ((bestX - left) * (width/blocks)) ;
       int maxX = ((bestX + right) * (width/blocks)) ;
       int minY = ((bestY - up) * (height/blocks)) ;
@@ -786,8 +784,6 @@ JNIEXPORT int JNICALL Java_edu_dhbw_andopenglcam_CameraPreviewHandler_detectTarg
 
       int x = minX + (blob_width/ 2);
       int y = minY + (blob_height/ 2);
-
-
 
       jclass cls = (*env)->GetObjectClass(env,blob);
       jfieldID fid = (*env)->GetFieldID(env, cls, "x", "I");
