@@ -47,9 +47,11 @@ class BTCommThread extends Thread
 
   StringBuffer             sb;
 
-  byte[]                   prevBuffer;          // buffer store for the stream
+  byte[]                   prevBuffer;                      // buffer store for
+                                                             // the stream
 
-  int                      bytes;               // bytes returned from read()
+  int                      bytes;                           // bytes returned
+                                                             // from read()
 
   RobotStateHandler        state;
 
@@ -57,7 +59,9 @@ class BTCommThread extends Thread
 
   public StringBuffer      readBuffer;
 
-  public static String     TAG = "BtCommThread";
+  public static String     TAG             = "BtCommThread";
+
+  private Boolean          lastMsgWasAllZeros = false;
 
   public BTCommThread(BluetoothAdapter adapter, ProgressDialog dialog, RobotStateHandler rState)
   {
@@ -138,19 +142,29 @@ class BTCommThread extends Thread
       public void handleMessage(Message msg)
       {
 
-        //Log.d(TAG, "Handeling Message" + msg.obj);
-        
-        if(msg.obj instanceof ControllerState)
+        if (msg.obj instanceof ControllerState)
         {
-          byte[] bytes = ( (ControllerState) msg.obj ).toBytes();
+          ControllerState cs = ( (ControllerState) msg.obj );
 
-          write(bytes);
+          // Log.d(TAG, "Handeling Message" + msg.obj);
+
+          if (cs.isAllZero() && lastMsgWasAllZeros)
+          {
+            Log.d(TAG, "Ignoreing Message" + msg.obj);
+          }
+          else
+          {
+            Log.d(TAG, "Handeling Message" + msg.obj);
+            byte[] bytes = cs.toBytes();
+            write(bytes);
+          }
+          lastMsgWasAllZeros = cs.isAllZero();
+          
         }
-        
-        if(msg.obj instanceof TargetBlob)
+
+        if (msg.obj instanceof TargetBlob)
         {
           byte[] bytes = ( (TargetBlob) msg.obj ).toBytes();
-          
 
           write(bytes);
         }
@@ -170,17 +184,27 @@ class BTCommThread extends Thread
     {
       try
       {
-        // this is to avoid sending the same thing twice
-        if (!Arrays.equals(bytes,prevBuffer) && bytes[bytes.length -1] == 0)
-        {
-          ostream.write(bytes);
-          prevBuffer = bytes;
-        }
+        Log.d(TAG, "Writing bytes :" + bytes.length);
+        ostream.write(bytes);
+        prevBuffer = bytes;
       }
       catch (IOException e)
       {
-        Log.e(TAG, "exception during write", e);
+        Log.e(TAG, "BT ERROR", e);
+
+        state.onBtDataError();
+
+        /*
+         * try { socket.close(); } catch (Exception ee) { //Log.e(TAG,
+         * "exception closing socket", e);
+         * 
+         * } socket = null; ostream = null; istream = null;
+         */
       }
+    }
+    else
+    {
+      connect();
     }
 
   }
@@ -197,8 +221,7 @@ class BTCommThread extends Thread
 
           inChar = istream.read();
 
-          if (inChar != 13 && inChar != 10)// do not write carriage returns or
-                                           // newlines to the buffer
+          if (inChar != 13 && inChar != 10)// do not write carriage returns or newlines to the buffer
           {
             readBuffer.append((char) inChar);
           }
@@ -207,11 +230,11 @@ class BTCommThread extends Thread
           {
             String tmp = readBuffer.toString();
             readBuffer.delete(0, readBuffer.length());
-            //Log.i(TAG, "Data From Bot:" + tmp);
-            //if (!tmp.contains("L"))
-            //{
-              state.onBtDataRecive(tmp);
-            //}
+            // Log.i(TAG, "Data From Bot:" + tmp);
+            // if (!tmp.contains("L"))
+            // {
+            state.onBtDataRecive(tmp);
+            // }
           }
         }
       }

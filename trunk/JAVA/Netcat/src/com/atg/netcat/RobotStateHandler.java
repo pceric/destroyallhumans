@@ -209,6 +209,22 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
 
   }
   
+  public void onBtDataError()
+  {
+    //btInBuffer.append(data);
+    
+    if(state.blueToothConnected)
+    {
+      Message say = uiHandler.obtainMessage();
+      say.obj = "Danger! Danger! Bluetooth error!";
+      say.sendToTarget();
+    }
+    state.blueToothConnected = false;
+   
+   // Log.e(TAG, "bt disconnected: ",e);
+
+  }
+  
   public BroadcastReceiver mBatInfoReceiver = new BroadcastReceiver(){
     public void onReceive(Context arg0, Intent intent) {
       // TODO Auto-generated method stub

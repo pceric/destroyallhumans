@@ -27,6 +27,6 @@ public class TargetSettings
     
     public int rightCrossHairX = 400;
     
-    public int rightCrossHairY = 260;
+    public int rightCrossHairY = 240;
         
 }
