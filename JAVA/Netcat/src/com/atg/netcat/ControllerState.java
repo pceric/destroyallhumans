@@ -81,7 +81,7 @@ public class ControllerState
    {
      byte[] arr = this.toBytes();
      
-     for(int i = 1; i<21;i++)
+     for(int i = 1; i<21; i++)
      {
        if(arr[i] != 0)
        {

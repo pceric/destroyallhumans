@@ -11,9 +11,9 @@ public class TargetSettings
   
     public int targetLuma = 0;
     
-    public int targetChromaBlue = 122;
+    public int targetChromaBlue = 250;
     
-    public int targetChromaRed = 24;
+    public int targetChromaRed = 145;
      
     //public int redBalance = -128;
      

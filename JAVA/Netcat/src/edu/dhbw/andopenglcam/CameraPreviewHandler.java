@@ -194,7 +194,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 	 */
 	public void init(Camera camera) throws Exception {
 	    mCamera= camera;
-	    listAllCameraMethods();
+	    //listAllCameraMethods();
 	    
 	    start = new Date();
 	    proccessedFrameCount = 0;

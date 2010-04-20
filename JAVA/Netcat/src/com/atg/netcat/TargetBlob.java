@@ -61,8 +61,8 @@ D/BtCommThread( 1110): Writing bytes :3
     public byte[] toBytes() {
       // AutoAim messages start with a 'A'
       
-      int a = (int) (ratioAz * 64 ) ;
-      int e = (int) ( ratioElv * 32 );
+      int a = (int) (ratioAz * 128 ) ;
+      int e = (int) ( ratioElv * 64 );
       
      // a = (ratioAz > 0) ? 5 : -5;
      // e = (ratioElv > 0) ? 5 : -5;

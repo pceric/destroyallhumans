@@ -61,6 +61,61 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
   
   InetSocketAddress clientAddress = null;
   
+  public RobotStateHandler(Handler h) throws IOException
+  {
+
+
+    uiHandler = h;
+
+    state = new RobotState();
+
+    server = new Server();
+
+    server.start();
+
+    targetSettings = new TargetSettings();
+    
+    setName("Robot State Handler");
+
+    server.bind(Receiver.controlPort,Receiver.controlPort+1);
+
+    Kryo kryo = server.getKryo();
+    kryo.register(ControllerState.class);
+    kryo.register(RobotState.class);
+    kryo.register(TargetBlob.class);
+    kryo.register(TargetSettings.class);
+    
+
+    server.addListener(new Listener()
+    {
+      public void received(Connection connection, Object object)
+      {
+        clientAddress = connection.getRemoteAddressTCP();
+        
+        if (object instanceof ControllerState)
+        {
+          controllerState = (ControllerState) object;
+          clientConnection = connection;
+          
+          if(controllerState.extraData.length() > 0)
+          {
+            Message say = uiHandler.obtainMessage();
+            say.obj = controllerState.extraData;
+            say.sendToTarget();
+          }
+        }
+        
+        if( object instanceof TargetSettings)
+        {
+          Log.i(TAG,"got target setings");
+          targetSettings = (TargetSettings) object;
+        }
+      }
+
+    });
+    
+
+  }
 
   public static RobotStateHandler getInstance(Handler h) throws IOException
   {
@@ -122,64 +177,8 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
      instance.targetBlob = blob;
   }
   
-  public RobotStateHandler(Handler h) throws IOException
-  {
-
-
-    uiHandler = h;
-
-    state = new RobotState();
-
-    server = new Server();
-
-    server.start();
-
-    targetSettings = new TargetSettings();
-    
-    setName("Robot State Handler");
-
-    server.bind(Receiver.controlPort,Receiver.controlPort+1);
-
-    Kryo kryo = server.getKryo();
-    kryo.register(ControllerState.class);
-    kryo.register(RobotState.class);
-    kryo.register(TargetBlob.class);
-    kryo.register(TargetSettings.class);
-    
-
-    server.addListener(new Listener()
-    {
-      public void received(Connection connection, Object object)
-      {
-        clientAddress = connection.getRemoteAddressTCP();
-        
-        if (object instanceof ControllerState)
-        {
-          controllerState = (ControllerState) object;
-          clientConnection = connection;
-          
-          if(controllerState.extraData.length() > 0)
-          {
-            Message say = uiHandler.obtainMessage();
-            say.obj = controllerState.extraData;
-            say.sendToTarget();
-          }
-        }
-        
-        if( object instanceof TargetSettings)
-        {
-          Log.i(TAG,"got target setings");
-          targetSettings = (TargetSettings) object;
-        }
-      }
-
-    });
-
-  }
-
   public void onBtDataRecive(String data)
   {
-    //btInBuffer.append(data);
     state.blueToothConnected = true;
     
     if(data.startsWith("L"))
@@ -197,7 +196,9 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
       state.servoSpeed = Integer.parseInt(botData[2]);
       state.strideOffset  = Integer.parseInt(botData[3]);
       state.turretAzimuth  = Integer.parseInt(botData[4]);
-      state.turretElevation  = Integer.parseInt(botData[3]);
+      state.turretElevation  = Integer.parseInt(botData[5]);
+      state.sonarDistance  = Integer.parseInt(botData[6]);
+      state.irDistance  = Integer.parseInt(botData[7]);
     }
     catch(Exception e)
     {
@@ -205,14 +206,10 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
     }
     }
     
-    //handler.sendEmptyMessage(0);
-
   }
   
   public void onBtDataError()
   {
-    //btInBuffer.append(data);
-    
     if(state.blueToothConnected)
     {
       Message say = uiHandler.obtainMessage();
@@ -220,9 +217,6 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
       say.sendToTarget();
     }
     state.blueToothConnected = false;
-   
-   // Log.e(TAG, "bt disconnected: ",e);
-
   }
   
   public BroadcastReceiver mBatInfoReceiver = new BroadcastReceiver(){
@@ -341,41 +335,49 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
     
     if(! listening)
     {
-            
-      bTcomThread = new BTCommThread(BluetoothAdapter.getDefaultAdapter(), btDialog, this);
-      bTcomThread.start();
-  
-      if (OrientationManager.isSupported())
-      {
-        OrientationManager.startListening(this);
-      }
-  
-      if (LightSensorManager.isSupported())
-      {
-        LightSensorManager.startListening(this);
-      }
-  
-      if (CompassManager.isSupported())
-      {
-        CompassManager.startListening(this);
-      }
-  
+              
+      this.listening = true;
+         
       try {
         this.start();
+        
+        if (OrientationManager.isSupported())
+        {
+          OrientationManager.startListening(this);
+        }
+    
+        if (LightSensorManager.isSupported())
+        {
+          LightSensorManager.startListening(this);
+        }
+    
+        if (CompassManager.isSupported())
+        {
+          CompassManager.startListening(this);
+        }
+        
+        server.start();      
+        
+        
+        if(bTcomThread == null)
+        {  
+          bTcomThread = new BTCommThread(BluetoothAdapter.getDefaultAdapter(), this);
+          bTcomThread.start();
+        }
       }
       catch (java.lang.IllegalThreadStateException e) {
         Log.e(TAG, "Robot state handler thead start error",e);
       }
       
-      server.start();
-    
     }
-
+   
   }
 
   public synchronized void stopListening()
   {
 
+    Log.e(TAG, "Robot state handler STOPING ALL LISTINERS");
+    
     if (OrientationManager.isListening())
     {
       OrientationManager.stopListening();
@@ -392,20 +394,25 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
     }
      
 
-    if (btDialog != null && btDialog.isShowing())
-      btDialog.dismiss();
-
-    if (bTcomThread != null)
-     // bTcomThread.stop();
-    bTcomThread = null;
+    //watch out for double start
+   if (bTcomThread != null)
+   {
+     try
+     {
+      bTcomThread.handler.getLooper().quit();
+     }
+     catch(Exception e)
+     {}
+     
+     bTcomThread.disconnect();
+   }
+    this.listening = false;
     
-    this.stop();
-
   }
 
   public void run()
   {
-    while (true)
+    while (this.listening)
     {
 
         if (clientConnection != null)
@@ -430,18 +437,12 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
           if (targetBlob != null && targetBlob.timestamp != lastTargetBlobTimeStamp)
           {
              lastTargetBlobTimeStamp = controllerState.timestamp;
-             /*
-              * TODO: auto aim the head if needed. 
-              * 
-             Message btMsg = bTcomThread.handler.obtainMessage();
-             btMsg.obj = controllerState;
-             btMsg.sendToTarget();
-             */
              
              targetBlob.calculateAimpoints(targetSettings);
              
              clientConnection.sendTCP(targetBlob);
              
+             //autoaim the head if needed
              if(bTcomThread != null && state.autoAimOn)
              {
                Message btMsg = bTcomThread.handler.obtainMessage();

@@ -129,6 +129,8 @@ public class Receiver extends Activity implements Callback, TextToSpeech.OnInitL
       sensorManager = (SensorManager) me.getSystemService(Context.SENSOR_SERVICE);
     }
 
+    
+    startListening();
   }
 
   // Implements TextToSpeech.OnInitListener.
@@ -158,7 +160,7 @@ public class Receiver extends Activity implements Callback, TextToSpeech.OnInitL
         // Allow the user to press the button for the app to speak again.
         // mAgainButton.setEnabled(true);
         // Greet the user.
-       // utterTaunt("R");
+        utterTaunt("Robot Ready");
       }
     }
     else
@@ -189,7 +191,7 @@ public class Receiver extends Activity implements Callback, TextToSpeech.OnInitL
   public void onStart()
   {
     super.onStart();
-    startListening();
+
   }
 
   @Override
@@ -199,7 +201,6 @@ public class Receiver extends Activity implements Callback, TextToSpeech.OnInitL
 
     mPausing = true;
     this.glSurfaceView.onPause();
-    stopListening();
   }
 
   /*
@@ -209,6 +210,14 @@ public class Receiver extends Activity implements Callback, TextToSpeech.OnInitL
    * }
    */
 
+  
+  @Override
+  public void onDestroy()
+  {
+    // TODO Auto-generated method stub
+    stopListening();
+    super.onDestroy();
+  }
   
   
   
@@ -270,11 +279,24 @@ public class Receiver extends Activity implements Callback, TextToSpeech.OnInitL
   {
 
     Log.d(TAG, "stopListening called");
-    this.unregisterReceiver(state.mBatInfoReceiver);
+    
+    try
+    {
+      this.unregisterReceiver(state.mBatInfoReceiver);
+    }
+    catch (Exception e)
+    {
+    }
 
-    this.unregisterReceiver(state.mWifiInfoReceiver);
+    try
+    {
+      this.unregisterReceiver(state.mWifiInfoReceiver);
+    }
+    catch (Exception e)
+    {
+    }
 
-    if (state.isAlive())
+   if (state.isAlive())
     {
       state.stopListening();
     }

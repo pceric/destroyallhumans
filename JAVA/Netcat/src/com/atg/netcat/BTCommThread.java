@@ -19,12 +19,9 @@ package com.atg.netcat;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
 
-import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -41,17 +38,20 @@ class BTCommThread extends Thread
 
   private OutputStream     ostream;
 
-  private ProgressDialog   dialog;
-
   private BluetoothAdapter adapter;
 
   StringBuffer             sb;
 
-  byte[]                   prevBuffer;                      // buffer store for
-                                                             // the stream
+  byte[]                   prevBuffer;                         // buffer store
+                                                                // for
 
-  int                      bytes;                           // bytes returned
-                                                             // from read()
+  // the stream
+  BluetoothDevice          device;
+
+  int                      bytes;                              // bytes
+                                                                // returned
+
+  // from read()
 
   RobotStateHandler        state;
 
@@ -59,13 +59,12 @@ class BTCommThread extends Thread
 
   public StringBuffer      readBuffer;
 
-  public static String     TAG             = "BtCommThread";
+  public static String     TAG                = "BtCommThread";
 
   private Boolean          lastMsgWasAllZeros = false;
 
-  public BTCommThread(BluetoothAdapter adapter, ProgressDialog dialog, RobotStateHandler rState)
+  public BTCommThread(BluetoothAdapter adapter, RobotStateHandler rState)
   {
-    this.dialog = dialog;
     this.adapter = adapter;
     this.state = rState;
     setName("BlueTooth Com");
@@ -76,15 +75,10 @@ class BTCommThread extends Thread
 
     readBuffer = new StringBuffer();
 
-  }
-
-  private synchronized void connect()
-  {
     if (adapter == null)
       return;
 
     Set<BluetoothDevice> devices = adapter.getBondedDevices();
-    BluetoothDevice device = null;
     for (BluetoothDevice curDevice : devices)
     {
       if (curDevice.getName().matches(".*BlueRobot.*"))
@@ -96,6 +90,11 @@ class BTCommThread extends Thread
     if (device == null)
       device = adapter.getRemoteDevice("00:06:66:03:A9:A2");
 
+  }
+
+  synchronized private void connect()
+  {
+
     try
     {
       socket = device.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"));
@@ -104,9 +103,8 @@ class BTCommThread extends Thread
     catch (IOException e)
     {
       socket = null;
-    }
-    if (socket == null)
       return;
+    }
 
     InputStream tmpIn = null;
     OutputStream tmpOut = null;
@@ -118,14 +116,19 @@ class BTCommThread extends Thread
     }
     catch (IOException e)
     {
+      disconnect();
+      return;
+      
     }
 
     istream = tmpIn;
     ostream = tmpOut;
 
-    if (dialog != null && dialog.isShowing())
-      dialog.dismiss();
+  }
 
+  public boolean connected()
+  {
+    return this.ostream != null;
   }
 
   public void run()
@@ -142,39 +145,46 @@ class BTCommThread extends Thread
       public void handleMessage(Message msg)
       {
 
-        if (msg.obj instanceof ControllerState)
+        if (connected())
         {
-          ControllerState cs = ( (ControllerState) msg.obj );
 
-          // Log.d(TAG, "Handeling Message" + msg.obj);
-
-          if (cs.isAllZero() && lastMsgWasAllZeros)
+          if (msg.obj instanceof ControllerState)
           {
-            Log.d(TAG, "Ignoreing Message" + msg.obj);
+            ControllerState cs = ( (ControllerState) msg.obj );
+
+            if (cs.isAllZero() && lastMsgWasAllZeros)
+            {
+              Log.d(TAG, "Ignoreing Message" + msg.obj);
+            }
+            else
+            {
+              Log.d(TAG, "Handeling Message" + msg.obj);
+              byte[] bytes = cs.toBytes();
+              write(bytes);
+            }
+            lastMsgWasAllZeros = cs.isAllZero();
+
           }
-          else
+
+          if (msg.obj instanceof TargetBlob)
           {
-            Log.d(TAG, "Handeling Message" + msg.obj);
-            byte[] bytes = cs.toBytes();
+            byte[] bytes = ( (TargetBlob) msg.obj ).toBytes();
+
             write(bytes);
           }
-          lastMsgWasAllZeros = cs.isAllZero();
-          
-        }
 
-        if (msg.obj instanceof TargetBlob)
+          read();
+        }
+        else
         {
-          byte[] bytes = ( (TargetBlob) msg.obj ).toBytes();
-
-          write(bytes);
+          connect();
         }
-        // java.io.IOException: Transport endpoint is not connected
-
-        read();
       }
     };
 
     Looper.loop();
+
+    disconnect();
 
   }
 
@@ -190,21 +200,14 @@ class BTCommThread extends Thread
       }
       catch (IOException e)
       {
-        Log.e(TAG, "BT ERROR", e);
+        Log.e(TAG, "Error duing write", e);
+
+        this.disconnect();
 
         state.onBtDataError();
+        // java.io.IOException: Transport endpoint is not connected
 
-        /*
-         * try { socket.close(); } catch (Exception ee) { //Log.e(TAG,
-         * "exception closing socket", e);
-         * 
-         * } socket = null; ostream = null; istream = null;
-         */
       }
-    }
-    else
-    {
-      connect();
     }
 
   }
@@ -221,7 +224,8 @@ class BTCommThread extends Thread
 
           inChar = istream.read();
 
-          if (inChar != 13 && inChar != 10)// do not write carriage returns or newlines to the buffer
+          if (inChar != 13 && inChar != 10)// do not write carriage returns or
+                                           // newlines to the buffer
           {
             readBuffer.append((char) inChar);
           }
@@ -230,11 +234,7 @@ class BTCommThread extends Thread
           {
             String tmp = readBuffer.toString();
             readBuffer.delete(0, readBuffer.length());
-            // Log.i(TAG, "Data From Bot:" + tmp);
-            // if (!tmp.contains("L"))
-            // {
             state.onBtDataRecive(tmp);
-            // }
           }
         }
       }
@@ -242,29 +242,44 @@ class BTCommThread extends Thread
       catch (Exception e)
       {
         Log.e(TAG, "exception during read", e);
+        this.disconnect();
+        state.onBtDataError();
       }
     }
   }
 
-  public void quit()
+  public void disconnect()
   {
     Log.i(TAG, "quit callled");
 
-    if (handler != null)
+    try
     {
-      handler.getLooper().quit();
+      istream.close();
+    }
+    catch (Exception e)
+    {
     }
 
     try
     {
+      ostream.close();
+    }
+    catch (Exception e)
+    {
+    }
 
+    try
+    {
       socket.close();
     }
     catch (Exception e)
     {
-      Log.e(TAG, "exception closing socket", e);
-
+      // Log.e(TAG, "exception closing socket", e);
     }
+
+    istream = null;
+    ostream = null;
+    socket = null;
 
   }
 
