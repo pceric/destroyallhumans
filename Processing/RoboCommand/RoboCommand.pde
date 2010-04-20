@@ -224,7 +224,7 @@ void draw(){
     controlP5.controller("robotPowerBar").setColorForeground(color(0,255,0));
   controlP5.controller("azimuth").setValue(thread.get_azimuth());
   turret.setX((((float)thread.get_turretX() - 1167) / 666) * 100);
-  turret.setY((((float)thread.get_turretY() + 166) / 333) * 50);
+  turret.setY(50 - (((float)thread.get_turretY() + 166) / 333) * 50);
 
   fill(128,0,128);
   stroke(128);
