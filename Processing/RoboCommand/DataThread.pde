@@ -13,7 +13,7 @@ public class DataThread extends Thread {
       public void received (Connection connection, Object object) {
         if (object instanceof RobotState) {
           _rs = (RobotState)object;
-          //println(get_azimuth() + " " + get_pitch() + " " + get_roll());
+          //println(get_turretX() + " " + get_turretY());
           if(_rs.message.length() > 0)
           {
             println(_rs.message);
@@ -21,7 +21,7 @@ public class DataThread extends Thread {
         }
         if (object instanceof TargetBlob) {
             _targetBlob = (TargetBlob) object;          
-            println("got target blob" + _targetBlob);
+            //println("got target blob" + _targetBlob);
          }
       }
     });
@@ -113,6 +113,20 @@ public class DataThread extends Thread {
       return 0;
   }
 
+  public int get_irDistance() {
+    if (_rs != null)
+      return _rs.irDistance;
+    else
+      return 0;
+  }
+
+  public int get_sonarDistance() {
+    if (_rs != null)
+      return _rs.sonarDistance;
+    else
+      return 0;
+  }
+
   public int get_damage() {
     if (_rs != null)
       return _rs.damage;
@@ -124,7 +138,7 @@ public class DataThread extends Thread {
     if (_rs != null)
       return _rs.turretAzimuth;
     else
-      return 0;
+      return 1500;
   }
 
   public int get_turretY() {
@@ -160,6 +174,13 @@ public class DataThread extends Thread {
       return _rs.message;
     else
       return "";
+  }
+  
+  public boolean isAutoAim() {
+    if (_rs != null)
+      return _rs.autoAimOn;
+    else
+      return false;
   }    
 }
 

@@ -87,13 +87,15 @@ void setup(){
   speedLabel = new Textlabel(this,"Speed: 150",100,height-80,200,40);
   offsetLabel = new Textlabel(this,"Offset: 0",275,height-80,100,40);
   crosshair = new Crosshair(controlP5,"L",width/2,height/2,30,30);
-  turret = new ControlPad(controlP5,"Turret",5,380,100,100);
+  turret = new ControlPad(controlP5,"Turret",1,430,100,50);
   controlP5.addSlider("cb",0,255,ts.targetChromaBlue,100,height-125,100,20).setLabel("Blue");
   controlP5.addSlider("cr",0,255,ts.targetChromaRed,225,height-125,100,20).setLabel("Red");
   controlP5.addSlider("tolerance",0,32,ts.tolerance,350,height-125,100,20).setLabel("Tolerance");
   controlP5.addTextfield("speech",100,height-40,300,20).setFocus(true);
-  controlP5.addSlider("lifeBar",0,MAX_LIFE,MAX_LIFE,20,height-115,20,100).setNumberOfTickMarks(15);
-  controlP5.controller("lifeBar").setLabel("Life");
+  controlP5.addSlider("lifeBar",0,MAX_LIFE,MAX_LIFE,20,height-115,20,100).setLabel("Life");
+  Slider s1 = (Slider)controlP5.controller("lifeBar");
+  s1.setNumberOfTickMarks(15);
+  s1.snapToTickMarks(true);
   controlP5.addKnob("azimuth",0,360,0,width-180,height-100,50).setLabel("Azimuth");
   controlP5.addSlider("robotPowerBar",0,100,100,width-100,height-115,20,100).setLabel("Robot");
   controlP5.addSlider("androidPowerBar",0,100,100,width-50,height-115,20,100).setLabel("Phone");
@@ -126,11 +128,12 @@ void setup(){
   }
 
   vidServer = new UDP(this, VIDEO_PORT);
-  vidServer.setReceiveHandler("videoPacketHandler"); 
+  vidServer.setReceiveHandler("videoPacketHandler");
 }
 
 
 void draw(){
+  int distance;
   float x = 0;
   float y = 0;
   float z = 1;
@@ -160,8 +163,18 @@ void draw(){
   
   // Top right stats
   fill(0, 255, 0);
-  text("FPS: " + thread.get_camFrameRate(), width-75, 20);
-  text("Light: " + thread.get_lightLevel(), width-75, 40);
+  if (thread.get_irDistance() >= 450)
+    distance = 1 * 12;
+  else if (thread.get_irDistance() >= 250)
+    distance = 2 * 12;
+  else if (thread.get_irDistance() >= 140)
+    distance = 3 * 12;
+  else if (thread.get_irDistance() >= 70)
+    distance = 4 * 12;
+  else
+    distance = 5 * 12;
+  text("Front: " + distance + " inches", width-100, 20);
+  text("Back: " + (thread.get_sonarDistance() / 74 / 2) + " inches", width-100, 40);
   
   TargetBlob tb = thread.getTargetBlob();
   
@@ -180,6 +193,15 @@ void draw(){
   }
   
   // GUI components
+  if (!thread.isAutoAim()) {
+    controlP5.controller("cb").setColorForeground(100);
+    controlP5.controller("cr").setColorForeground(100);
+    controlP5.controller("tolerance").setColorForeground(100);
+  } else {
+    controlP5.controller("cb").setColorForeground(0xff00698c);
+    controlP5.controller("cr").setColorForeground(0xff00698c);
+    controlP5.controller("tolerance").setColorForeground(0xff00698c);
+  }
   speedLabel.setValue("Speed: " + Integer.toString(thread.get_speed()));
   speedLabel.draw(this);
   offsetLabel.setValue("Offset: " + Integer.toString(thread.get_strideOffset()));
@@ -201,8 +223,8 @@ void draw(){
   else
     controlP5.controller("robotPowerBar").setColorForeground(color(0,255,0));
   controlP5.controller("azimuth").setValue(thread.get_azimuth());
-  turret.setX(((thread.get_turretX() - 1167) / 666) * 100);
-  turret.setY(((thread.get_turretY() + 166) / 333) * 100);
+  turret.setX((((float)thread.get_turretX() - 1167) / 666) * 100);
+  turret.setY((((float)thread.get_turretY() + 166) / 333) * 50);
 
   fill(128,0,128);
   stroke(128);
@@ -330,7 +352,7 @@ class ControlPad extends Controller {
 
   ControlPad(ControlP5 theControlP5, String theName, int theX, int theY, int theWidth, int theHeight) {
     // the super class Controller needs to be initialized with the below parameters
-    super(theControlP5,  (Tab)(theControlP5.getTab("default")), theName, theX, theY, theWidth, theWidth);
+    super(theControlP5,  (Tab)(theControlP5.getTab("default")), theName, theX, theY, theWidth, theHeight);
     // the Controller class provides a field to store values in an 
     // float array format. for this controller, 2 floats are required.
     _myArrayValue = new float[2];
@@ -354,17 +376,13 @@ class ControlPad extends Controller {
     theApplet.pushMatrix();
     theApplet.translate(position().x(), position().y());
     // draw the background of the controller.
-    if(getIsInside()) {
-      theApplet.fill(150);
-    } 
-    else {
-      theApplet.fill(100);
-    }
+    noFill();
+    stroke(255);
     rect(0,0,width,height);
 
     // draw the controller-handle
     fill(255);
-    rect(cX,cY,cWidth,cHeight);
+    rect(cX - (cWidth/2),cY - (cHeight/2),cWidth,cHeight);
     // draw the caption- and value-label of the controller
     // they are generated automatically by the super class
     captionLabel().draw(theApplet, 0, height + 4);
@@ -374,27 +392,25 @@ class ControlPad extends Controller {
   } 
 
   public void setValue(float theValue) {
-    // setValue is usually called from within updateInternalEvents
-    // in case of changes, updates. the update of values or 
-    // visual elements is done here.
-    _myArrayValue[0] = cX / ((float)(width-cWidth)/(float)width);
-    _myArrayValue[1] = cY / ((float)(height-cHeight)/(float)height);
-    // update the value label.
-    valueLabel().set(adjustValue(_myArrayValue[0],0)+" / "+adjustValue(_myArrayValue[1],0));
-
     // broadcast triggers a ControlEvent, updates are made to the sketch, 
     // controlEvent(ControlEvent) is called.
     // the parameter (FLOAT or STRING) indicates the type of 
     // value and the type of methods to call in the main sketch.
     broadcast(FLOAT);
   }
-  
+
   public void setX(float x) {
     cX = x;
+    _myArrayValue[0] = cX / ((float)(width-cWidth)/(float)width);
+    _myArrayValue[1] = cY / ((float)(height-cHeight)/(float)height);
+    valueLabel().set(adjustValue(_myArrayValue[0],0)+" / "+adjustValue(_myArrayValue[1],0));
   }
 
   public void setY(float y) {
     cY = y;
+    _myArrayValue[0] = cX / ((float)(width-cWidth)/(float)width);
+    _myArrayValue[1] = cY / ((float)(height-cHeight)/(float)height);
+    valueLabel().set(adjustValue(_myArrayValue[0],0)+" / "+adjustValue(_myArrayValue[1],0));
   }
 
   // needs to be implemented since it is an abstract method in controlP5.Controller
