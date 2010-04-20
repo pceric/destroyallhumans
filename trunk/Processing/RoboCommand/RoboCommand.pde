@@ -315,8 +315,9 @@ class Crosshair extends Controller {
   public void updateInternalEvents(PApplet theApplet) {
     if(getIsInside()) {
       if(isMousePressed) {
-        ts.rightCrossHairX = (int)constrain(mouseX-position.x(),0,width-cWidth);
-        ts.rightCrossHairY = (int)constrain(mouseY-position.y(),0,height-cHeight);
+        ts.rightCrossHairX = (int)position.x();
+        ts.rightCrossHairY = (int)position.y();
+        println(ts.rightCrossHairX + ", " + ts.rightCrossHairY);
         myClient.sendTCP(ts);
       }
     }
