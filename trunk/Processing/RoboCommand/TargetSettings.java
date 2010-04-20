@@ -9,9 +9,9 @@ public class TargetSettings
   
     public int targetLuma = 0;
     
-    public int targetChromaBlue = 122;
+    public int targetChromaBlue = 250;
     
-    public int targetChromaRed = 24;
+    public int targetChromaRed = 140;
      
     //public int redBalance = -128;
      
@@ -23,8 +23,8 @@ public class TargetSettings
     
     public int leftCrossHairY = 256;   
     
-    public int rightCrossHairX = 256;
+    public int rightCrossHairX = 400;
     
-    public int rightCrossHairY = 256;
+    public int rightCrossHairY = 260;
     
 }
