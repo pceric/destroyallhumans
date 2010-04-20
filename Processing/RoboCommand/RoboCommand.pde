@@ -311,6 +311,16 @@ class Crosshair extends Controller {
     super(theControlP5,  (Tab)(theControlP5.getTab("default")), theName, theX, theY, theWidth, theWidth);
   }
 
+  // overwrite the updateInternalEvents method to handle mouse and key inputs.
+  public void updateInternalEvents(PApplet theApplet) {
+    if(getIsInside()) {
+      if(isMousePressed) {
+        ts.rightCrossHairX = (int)constrain(mouseX-position.x(),0,width-cWidth);
+        ts.rightCrossHairY = (int)constrain(mouseY-position.y(),0,height-cHeight);
+        myClient.sendTCP(ts);
+      }
+    }
+  }
 
   // overwrite the draw method for the controller's visual representation.
   public void draw(PApplet theApplet) {
@@ -330,7 +340,7 @@ class Crosshair extends Controller {
 
  
   public void setValue(float theValue) {
-    
+        
   }
 
   // needs to be implemented since it is an abstract method in controlP5.Controller
