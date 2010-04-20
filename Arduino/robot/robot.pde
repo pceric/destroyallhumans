@@ -40,10 +40,11 @@ const int ssmap[16] = {SSP1,SSP2,SSP3,SSP4,SSP5,SSP6,SSP7,SSP8,SSP9,SSP10,SSP11,
 // SN754410 pins on Duem
 const int lampPin = 11;  // Don't use pins 5 or 6 if possible
 const int laserPin = 12;
-const int lgunPin = 14;
-const int rgunPin = 15;
+const int lgunPin = 14;  // Analog 0
+const int rgunPin = 15;  // Analog 1
 // Other devices on Duem
-const int pingPin = 4;
+const int pingPin = 3;
+const int irPin = 3; // Analog
 // Misc constants
 const float STRIDE = 35;
 const float LEAN = 15;
@@ -96,8 +97,11 @@ void msgReady() {
   }
   else if(message == 'A') {
     LOG("Got A code");
-     servos.setposition(turret, constrain(servos.getposition(turret) + Serial.read(), 1167, 1833));
-     turretElevation = constrain(turretElevation + Serial.read(), -166, 166);
+    while (Serial.available() < 2)
+      delay(1);
+    char x = Serial.read(), y = Serial.read();
+    servos.setposition(turret, constrain(servos.getposition(turret) + x, 1167, 1833));
+    turretElevation = constrain(turretElevation + y, -166, 166);
   }
   else if(message == 'R') {
     LOG("Got R code");
@@ -120,6 +124,10 @@ void sendStatus() {
     Serial.print(servos.getposition(turret));
     Serial.print(" ");
     Serial.print(turretElevation);
+    Serial.print(" ");
+    Serial.print(doPing());
+    Serial.print(" ");
+    Serial.print(analogRead(irPin));
     Serial.print("\n");
 }
 
@@ -170,23 +178,24 @@ boolean readJoystick() {
 // Handles joystick input
 void handleJoystick() {
   float StrideLengthLeft, StrideLengthRight;
+  int offset = StrideOffset;
   // Movement
   if (joystick1.LeftY > DEAD_ZONE || joystick1.LeftY < -DEAD_ZONE) {
-    StrideOffset += (joystick1.LeftX / 10);  // Try and gently turn direction
+    offset += (joystick1.LeftX / 10);  // Try and gently turn direction
     if (joystick1.LeftY > 0) {
       StrideLengthLeft = -(joystick1.LeftY / 3); // -STRIDE;
       StrideLengthRight = -(joystick1.LeftY / 3); // -STRIDE;
-      if (StrideOffset < 0)
-        StrideLengthLeft += -StrideOffset;
-      else if (StrideOffset > 0)
-        StrideLengthRight += StrideOffset;
+      if (offset < 0)
+        StrideLengthLeft += -offset;
+      else if (offset > 0)
+        StrideLengthRight += offset;
     } else {
       StrideLengthLeft = -(joystick1.LeftY / 3); // STRIDE;
       StrideLengthRight = -(joystick1.LeftY / 3); // STRIDE;
-      if (StrideOffset < 0)
-        StrideLengthLeft -= -StrideOffset;
-      else if (StrideOffset > 0)
-        StrideLengthRight -= StrideOffset;
+      if (offset < 0)
+        StrideLengthLeft -= -offset;
+      else if (offset > 0)
+        StrideLengthRight -= offset;
     }
     // Normal walk - too much top weight to work correctly
     if (firstStep) {
@@ -213,9 +222,9 @@ void handleJoystick() {
   else if (joystick1.LeftX > 120) {
     movement(0.0, 35.0, 37.0,  0.0,-35.0,-40.0, MoveSpeed + 100.0);
     movement(0.0,-35.0,-40.0,  0.0, 35.0, 37.0, MoveSpeed + 100.0);
-    movement(20.0,-35.0,-40.0,-14.0, 35.0, 37.0, MoveSpeed + 100.0);
-    movement(20.0,  0.0,  0.0,-14.0, 35.0, 37.0, MoveSpeed + 100.0);
-    movement(-14.0,  0.0,  0.0, 20.0,  0.0,  0.0, MoveSpeed + 100.0);
+    movement(20.0,-35.0,-40.0,-16.0, 35.0, 37.0, MoveSpeed + 100.0);
+    movement(20.0,  0.0,  0.0,-16.0, 35.0, 37.0, MoveSpeed + 100.0);
+    movement(-16.0,  0.0,  0.0, 20.0,  0.0,  0.0, MoveSpeed + 100.0);
   }
   if (joystick1.L1)
     digitalWrite(lgunPin, HIGH);
@@ -225,8 +234,8 @@ void handleJoystick() {
     digitalWrite(rgunPin, HIGH);
   else
     digitalWrite(rgunPin, LOW);
-  if (!joystick1.R3 && prev_joystick1.R3)
-    turretAbsolute = !turretAbsolute;
+  //if (!joystick1.R3 && prev_joystick1.R3)
+    //turretAbsolute = !turretAbsolute;
   if (!joystick1.Select && prev_joystick1.Select)
     toggleLaser();
   if (!joystick1.C && prev_joystick1.C)
@@ -297,9 +306,11 @@ void toggleLamp() {
   if (LampOn) {
     LampOn = false;
     analogWrite(lampPin, 0);
+    LOG("Lamp Off");
   } else {
     LampOn = true;
     analogWrite(lampPin, 150);
+    LOG("Lamp On");
   }
 }
 
@@ -308,16 +319,18 @@ void toggleLaser() {
   if (LaserOn) {
     LaserOn = false;
     digitalWrite(laserPin, LOW);
+    LOG("Laser Off");
   } else {
     LaserOn = true;
     digitalWrite(laserPin, HIGH);
+    LOG("Laser On");
   }
 }
 
-// Operate our Ping))
+// Operate our Ping)))
 long doPing() {
   long duration;
-  char tmp[17];
+
   // The PING))) is triggered by a HIGH pulse of 2 or more microseconds.
   // Give a short LOW pulse beforehand to ensure a clean HIGH pulse:
   pinMode(pingPin, OUTPUT);
@@ -333,7 +346,7 @@ long doPing() {
   pinMode(pingPin, INPUT);
   duration = pulseIn(pingPin, HIGH, 20000);
   
-  LOG(itoa(duration, tmp, 10));
+  return duration;
 }
 
 // Reads a signed int from EEPROM.  127 addresses
