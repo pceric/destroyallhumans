@@ -171,7 +171,7 @@ boolean readJoystick() {
     joystick1.LeftY = buffer[17];
     joystick1.RightX = buffer[18];
     joystick1.RightY = buffer[19];
-
+   
     return true;
 }
 
@@ -212,20 +212,6 @@ void handleJoystick() {
       leftStep = true;
     }
   }
-  if (joystick1.LeftX < -120) {
-    movement(0.0,-35.0,-40.0,  0.0, 35.0, 37.0, MoveSpeed + 100.0);
-    movement(0.0, 35.0, 37.0,  0.0,-35.0,-40.0, MoveSpeed + 100.0);
-    movement(-16.0, 35.0, 37.0, 20.0,-35.0,-40.0, MoveSpeed + 100.0);
-    movement(-16.0, 35.0, 37.0, 20.0,  0.0,  0.0, MoveSpeed + 100.0);
-    movement(20.0,  0.0,  0.0,-16.0,  0.0,  0.0, MoveSpeed + 100.0);
-  }
-  else if (joystick1.LeftX > 120) {
-    movement(0.0, 35.0, 37.0,  0.0,-35.0,-40.0, MoveSpeed + 100.0);
-    movement(0.0,-35.0,-40.0,  0.0, 35.0, 37.0, MoveSpeed + 100.0);
-    movement(20.0,-35.0,-40.0,-16.0, 35.0, 37.0, MoveSpeed + 100.0);
-    movement(20.0,  0.0,  0.0,-16.0, 35.0, 37.0, MoveSpeed + 100.0);
-    movement(-16.0,  0.0,  0.0, 20.0,  0.0,  0.0, MoveSpeed + 100.0);
-  }
   if (joystick1.L1)
     digitalWrite(lgunPin, HIGH);
   else
@@ -238,10 +224,32 @@ void handleJoystick() {
     //turretAbsolute = !turretAbsolute;
   if (!joystick1.Select && prev_joystick1.Select)
     toggleLaser();
-  if (!joystick1.C && prev_joystick1.C)
-    doPing();
-  if (!joystick1.S && prev_joystick1.S)
+  if (!joystick1.Start && prev_joystick1.Start)
     toggleLamp();
+  // Left turn
+  if (!joystick1.S && prev_joystick1.S) {
+    movement(20.0,  0.0,  0.0,-14.0,  0.0,  0.0, MoveSpeed);
+    movement(20.0,-35.0,-35.0,-14.0, 35.0, 35.0, MoveSpeed);
+    movement(0.0,-35.0,-35.0,  0.0, 35.0, 35.0, MoveSpeed);
+    movement(0.0, 35.0, 35.0,  0.0,-35.0,-35.0, MoveSpeed);
+    movement(20.0, 35.0, 35.0,-14.0,-35.0,-35.0, MoveSpeed);
+    movement(20.0,  0.0,  0.0,-14.0,-35.0,-35.0, MoveSpeed);
+    movement(-18.0,  0.0,  0.0, 16.0,-35.0,-35.0, MoveSpeed);
+    movement(-18.0,  0.0,  0.0, 16.0,  0.0,  0.0, MoveSpeed);
+    movement(0.0,  0.0,  0.0,  0.0,  0.0,  0.0, MoveSpeed);
+  }
+  // Right turn
+  if (!joystick1.C && prev_joystick1.C) {
+    movement(-14.0,  0.0,  0.0, 20.0,  0.0,  0.0, MoveSpeed);
+    movement(-14.0, 35.0, 35.0, 20.0,-35.0,-35.0, MoveSpeed); 
+    movement(0.0, 35.0, 35.0,  0.0,-35.0,-35.0, MoveSpeed);
+    movement(0.0,-35.0,-35.0,  0.0, 35.0, 35.0, MoveSpeed);
+    movement(-14.0,-35.0,-35.0, 20.0, 35.0, 35.0, MoveSpeed);
+    movement(-14.0,-35.0,-35.0, 20.0,  0.0,  0.0, MoveSpeed);
+    movement(16.0,-35.0,-35.0,-18.0,  0.0,  0.0, MoveSpeed);
+    movement(16.0,  0.0,  0.0,-18.0,  0.0,  0.0, MoveSpeed);
+    movement(0.0,  0.0,  0.0,  0.0,  0.0,  0.0, MoveSpeed);
+  }
   // Reset position
   if (joystick1.X) {
     turretElevation = 0;
