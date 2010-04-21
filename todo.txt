@@ -1,12 +1,13 @@
 TODO
 ====
 
-- fix guns
 - fix walking gait
-- com protocol between Arduino and Android
-- wrap cables
-- better phone mounting
-- gun siting
 - packing list for trip
   - how to ship?
 - spare parts
+  - zip ties
+  - H-Bridge chips
+  - servos
+  - guns
+- capacitors for power
+- fix random inputs firing
