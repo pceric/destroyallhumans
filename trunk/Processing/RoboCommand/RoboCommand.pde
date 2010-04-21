@@ -163,7 +163,7 @@ void draw(){
   
   // Top right stats
   fill(0, 255, 0);
-  text("Front: " + (23.897 * pow((thread.get_irDistance() * .0049),-1.1907)) + " inches", width-100, 20);  // from http://www.arduino.cc/cgi-bin/yabb2/YaBB.pl?num=1230387822/6#6
+  text("Front: " + (int)(23.897 * pow((thread.get_irDistance() * .0049),-1.1907)) + " inches", width-100, 20);  // from http://www.arduino.cc/cgi-bin/yabb2/YaBB.pl?num=1230387822/6#6
   text("Back: " + (thread.get_sonarDistance() / 74 / 2) + " inches", width-100, 40);
   
   TargetBlob tb = thread.getTargetBlob();
@@ -305,8 +305,14 @@ class Crosshair extends Controller {
   public void updateInternalEvents(PApplet theApplet) {
     if(getIsInside()) {
       if(isMousePressed) {
-        ts.rightCrossHairX = (int)position.x();
-        ts.rightCrossHairY = (int)position.y();
+        // My eyes!  The goggles do nothing!
+        if (_myName.equals("R")) {
+          ts.rightCrossHairX = (int)position.x();
+          ts.rightCrossHairY = (int)position.y();
+        } else { 
+          ts.leftCrossHairX = (int)position.x();
+          ts.leftCrossHairY = (int)position.y();
+        }
         myClient.sendTCP(ts);
       }
     }
@@ -327,14 +333,8 @@ class Crosshair extends Controller {
 
     theApplet.popMatrix();
   } 
-
  
   public void setValue(float theValue) {
-    // broadcast triggers a ControlEvent, updates are made to the sketch, 
-    // controlEvent(ControlEvent) is called.
-    // the parameter (FLOAT or STRING) indicates the type of 
-    // value and the type of methods to call in the main sketch.
-    broadcast(FLOAT);
   }
 
   // needs to be implemented since it is an abstract method in controlP5.Controller
