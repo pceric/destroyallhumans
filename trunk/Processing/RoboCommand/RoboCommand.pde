@@ -51,7 +51,7 @@ DAController ps3;
 // GUI
 ControlP5 controlP5;
 Textlabel speedLabel, offsetLabel;
-Crosshair crosshair;
+Crosshair crosshairL, crosshairR;
 ControlPad turret;
 
 // Communication thread
@@ -86,7 +86,8 @@ void setup(){
 
   speedLabel = new Textlabel(this,"Speed: 150",100,height-80,200,40);
   offsetLabel = new Textlabel(this,"Offset: 0",275,height-80,100,40);
-  crosshair = new Crosshair(controlP5,"L",width/2,height/2,30,30);
+  crosshairL = new Crosshair(controlP5,"L",ts.leftCrossHairX,ts.leftCrossHairY,30,30);
+  crosshairR = new Crosshair(controlP5,"R",ts.rightCrossHairX,ts.rightCrossHairY,30,30);
   turret = new ControlPad(controlP5,"Turret",1,430,100,50);
   controlP5.addSlider("cb",0,255,ts.targetChromaBlue,100,height-125,100,20).setLabel("Blue");
   controlP5.addSlider("cr",0,255,ts.targetChromaRed,225,height-125,100,20).setLabel("Red");
@@ -133,7 +134,6 @@ void setup(){
 
 
 void draw(){
-  int distance;
   float x = 0;
   float y = 0;
   float z = 1;
@@ -163,17 +163,7 @@ void draw(){
   
   // Top right stats
   fill(0, 255, 0);
-  if (thread.get_irDistance() >= 450)
-    distance = 1 * 12;
-  else if (thread.get_irDistance() >= 250)
-    distance = 2 * 12;
-  else if (thread.get_irDistance() >= 140)
-    distance = 3 * 12;
-  else if (thread.get_irDistance() >= 70)
-    distance = 4 * 12;
-  else
-    distance = 5 * 12;
-  text("Front: " + distance + " inches", width-100, 20);
+  text("Front: " + (23.897 * pow((thread.get_irDistance() * .0049),-1.1907)) + " inches", width-100, 20);  // from http://www.arduino.cc/cgi-bin/yabb2/YaBB.pl?num=1230387822/6#6
   text("Back: " + (thread.get_sonarDistance() / 74 / 2) + " inches", width-100, 40);
   
   TargetBlob tb = thread.getTargetBlob();
@@ -308,7 +298,7 @@ class Crosshair extends Controller {
 
   Crosshair (ControlP5 theControlP5, String theName, int theX, int theY, int theWidth, int theHeight) {
     // the super class Controller needs to be initialized with the below parameters
-    super(theControlP5,  (Tab)(theControlP5.getTab("default")), theName, theX, theY, theWidth, theWidth);
+    super(theControlP5, (Tab)(theControlP5.getTab("default")), theName, theX, theY, theWidth, theHeight);
   }
 
   // overwrite the updateInternalEvents method to handle mouse and key inputs.
@@ -317,7 +307,6 @@ class Crosshair extends Controller {
       if(isMousePressed) {
         ts.rightCrossHairX = (int)position.x();
         ts.rightCrossHairY = (int)position.y();
-        println(ts.rightCrossHairX + ", " + ts.rightCrossHairY);
         myClient.sendTCP(ts);
       }
     }
@@ -341,7 +330,11 @@ class Crosshair extends Controller {
 
  
   public void setValue(float theValue) {
-        
+    // broadcast triggers a ControlEvent, updates are made to the sketch, 
+    // controlEvent(ControlEvent) is called.
+    // the parameter (FLOAT or STRING) indicates the type of 
+    // value and the type of methods to call in the main sketch.
+    broadcast(FLOAT);
   }
 
   // needs to be implemented since it is an abstract method in controlP5.Controller
@@ -363,21 +356,10 @@ class ControlPad extends Controller {
 
   ControlPad(ControlP5 theControlP5, String theName, int theX, int theY, int theWidth, int theHeight) {
     // the super class Controller needs to be initialized with the below parameters
-    super(theControlP5,  (Tab)(theControlP5.getTab("default")), theName, theX, theY, theWidth, theHeight);
+    super(theControlP5, (Tab)(theControlP5.getTab("default")), theName, theX, theY, theWidth, theHeight);
     // the Controller class provides a field to store values in an 
     // float array format. for this controller, 2 floats are required.
     _myArrayValue = new float[2];
-  }
-
-  // overwrite the updateInternalEvents method to handle mouse and key inputs.
-  public void updateInternalEvents(PApplet theApplet) {
-    if(getIsInside()) {
-      if(isMousePressed && !controlP5.keyHandler.isAltDown) {
-        cX = constrain(mouseX-position.x(),0,width-cWidth);
-        cY = constrain(mouseY-position.y(),0,height-cHeight);
-        setValue(0);
-      }
-    }
   }
 
   // overwrite the draw method for the controller's visual representation.
@@ -403,11 +385,6 @@ class ControlPad extends Controller {
   } 
 
   public void setValue(float theValue) {
-    // broadcast triggers a ControlEvent, updates are made to the sketch, 
-    // controlEvent(ControlEvent) is called.
-    // the parameter (FLOAT or STRING) indicates the type of 
-    // value and the type of methods to call in the main sketch.
-    broadcast(FLOAT);
   }
 
   public void setX(float x) {
