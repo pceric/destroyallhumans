@@ -169,6 +169,20 @@ public class DataThread extends Thread {
     return tb;
   }
   
+  public boolean isLampOn() {
+    if (_rs != null)
+      return _rs.lampOn;
+    else
+      return false;
+  }    
+
+  public boolean isLaserOn() {
+    if (_rs != null)
+      return _rs.laserOn;
+    else
+      return false;
+  }    
+
   public String get_message() {
     if (_rs != null)
       return _rs.message;
