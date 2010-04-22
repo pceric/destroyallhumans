@@ -156,15 +156,15 @@ void sendStatus() {
   Serial.print(" ");
   Serial.print(analogRead(irPin));
   Serial.print(" ");
-  Serial.print(LampOn);
+  Serial.print(LampOn ? "1" : "0");
   Serial.print(" ");
-  Serial.print(LaserOn);
+  Serial.print(LaserOn ? "1" : "0");
   Serial.print(" ");
-  Serial.print(RgunOn);
+  Serial.print(RgunOn ? "1" : "0");
   Serial.print(" ");
-  Serial.print(LgunOn);
+  Serial.print(LgunOn ? "1" : "0");
   Serial.print(" ");
-  Serial.print(moving);
+  Serial.print(moving ? "1" : "0");
   Serial.print("\n");
 }
 
