@@ -220,7 +220,7 @@ void handleJoystick() {
   // Movement
   if ((joystick1.LeftY > DEAD_ZONE || joystick1.LeftY < -DEAD_ZONE) && !moving){
     offset += (joystick1.LeftX / 10);  // Try and gently turn direction
-    leanBoost  = (joystick1.LeftX / 32);
+    leanBoost  = (joystick1.LeftX / 64);
     if (joystick1.LeftY > 0) {
       StrideLengthLeft = -(joystick1.LeftY / 3); // -STRIDE;
       StrideLengthRight = -(joystick1.LeftY / 3); // -STRIDE;
@@ -337,8 +337,7 @@ void handleJoystick() {
       turretElevation = constrain(turretElevation + (joystick1.RightY / 10), -166, 166);
     if(!moving)
     {
-      movement(0, 0, 0, 0, 0, 0, 50);
-      while(moveNow()) delay(1);
+      movement(0, 0, 0, 0, 0, MoveSpeed));
     }
   }
   // Adjustments
