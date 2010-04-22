@@ -58,6 +58,8 @@ boolean firstStep = true, leftStep = true, turretAbsolute = false, LaserOn = fal
 int MoveSpeed = 150, StrideOffset = 0, turretElevation = 0, Damage = 0;
 unsigned short stepNo = 0;
 
+long lastPing = 0;
+
 Controller prev_joystick1;
 Controller joystick1;
 
@@ -89,6 +91,8 @@ void loop() {
     //sleep_disable();
   }
   moving = moveNow();
+  if(!moving) lastPing = doPing();
+
 }
 
 char currentCommand = ' ';
@@ -148,7 +152,7 @@ void sendStatus() {
   Serial.print(" ");
   Serial.print(turretElevation);
   Serial.print(" ");
-  Serial.print(0);
+  Serial.print(lastPing);
   Serial.print(" ");
   Serial.print(analogRead(irPin));
   Serial.print(" ");
@@ -238,17 +242,17 @@ void handleJoystick() {
     }
     //if (leftStep) {
     if (stepNo % 5 == 1) {
-      movement(LEAN, StrideLengthRight, StrideLengthRight, -LEAN, -StrideLengthLeft, -StrideLengthLeft, MoveSpeed);  // Step left
+      movement(int(LEAN), int(StrideLengthRight), int(StrideLengthRight), int(-LEAN), int(-StrideLengthLeft), int(-StrideLengthLeft), int(MoveSpeed));  // Step left
     }
     if (stepNo % 5 == 2) {
-      movement(-LEAN, StrideLengthRight, StrideLengthRight, LEAN, -StrideLengthLeft, -StrideLengthLeft, MoveSpeed);  // Lean left
+      movement(int(-LEAN), int(StrideLengthRight), int(StrideLengthRight), int(LEAN), int(-StrideLengthLeft), int(-StrideLengthLeft), int(MoveSpeed));  // Lean left
       //leftStep = false;
     } 
     if (stepNo % 5 == 3) {
-      movement(-LEAN, -StrideLengthRight, -StrideLengthRight, LEAN, StrideLengthLeft, StrideLengthLeft, MoveSpeed);  // Step right
+      movement(int(-LEAN), int(-StrideLengthRight), int(-StrideLengthRight), int(LEAN), int(StrideLengthLeft), int(StrideLengthLeft), int(MoveSpeed));  // Step right
     }
     if (stepNo % 5 == 4) {
-      movement(LEAN, -StrideLengthRight, -StrideLengthRight, -LEAN, StrideLengthLeft, StrideLengthLeft, MoveSpeed);  // Lean right
+      movement(int(LEAN), int(-StrideLengthRight), int(-StrideLengthRight), int(-LEAN), int(StrideLengthLeft), int(StrideLengthLeft), int(MoveSpeed));  // Lean right
       //leftStep = true;
     }
     stepNo++;
@@ -363,12 +367,13 @@ int ladist ;
 int lkdist ;
 int lhdist ;
 
-float speed;
+int speed;
 
 unsigned long startMoveTime;
 unsigned long endMoveTime;
+unsigned long lastMoveTime;;
 // Walk subroutine (positions in degrees from center; speed in ms)
-void movement(float ra, float rk, float rh, float la, float lk, float lh, float s) {
+void movement(int ra, int rk, int rh, int la, int lk, int lh, int s) {
   // Get start position
   rastart = servos.getposition(rightankle);
   rkstart = servos.getposition(rightknee);
@@ -385,28 +390,19 @@ void movement(float ra, float rk, float rh, float la, float lk, float lh, float 
   lhdist = (int(-lh * STEPS_PER_DEGREE) + 1500 + OFFSET[2] - turretElevation) - lhstart;
   startMoveTime = millis();
   speed = s;
-  endMoveTime = startMoveTime + s;
-  char msg[64];
-  sprintf(msg, "Start: %d \t Stop: %d.", startMoveTime, endMoveTime);
-  LOG(msg);
+  endMoveTime = startMoveTime + speed;
+  //char msg[64];
+  //sprintf(msg, "Start: %d \t Stop: %d.", startMoveTime, endMoveTime);
+  //LOG(msg);
 
-  /* 
-   for (int i = 1; i <= int(speed); i++) {
-   servos.setposition(rightankle, rastart + int(radist * (i / speed)));
-   servos.setposition(rightknee, rkstart + int(rkdist * (i / speed)));
-   servos.setposition(righthip, rhstart + int(rhdist * (i / speed)));
-   servos.setposition(leftankle, lastart + int(ladist * (i / speed)));
-   servos.setposition(leftknee, lkstart + int(lkdist * (i / speed)));
-   servos.setposition(lefthip, lhstart + int(lhdist * (i / speed)));
-   delay(1);
-   }
-   */
 }
+
 bool moveNow()
 {
   unsigned long i = millis(); 
-  if(i < endMoveTime)
+  if(i < endMoveTime && i > lastMoveTime)
   {
+    lastMoveTime = i;
     i = i - startMoveTime;
     servos.setposition(rightankle, rastart + int(radist * (i / speed)));
     servos.setposition(rightknee, rkstart + int(rkdist * (i / speed)));
