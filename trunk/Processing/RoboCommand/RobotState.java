@@ -3,7 +3,7 @@
  * 
  */
 public class RobotState
-{
+{  
     public boolean blueToothConnected = false;
     
     public float azimuth = 0,  pitch = 0, roll = 0;
@@ -17,8 +17,6 @@ public class RobotState
     public int phoneBatteryTemp =  0;
     
     public float camFrameRate = 0;
-    
-    public float processFrameRate = 0;
     
     public int wifiStrength = 0;
     
@@ -45,6 +43,14 @@ public class RobotState
     public int strideOffset = 0;
     
     public boolean moving = false;
+    
+    public boolean lGunOn = false;
+    
+    public boolean rGunOn = false;
+    
+    public boolean lampOn = false;
+    
+    public boolean laserOn = false;
     
     public String message = "";
     
