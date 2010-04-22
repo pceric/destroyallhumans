@@ -400,16 +400,19 @@ void movement(int ra, int rk, int rh, int la, int lk, int lh, int s) {
 bool moveNow()
 {
   unsigned long i = millis(); 
+  unsigned long ratio; 
+  
   if(i < endMoveTime && i > lastMoveTime)
   {
     lastMoveTime = i;
     i = i - startMoveTime;
-    servos.setposition(rightankle, rastart + int(radist * (i / speed)));
-    servos.setposition(rightknee, rkstart + int(rkdist * (i / speed)));
-    servos.setposition(righthip, rhstart + int(rhdist * (i / speed)));
-    servos.setposition(leftankle, lastart + int(ladist * (i / speed)));
-    servos.setposition(leftknee, lkstart + int(lkdist * (i / speed)));
-    servos.setposition(lefthip, lhstart + int(lhdist * (i / speed)));
+    ratio = (i*256)/(speed);
+    servos.setposition(rightankle, rastart + (radist * ratio)/256);
+    servos.setposition(rightknee, rkstart + (rkdist * ratio)/256);
+    servos.setposition(righthip, rhstart + (rhdist * ratio)/256);
+    servos.setposition(leftankle, lastart + (ladist * ratio)/256 );
+    servos.setposition(leftknee, lkstart + (lkdist * ratio)/256);
+    servos.setposition(lefthip, lhstart + (lhdist * ratio)/256);
     return true;
   }
   return false;
