@@ -84,7 +84,7 @@ void loop() {
   } 
   else {
     //  firstStep = true;
-    // movement(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, MoveSpeed);
+    // movement(0, 0, 0, 0, 0, 0, MoveSpeed);
     //set_sleep_mode(SLEEP_MODE_IDLE);  // Allows serial port to wake up chip
     //sleep_enable();
     //sleep_mode();  // Sleep here until interrupt
@@ -237,7 +237,7 @@ void handleJoystick() {
     }
     // Normal walk - too much top weight to work correctly
     if (stepNo % 5 == 0) {
-      movement(0.0, 0.0, 0.0, -LEAN, 0.0, 0.0, MoveSpeed);  // Lean right
+      movement(0, 0, 0, -LEAN, 0, 0, MoveSpeed);  // Lean right
       //firstStep = false;
     }
     //if (leftStep) {
@@ -279,51 +279,51 @@ void handleJoystick() {
     toggleLamp();
   // Left turn
   if (!joystick1.S && prev_joystick1.S) {
-    movement(20.0,  0.0,  0.0,-14.0,  0.0,  0.0, MoveSpeed);
+    movement(20,  0,  0,-14,  0,  0, MoveSpeed);
     while(moveNow()==true) delay(1);
-    movement(20.0,-35.0,-35.0,-14.0, 35.0, 35.0, MoveSpeed);
+    movement(20,-35,-35,-14, 35, 35, MoveSpeed);
     while(moveNow()==true) delay(1);
-    movement(0.0,-35.0,-35.0,  0.0, 35.0, 35.0, MoveSpeed);
+    movement(0,-35,-35,  0, 35, 35, MoveSpeed);
     while(moveNow()==true) delay(1);
-    movement(0.0, 35.0, 35.0,  0.0,-35.0,-35.0, MoveSpeed);
+    movement(0, 35, 35,  0,-35,-35, MoveSpeed);
     while(moveNow()==true) delay(1);
-    movement(20.0, 35.0, 35.0,-14.0,-35.0,-35.0, MoveSpeed);
+    movement(20, 35, 35,-14,-35,-35, MoveSpeed);
     while(moveNow()==true) delay(1);
-    movement(20.0,  0.0,  0.0,-14.0,-35.0,-35.0, MoveSpeed);
+    movement(20,  0,  0,-14,-35,-35, MoveSpeed);
     while(moveNow()==true) delay(1);
-    movement(-18.0,  0.0,  0.0, 16.0,-35.0,-35.0, MoveSpeed);
+    movement(-18,  0,  0, 16,-35,-35, MoveSpeed);
     while(moveNow()==true) delay(1);
-    movement(-18.0,  0.0,  0.0, 16.0,  0.0,  0.0, MoveSpeed);
+    movement(-18,  0,  0, 16,  0,  0, MoveSpeed);
     while(moveNow()==true) delay(1);
-    movement(0.0,  0.0,  0.0,  0.0,  0.0,  0.0, MoveSpeed);
+    movement(0,  0,  0,  0,  0,  0, MoveSpeed);
     while(moveNow()==true) delay(1);
   }
   // Right turn
   if (!joystick1.C && prev_joystick1.C) {
-    movement(-14.0,  0.0,  0.0, 20.0,  0.0,  0.0, MoveSpeed);
+    movement(-14,  0,  0, 20,  0,  0, MoveSpeed);
     while(moveNow()==true) delay(1);
-    movement(-14.0, 35.0, 35.0, 20.0,-35.0,-35.0, MoveSpeed); 
+    movement(-14, 35, 35, 20,-35,-35, MoveSpeed); 
     while(moveNow()==true) delay(1);
-    movement(0.0, 35.0, 35.0,  0.0,-35.0,-35.0, MoveSpeed);
+    movement(0, 35, 35,  0,-35,-35, MoveSpeed);
     while(moveNow()==true) delay(1);
-    movement(0.0,-35.0,-35.0,  0.0, 35.0, 35.0, MoveSpeed);
+    movement(0,-35,-35,  0, 35, 35, MoveSpeed);
     while(moveNow()==true) delay(1);
-    movement(-14.0,-35.0,-35.0, 20.0, 35.0, 35.0, MoveSpeed);
+    movement(-14,-35,-35, 20, 35, 35, MoveSpeed);
     while(moveNow()==true) delay(1);
-    movement(-14.0,-35.0,-35.0, 20.0,  0.0,  0.0, MoveSpeed);
+    movement(-14,-35,-35, 20,  0,  0, MoveSpeed);
     while(moveNow()==true) delay(1);
-    movement(16.0,-35.0,-35.0,-18.0,  0.0,  0.0, MoveSpeed);
+    movement(16,-35,-35,-18,  0,  0, MoveSpeed);
     while(moveNow()==true) delay(1);
-    movement(16.0,  0.0,  0.0,-18.0,  0.0,  0.0, MoveSpeed);
+    movement(16,  0,  0,-18,  0,  0, MoveSpeed);
     while(moveNow()==true) delay(1);
-    movement(0.0,  0.0,  0.0,  0.0,  0.0,  0.0, MoveSpeed);
+    movement(0,  0,  0,  0,  0,  0, MoveSpeed);
     while(moveNow()==true) delay(1);
   }
   // Reset position
   if (joystick1.X) {
     turretElevation = 0;
     servos.setposition(turret, 1500);
-    movement(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, MoveSpeed);
+    movement(0, 0, 0, 0, 0, 0, MoveSpeed);
     while(moveNow()) delay(1);
     stepNo=0;
   }
