@@ -337,7 +337,7 @@ void handleJoystick() {
       turretElevation = constrain(turretElevation + (joystick1.RightY / 10), -166, 166);
     if(!moving)
     {
-      movement(0, 0, 0, 0, 0, MoveSpeed));
+      movement(0, 0, 0, 0, 0, 0, MoveSpeed);
     }
   }
   // Adjustments
