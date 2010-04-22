@@ -216,9 +216,11 @@ boolean readJoystick() {
 void handleJoystick() {
   float StrideLengthLeft, StrideLengthRight;
   int offset = StrideOffset;
+  int leanBoost;
   // Movement
   if ((joystick1.LeftY > DEAD_ZONE || joystick1.LeftY < -DEAD_ZONE) && !moving){
     offset += (joystick1.LeftX / 10);  // Try and gently turn direction
+    leanBoost  = (joystick1.LeftX / 32);
     if (joystick1.LeftY > 0) {
       StrideLengthLeft = -(joystick1.LeftY / 3); // -STRIDE;
       StrideLengthRight = -(joystick1.LeftY / 3); // -STRIDE;
@@ -240,16 +242,16 @@ void handleJoystick() {
       //movement(0, 0, 0, -LEAN, 0, 0, MoveSpeed);  // Lean right
     //}
     if (stepNo % 4 == 0) {
-      movement(int(LEAN), int(StrideLengthRight), int(StrideLengthRight), -1*int(LEAN), -1*int(StrideLengthLeft), -1*int(StrideLengthLeft), int(MoveSpeed));  // Step left
+      movement(int(LEAN)+leanBoost, int(StrideLengthRight), int(StrideLengthRight), -1*int(LEAN)-leanBoost, -1*int(StrideLengthLeft), -1*int(StrideLengthLeft), int(MoveSpeed));  // Step left
     }
     if (stepNo % 4 == 1) {
-      movement(-1*int(LEAN), int(StrideLengthRight), int(StrideLengthRight), int(LEAN), -1*int(StrideLengthLeft), -1*int(StrideLengthLeft), int(MoveSpeed));  // Lean left
+      movement(-1*int(LEAN)-leanBoost, int(StrideLengthRight), int(StrideLengthRight), int(LEAN)+leanBoost, -1*int(StrideLengthLeft), -1*int(StrideLengthLeft), int(MoveSpeed));  // Lean left
     } 
     if (stepNo % 4 == 2) {
-      movement(-1*int(LEAN), -1*int(StrideLengthRight), -1*int(StrideLengthRight), int(LEAN), int(StrideLengthLeft), int(StrideLengthLeft), int(MoveSpeed));  // Step right
+      movement(-1*int(LEAN)-leanBoost, -1*int(StrideLengthRight), -1*int(StrideLengthRight), int(LEAN)+leanBoost, int(StrideLengthLeft), int(StrideLengthLeft), int(MoveSpeed));  // Step right
     }
     if (stepNo % 4 == 3) {
-      movement(int(LEAN), -1*int(StrideLengthRight), -1*int(StrideLengthRight), -1*int(LEAN), int(StrideLengthLeft), int(StrideLengthLeft), int(MoveSpeed));  // Lean right
+      movement(int(LEAN)+leanBoost, -1*int(StrideLengthRight), -1*int(StrideLengthRight), -1*int(LEAN)-leanBoost, int(StrideLengthLeft), int(StrideLengthLeft), int(MoveSpeed));  // Lean right
     }
     stepNo++;
   }
