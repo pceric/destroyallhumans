@@ -275,15 +275,15 @@ void handleJoystick() {
     toggleLamp();
   // Left turn
   if (!joystick1.S && prev_joystick1.S) {
-    movement(20,  0,  0,-14,  0,  0, turnSpeed);
+    movement(20,  0,  0,-14,  0,  0, turnSpeed + 50);
     while(moveNow()==true) delay(1);
-    movement(20,-35,-35,-14, 35, 35, turnSpeed);
+    movement(20,-35,-35,-14, 35, 35, turnSpeed + 50);
     while(moveNow()==true) delay(1);
-    movement(0,-35,-35,  0, 35, 35, turnSpeed);
+    movement(0,-35,-35,  0, 35, 35, turnSpeed + 50);
     while(moveNow()==true) delay(1);
-    movement(0, 35, 35,  0,-35,-35, turnSpeed);
+    movement(0, 35, 35,  0,-35,-35, turnSpeed + 50);
     while(moveNow()==true) delay(1);
-    movement(20, 35, 35,-14,-35,-35, turnSpeed);
+    movement(20, 35, 35,-14,-35,-35, turnSpeed + 50);
     while(moveNow()==true) delay(1);
     movement(20,  0,  0,-14,-35,-35, turnSpeed);
     while(moveNow()==true) delay(1);
@@ -296,15 +296,15 @@ void handleJoystick() {
   }
   // Right turn
   if (!joystick1.C && prev_joystick1.C) {
-    movement(-14,  0,  0, 20,  0,  0, turnSpeed);
+    movement(-14,  0,  0, 20,  0,  0, turnSpeed + 50);
     while(moveNow()==true) delay(1);
-    movement(-14, 35, 35, 20,-35,-35, turnSpeed); 
+    movement(-14, 35, 35, 20,-35,-35, turnSpeed + 50); 
     while(moveNow()==true) delay(1);
-    movement(0, 35, 35,  0,-35,-35,  turnSpeed);
+    movement(0, 35, 35,  0,-35,-35,  turnSpeed + 50);
     while(moveNow()==true) delay(1);
-    movement(0,-35,-35,  0, 35, 35,  turnSpeed);
+    movement(0,-35,-35,  0, 35, 35,  turnSpeed + 50);
     while(moveNow()==true) delay(1);
-    movement(-14,-35,-35, 20, 35, 35, turnSpeed);
+    movement(-14,-35,-35, 20, 35, 35, turnSpeed + 50);
     while(moveNow()==true) delay(1);
     movement(-14,-35,-35, 20,  0,  0, turnSpeed);
     while(moveNow()==true) delay(1);
@@ -335,7 +335,8 @@ void handleJoystick() {
       turretElevation = constrain(turretElevation + (joystick1.RightY / 10), -166, 166);
     if(!moving)
     {
-      movement(0, 0, 0, 0, 0, 0, MoveSpeed);
+      movement(0, 0, 0, 0, 0, 0, 50);
+      while(moveNow()) delay(1);
     }
   }
   // Adjustments
