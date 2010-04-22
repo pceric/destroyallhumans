@@ -48,14 +48,14 @@ const int pingPin = 3;
 const int irPin = 3; // Analog
 // Misc constants
 const float STRIDE = 35;
-const float LEAN = 15;
+const float LEAN = 16;
 const int OFFSET[] = {
   getOffset(ssmap[0]), getOffset(ssmap[1]), getOffset(ssmap[2]), getOffset(ssmap[3]), getOffset(ssmap[4]), getOffset(ssmap[5]), 0};
 
 // Some global vars
 ServoShield servos;
-boolean firstStep = true, leftStep = true, turretAbsolute = false, LaserOn = false, LampOn = false, RgunOn = false, LgunOn = false , moving = false;
-int MoveSpeed = 150, StrideOffset = 0, turretElevation = 0, Damage = 0;
+boolean  turretAbsolute = false, LaserOn = false, LampOn = false, RgunOn = false, LgunOn = false , moving = false;
+int MoveSpeed = 150, StrideOffset = 0, turretElevation = 0, Damage = 0, turnSpeed = 150;
 unsigned short stepNo = 0;
 
 long lastPing = 0;
@@ -238,22 +238,18 @@ void handleJoystick() {
     // Normal walk - too much top weight to work correctly
     //if (stepNo % 5 == 0) {
       //movement(0, 0, 0, -LEAN, 0, 0, MoveSpeed);  // Lean right
-      //firstStep = false;
     //}
-    //if (leftStep) {
     if (stepNo % 4 == 0) {
       movement(int(LEAN), int(StrideLengthRight), int(StrideLengthRight), -1*int(LEAN), -1*int(StrideLengthLeft), -1*int(StrideLengthLeft), int(MoveSpeed));  // Step left
     }
     if (stepNo % 4 == 1) {
       movement(-1*int(LEAN), int(StrideLengthRight), int(StrideLengthRight), int(LEAN), -1*int(StrideLengthLeft), -1*int(StrideLengthLeft), int(MoveSpeed));  // Lean left
-      //leftStep = false;
     } 
     if (stepNo % 4 == 2) {
       movement(-1*int(LEAN), -1*int(StrideLengthRight), -1*int(StrideLengthRight), int(LEAN), int(StrideLengthLeft), int(StrideLengthLeft), int(MoveSpeed));  // Step right
     }
     if (stepNo % 4 == 3) {
       movement(int(LEAN), -1*int(StrideLengthRight), -1*int(StrideLengthRight), -1*int(LEAN), int(StrideLengthLeft), int(StrideLengthLeft), int(MoveSpeed));  // Lean right
-      //leftStep = true;
     }
     stepNo++;
   }
@@ -279,44 +275,44 @@ void handleJoystick() {
     toggleLamp();
   // Left turn
   if (!joystick1.S && prev_joystick1.S) {
-    movement(20,  0,  0,-14,  0,  0, MoveSpeed);
+    movement(20,  0,  0,-14,  0,  0, turnSpeed);
     while(moveNow()==true) delay(1);
-    movement(20,-35,-35,-14, 35, 35, MoveSpeed);
+    movement(20,-35,-35,-14, 35, 35, turnSpeed);
     while(moveNow()==true) delay(1);
-    movement(0,-35,-35,  0, 35, 35, MoveSpeed);
+    movement(0,-35,-35,  0, 35, 35, turnSpeed);
     while(moveNow()==true) delay(1);
-    movement(0, 35, 35,  0,-35,-35, MoveSpeed);
+    movement(0, 35, 35,  0,-35,-35, turnSpeed);
     while(moveNow()==true) delay(1);
-    movement(20, 35, 35,-14,-35,-35, MoveSpeed);
+    movement(20, 35, 35,-14,-35,-35, turnSpeed);
     while(moveNow()==true) delay(1);
-    movement(20,  0,  0,-14,-35,-35, MoveSpeed);
+    movement(20,  0,  0,-14,-35,-35, turnSpeed);
     while(moveNow()==true) delay(1);
-    movement(-18,  0,  0, 16,-35,-35, MoveSpeed);
+    movement(-18,  0,  0, 16,-35,-35, turnSpeed);
     while(moveNow()==true) delay(1);
-    movement(-18,  0,  0, 16,  0,  0, MoveSpeed);
+    movement(-18,  0,  0, 16,  0,  0, turnSpeed);
     while(moveNow()==true) delay(1);
-    movement(0,  0,  0,  0,  0,  0, MoveSpeed);
+    movement(0,  0,  0,  0,  0,  0, turnSpeed);
     while(moveNow()==true) delay(1);
   }
   // Right turn
   if (!joystick1.C && prev_joystick1.C) {
-    movement(-14,  0,  0, 20,  0,  0, MoveSpeed);
+    movement(-14,  0,  0, 20,  0,  0, turnSpeed);
     while(moveNow()==true) delay(1);
-    movement(-14, 35, 35, 20,-35,-35, MoveSpeed); 
+    movement(-14, 35, 35, 20,-35,-35, turnSpeed); 
     while(moveNow()==true) delay(1);
-    movement(0, 35, 35,  0,-35,-35, MoveSpeed);
+    movement(0, 35, 35,  0,-35,-35,  turnSpeed);
     while(moveNow()==true) delay(1);
-    movement(0,-35,-35,  0, 35, 35, MoveSpeed);
+    movement(0,-35,-35,  0, 35, 35,  turnSpeed);
     while(moveNow()==true) delay(1);
-    movement(-14,-35,-35, 20, 35, 35, MoveSpeed);
+    movement(-14,-35,-35, 20, 35, 35, turnSpeed);
     while(moveNow()==true) delay(1);
-    movement(-14,-35,-35, 20,  0,  0, MoveSpeed);
+    movement(-14,-35,-35, 20,  0,  0, turnSpeed);
     while(moveNow()==true) delay(1);
-    movement(16,-35,-35,-18,  0,  0, MoveSpeed);
+    movement(16,-35,-35,-18,  0,  0, turnSpeed);
     while(moveNow()==true) delay(1);
-    movement(16,  0,  0,-18,  0,  0, MoveSpeed);
+    movement(16,  0,  0,-18,  0,  0, turnSpeed);
     while(moveNow()==true) delay(1);
-    movement(0,  0,  0,  0,  0,  0, MoveSpeed);
+    movement(0,  0,  0,  0,  0,  0, turnSpeed);
     while(moveNow()==true) delay(1);
   }
   // Reset position
@@ -337,6 +333,10 @@ void handleJoystick() {
       servos.setposition(turret, constrain(servos.getposition(turret) + (joystick1.RightX / 10), 1167, 1833));
     if (joystick1.RightY != 0)
       turretElevation = constrain(turretElevation + (joystick1.RightY / 10), -166, 166);
+    if(!moving)
+    {
+      movement(0, 0, 0, 0, 0, 0, MoveSpeed);
+    }
   }
   // Adjustments
   if (joystick1.Up || joystick1.Down) {
