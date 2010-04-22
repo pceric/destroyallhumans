@@ -343,9 +343,21 @@ class Crosshair extends Controller {
     // draw the background of the controller.
     // draw the controller-handle
     
-    fill(0,255,0);
-    rect(0,-14,cWidth,30);
-    rect(-14,0,30,cHeight);
+    // My eyes!  The goggles do nothing!
+    if (_myName.equals("R")) {
+      if (thread.isRGunOn())
+        theApplet.fill(255, 0, 0);
+      else
+        theApplet.fill(0, 255, 0);
+    } else { 
+      if (thread.isLGunOn())
+        theApplet.fill(255, 0, 0);
+      else
+        theApplet.fill(0, 255, 0);
+    }
+
+    theApplet.rect(0,-14,cWidth,30);
+    theApplet.rect(-14,0,30,cHeight);
 
     theApplet.popMatrix();
   } 

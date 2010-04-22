@@ -169,6 +169,20 @@ public class DataThread extends Thread {
     return tb;
   }
   
+  public boolean isLGunOn() {
+    if (_rs != null)
+      return _rs.lGunOn;
+    else
+      return false;
+  }    
+
+  public boolean isRGunOn() {
+    if (_rs != null)
+      return _rs.rGunOn;
+    else
+      return false;
+  }    
+
   public boolean isLampOn() {
     if (_rs != null)
       return _rs.lampOn;
