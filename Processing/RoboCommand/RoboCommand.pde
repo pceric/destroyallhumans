@@ -54,6 +54,7 @@ ControlP5 controlP5;
 Textlabel speedLabel, offsetLabel;
 Crosshair crosshairL, crosshairR;
 ControlPad turret;
+CheckBox checkbox;
 
 // Communication thread
 DataThread thread;
@@ -90,6 +91,11 @@ void setup(){
   crosshairL = new Crosshair(controlP5,"L",ts.leftCrossHairX,ts.leftCrossHairY,30,30);
   crosshairR = new Crosshair(controlP5,"R",ts.rightCrossHairX,ts.rightCrossHairY,30,30);
   turret = new ControlPad(controlP5,"Turret",1,430,100,50);
+  checkbox = controlP5.addCheckBox("LightGroup",width-115,height-140);
+  checkbox.setItemsPerRow(0);
+  checkbox.setSpacingColumn(50);
+  checkbox.addItem("Laser",0);
+  checkbox.addItem("Lamp",1);
   controlP5.addSlider("cb",0,255,ts.targetChromaBlue,100,height-125,100,20).setLabel("Blue");
   controlP5.addSlider("cr",0,255,ts.targetChromaRed,225,height-125,100,20).setLabel("Red");
   controlP5.addSlider("tolerance",0,32,ts.tolerance,350,height-125,100,20).setLabel("Tolerance");
@@ -126,7 +132,7 @@ void setup(){
     myClient.connect(15000, PHONE_IP, CONTROL_PORT, CONTROL_PORT + 1);
   } catch (IOException e) {
     println(e + ".  Bye Bye.");
-    System.exit(0);
+    exit();
   }
 
   vidServer = new UDP(this, VIDEO_PORT);
@@ -143,6 +149,7 @@ void draw(){
 
   background(0);
   
+  // Draw video image
   if(android != null)
   {
     float ratio = (float)width/(float)android.width;
@@ -167,8 +174,8 @@ void draw(){
   text("Front: " + (int)(23.897 * pow((thread.get_irDistance() * .0049),-1.1907)) + " inches", width-100, 20);  // from http://www.arduino.cc/cgi-bin/yabb2/YaBB.pl?num=1230387822/6#6
   text("Back: " + (thread.get_sonarDistance() / 74 / 2) + " inches", width-100, 40);
   
+  // Draw targeting blob
   TargetBlob tb = thread.getTargetBlob();
-  
   if(tb != null)
   {
      float ratio = (float)width/(float)android.width;
@@ -197,6 +204,14 @@ void draw(){
   speedLabel.draw(this);
   offsetLabel.setValue("Offset: " + Integer.toString(thread.get_strideOffset()));
   offsetLabel.draw(this);
+  if (thread.isLaserOn())
+    checkbox.activate(0);
+  else
+    checkbox.deactivate(0);
+  if (thread.isLampOn())
+    checkbox.activate(1);
+  else
+    checkbox.deactivate(1);
   controlP5.controller("lifeBar").setValue(MAX_LIFE - thread.get_damage());
   if ((controlP5.controller("lifeBar").value() / controlP5.controller("lifeBar").max()) <= 0.25)
     controlP5.controller("lifeBar").setColorForeground(color(255,0,0));
