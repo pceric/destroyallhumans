@@ -236,23 +236,23 @@ void handleJoystick() {
         StrideLengthRight -= offset;
     }
     // Normal walk - too much top weight to work correctly
-    if (stepNo % 5 == 0) {
-      movement(0, 0, 0, -LEAN, 0, 0, MoveSpeed);  // Lean right
+    //if (stepNo % 5 == 0) {
+      //movement(0, 0, 0, -LEAN, 0, 0, MoveSpeed);  // Lean right
       //firstStep = false;
-    }
+    //}
     //if (leftStep) {
-    if (stepNo % 5 == 1) {
-      movement(int(LEAN), int(StrideLengthRight), int(StrideLengthRight), int(-LEAN), int(-StrideLengthLeft), int(-StrideLengthLeft), int(MoveSpeed));  // Step left
+    if (stepNo % 4 == 0) {
+      movement(int(LEAN), int(StrideLengthRight), int(StrideLengthRight), -1*int(LEAN), -1*int(StrideLengthLeft), -1*int(StrideLengthLeft), int(MoveSpeed));  // Step left
     }
-    if (stepNo % 5 == 2) {
-      movement(int(-LEAN), int(StrideLengthRight), int(StrideLengthRight), int(LEAN), int(-StrideLengthLeft), int(-StrideLengthLeft), int(MoveSpeed));  // Lean left
+    if (stepNo % 4 == 1) {
+      movement(-1*int(LEAN), int(StrideLengthRight), int(StrideLengthRight), int(LEAN), -1*int(StrideLengthLeft), -1*int(StrideLengthLeft), int(MoveSpeed));  // Lean left
       //leftStep = false;
     } 
-    if (stepNo % 5 == 3) {
-      movement(int(-LEAN), int(-StrideLengthRight), int(-StrideLengthRight), int(LEAN), int(StrideLengthLeft), int(StrideLengthLeft), int(MoveSpeed));  // Step right
+    if (stepNo % 4 == 2) {
+      movement(-1*int(LEAN), -1*int(StrideLengthRight), -1*int(StrideLengthRight), int(LEAN), int(StrideLengthLeft), int(StrideLengthLeft), int(MoveSpeed));  // Step right
     }
-    if (stepNo % 5 == 4) {
-      movement(int(LEAN), int(-StrideLengthRight), int(-StrideLengthRight), int(-LEAN), int(StrideLengthLeft), int(StrideLengthLeft), int(MoveSpeed));  // Lean right
+    if (stepNo % 4 == 3) {
+      movement(int(LEAN), -1*int(StrideLengthRight), -1*int(StrideLengthRight), -1*int(LEAN), int(StrideLengthLeft), int(StrideLengthLeft), int(MoveSpeed));  // Lean right
       //leftStep = true;
     }
     stepNo++;
