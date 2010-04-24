@@ -333,11 +333,16 @@ void handleJoystick() {
   else {
     if (joystick1.RightX != 0)
       servos.setposition(turret, constrain(servos.getposition(turret) + (joystick1.RightX / 10), 1167, 1833));
+    int oldTurret = turretElevation;
     if (joystick1.RightY != 0)
+    
       turretElevation = constrain(turretElevation + (joystick1.RightY / 10), -166, 166);
     if(!moving)
-    {
-      movement(0, 0, 0, 0, 0, 0, MoveSpeed);
+    {    
+      int r = servos.getposition(righthip) + (turretElevation - oldTurret);
+      int l = servos.getposition(lefthip) - (turretElevation - oldTurret);   
+      servos.setposition(righthip, r);
+      servos.setposition(lefthip, l);
     }
   }
   // Adjustments
