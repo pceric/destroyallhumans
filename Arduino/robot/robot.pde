@@ -1,5 +1,5 @@
 /*
-    Robot control code using Arduino and ServoShield.
+ Robot control code using Arduino and ServoShield.
  Copyright (C) 2010 Eric Hokanson
  
  This program is free software: you can redistribute it and/or modify
@@ -55,7 +55,7 @@ const int OFFSET[] = {
 // Some global vars
 ServoShield servos;
 boolean  turretAbsolute = false, LaserOn = false, LampOn = false, RgunOn = false, LgunOn = false , moving = false;
-int MoveSpeed = 150, StrideOffset = 0, turretElevation = 0, Damage = 0, turnSpeed = 150;
+int MoveSpeed = 260, StrideOffset = 0, turretElevation = 0, Damage = 0, turnSpeed = 320;
 unsigned short stepNo = 0;
 
 long lastPing = 0;
@@ -137,6 +137,7 @@ void msgReady() {
     }
   }
 }
+
 // Sends status back to Android
 void sendStatus() {
   // Send some info back
@@ -277,42 +278,30 @@ void handleJoystick() {
     toggleLamp();
   // Left turn
   if (!joystick1.S && prev_joystick1.S) {
-    movement(20,  0,  0,-14,  0,  0, turnSpeed + 50);
+    movement(0, -35, -50, 0, 35, 30, turnSpeed + 50);  // Do splits
     while(moveNow()==true) delay(1);
-    movement(20,-35,-35,-14, 35, 35, turnSpeed + 50);
+    movement(0, 35, 30, 0, -35, -50, turnSpeed);  // Reverse splits
     while(moveNow()==true) delay(1);
-    movement(0,-35,-35,  0, 35, 35, turnSpeed + 50);
+    movement(-25, 35, 30, 20, -35, -50, turnSpeed);  // Lean
     while(moveNow()==true) delay(1);
-    movement(0, 35, 35,  0,-35,-35, turnSpeed + 50);
+    movement(-25, 35, 30, 20, 0, 0, turnSpeed);  // Bring left leg back to 0
     while(moveNow()==true) delay(1);
-    movement(20, 35, 35,-14,-35,-35, turnSpeed + 50);
-    while(moveNow()==true) delay(1);
-    movement(20,  0,  0,-14,-35,-35, turnSpeed);
-    while(moveNow()==true) delay(1);
-    movement(-18,  0,  0, 16,-35,-35, turnSpeed);
-    while(moveNow()==true) delay(1);
-    movement(-18,  0,  0, 16,  0,  0, turnSpeed);
+    movement(20, 0, 0, -25, 0,  0, turnSpeed + 50);  // Bring right leg back to 0
     while(moveNow()==true) delay(1);
     movement(0,  0,  0,  0,  0,  0, turnSpeed);
     while(moveNow()==true) delay(1);
   }
   // Right turn
   if (!joystick1.C && prev_joystick1.C) {
-    movement(-14,  0,  0, 20,  0,  0, turnSpeed + 50);
+    movement(0, 35, 30, 0, -35, -50, turnSpeed + 50);
     while(moveNow()==true) delay(1);
-    movement(-14, 35, 35, 20,-35,-35, turnSpeed + 50); 
+    movement(0,-35,-50, 0, 35, 30, turnSpeed);
     while(moveNow()==true) delay(1);
-    movement(0, 35, 35,  0,-35,-35,  turnSpeed + 50);
+    movement(20,-35,-50,-25, 35, 30, turnSpeed);
     while(moveNow()==true) delay(1);
-    movement(0,-35,-35,  0, 35, 35,  turnSpeed + 50);
+    movement(20,  0,  0, -25, 35, 30, turnSpeed);
     while(moveNow()==true) delay(1);
-    movement(-14,-35,-35, 20, 35, 35, turnSpeed + 50);
-    while(moveNow()==true) delay(1);
-    movement(-14,-35,-35, 20,  0,  0, turnSpeed);
-    while(moveNow()==true) delay(1);
-    movement(16,-35,-35,-18,  0,  0, turnSpeed);
-    while(moveNow()==true) delay(1);
-    movement(16,  0,  0,-18,  0,  0, turnSpeed);
+    movement(-25,  0,  0, 20,  0,  0, turnSpeed + 50);
     while(moveNow()==true) delay(1);
     movement(0,  0,  0,  0,  0,  0, turnSpeed);
     while(moveNow()==true) delay(1);
@@ -335,7 +324,6 @@ void handleJoystick() {
       servos.setposition(turret, constrain(servos.getposition(turret) + (joystick1.RightX / 10), 1167, 1833));
     int oldTurret = turretElevation;
     if (joystick1.RightY != 0)
-    
       turretElevation = constrain(turretElevation + (joystick1.RightY / 10), -166, 166);
     if(!moving)
     {    
@@ -347,10 +335,17 @@ void handleJoystick() {
   }
   // Adjustments
   if (joystick1.Up || joystick1.Down) {
-    if (joystick1.Up)
-      MoveSpeed -= 10;
-    else
-      MoveSpeed += 10;
+    if (joystick1.L2 || joystick1.R2) {
+      if (joystick1.Up)
+        turnSpeed -= 10;
+      else
+        turnSpeed += 10;
+    } else {
+      if (joystick1.Up)
+        MoveSpeed -= 10;
+      else
+        MoveSpeed += 10;
+    }
   }
   if (joystick1.Left || joystick1.Right) {
     if (joystick1.Left)
