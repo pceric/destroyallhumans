@@ -30,12 +30,12 @@ import controlP5.*;
 
 final int SCREEN_WIDTH = 800;
 final int SCREEN_HEIGHT = 640;
-final String PHONE_IP = "192.168.1.109";
+final String PHONE_IP = "192.168.2.254";
 final String JOYSTICK_NAME = "PLAYSTATION(R)3 Controller";
 //final String JOYSTICK_NAME = "Microsoft SideWinder Precision Pro (USB)";
 final int CONTROL_PORT = 5555;
 final int VIDEO_PORT = 4444;
-final int MAX_LIFE = 15;
+final int MAX_LIFE = 20;
 
 // Kryonet client for control
 com.esotericsoftware.kryonet.Client myClient; 
@@ -129,7 +129,7 @@ void setup(){
 
   try {
     println("Connecting to phone at " + PHONE_IP);
-    myClient.connect(15000, PHONE_IP, CONTROL_PORT, CONTROL_PORT + 1);
+    myClient.connect(15000, PHONE_IP, CONTROL_PORT);
   } catch (IOException e) {
     println(e + ".  Bye Bye.");
     exit();

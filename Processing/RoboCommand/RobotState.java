@@ -55,4 +55,6 @@ public class RobotState
     public String message = "";
     
     public boolean autoAimOn = false;
+    
+    public long lastBtTimestamp = 0;
 }
