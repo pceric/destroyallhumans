@@ -97,6 +97,8 @@ class BTCommThread extends Thread
 
     try
     {
+      
+      adapter.cancelDiscovery(); 
       socket = device.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"));
       socket.connect();
     }
@@ -152,17 +154,9 @@ class BTCommThread extends Thread
           {
             ControllerState cs = ( (ControllerState) msg.obj );
 
-            if (cs.isAllZero() && lastMsgWasAllZeros)
-            {
-              Log.d(TAG, "Ignoreing Message" + msg.obj);
-            }
-            else
-            {
               Log.d(TAG, "Handeling Message" + msg.obj);
               byte[] bytes = cs.toBytes();
               write(bytes);
-            }
-            lastMsgWasAllZeros = cs.isAllZero();
 
           }
 

@@ -5,6 +5,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.util.Date;
 import java.util.Enumeration;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -55,6 +56,8 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
   private long                     lastControllerTimeStamp = 0; 
   
   private long                     lastTargetBlobTimeStamp = 0; 
+  
+  private long                     startUpTimestamp = 0;
    
   public static String TAG = "RobotStateHandler";
   
@@ -77,7 +80,7 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
     
     setName("Robot State Handler");
 
-    server.bind(Receiver.controlPort,Receiver.controlPort+1);
+    server.bind(Receiver.controlPort);
 
     Kryo kryo = server.getKryo();
     kryo.register(ControllerState.class);
@@ -146,7 +149,7 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
     if (instance == null)
       return ;
      instance.state.camFrameRate = raw;
-     instance.state.processFrameRate = processed;
+    // instance.state.processFrameRate = processed;
   }
 
   public static TargetSettings getTargetSettings()
@@ -179,7 +182,11 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
   
   public void onBtDataRecive(String data)
   {
+    Log.i(TAG, "got bt data:" + data);
+    
     state.blueToothConnected = true;
+    Date date = new Date();
+    state.lastBtTimestamp = date.getTime();
     
     if(data.startsWith("L"))
     {
@@ -199,10 +206,15 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
       state.turretElevation  = Integer.parseInt(botData[5]);
       state.sonarDistance  = Integer.parseInt(botData[6]);
       state.irDistance  = Integer.parseInt(botData[7]);
+      state.lampOn  = Integer.parseInt(botData[8]) == 1;
+      state.laserOn = Integer.parseInt(botData[9]) == 1;
+      state.rGunOn  = Integer.parseInt(botData[10]) == 1;
+      state.lGunOn  = Integer.parseInt(botData[11]) == 1;
+      state.moving  = Integer.parseInt(botData[12]) == 1;
     }
     catch(Exception e)
     {
-      Log.e(TAG, "Error parsing robot data: ",e);
+      Log.e(TAG, "Error parsing robot data: " + data + " e:",e);
     }
     }
     
@@ -378,6 +390,7 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
 
     Log.e(TAG, "Robot state handler STOPING ALL LISTINERS");
     
+    /*
     if (OrientationManager.isListening())
     {
       OrientationManager.stopListening();
@@ -395,6 +408,7 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
      
 
     //watch out for double start
+
    if (bTcomThread != null)
    {
      try
@@ -407,6 +421,7 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
      bTcomThread.disconnect();
    }
     this.listening = false;
+    */
     
   }
 
@@ -431,6 +446,12 @@ public class RobotStateHandler extends Thread implements OrientationListener, Ac
              btMsg.obj = controllerState;
              btMsg.sendToTarget();
           }
+          //else
+          //{
+           // Message btMsg = bTcomThread.handler.obtainMessage();
+            //btMsg.obj = "K";
+            //btMsg.sendToTarget();
+          //}
           clientConnection.sendTCP(state);
           state.message = "";
           
