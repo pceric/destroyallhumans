@@ -20,8 +20,6 @@ public class RobotState
     
     public float camFrameRate = 0;
     
-    public float processFrameRate = 0;
-    
     public int wifiStrength = 0;
     
     public int wifiSpeed = 0;
@@ -48,7 +46,17 @@ public class RobotState
     
     public boolean moving = false;
     
+    public boolean lGunOn = false;
+    
+    public boolean rGunOn = false;
+    
+    public boolean lampOn = false;
+    
+    public boolean laserOn = false;
+    
     public String message = "";
     
     public boolean autoAimOn = false;
+
+    public long lastBtTimestamp = 0;
 }
