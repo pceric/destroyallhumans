@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Welcome to ServoBot</string>
+    <string name="app_name">ServoBot</string>
+    <string name="quit">Quit</string>
+    <string name="setup">Setup</string>
+</resources>
