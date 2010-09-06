@@ -93,6 +93,7 @@ class IPCommThread extends Thread {
 					clientAddress = socket.getInetAddress();
 					if (dialog != null && dialog.isShowing())
 						dialog.dismiss();
+					oStream.write("Welcome to ServoBot.\nCommands are W,S,A,D,+,-, .\n".getBytes());
 				} catch (IOException e) {
 					Log.e(TAG, e.getMessage(), e);
 				}

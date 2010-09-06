@@ -252,7 +252,7 @@ public class PulseGenerator implements Runnable {
 	/**
 	 * Pause
 	 */
-	public synchronized void pause(boolean p) {
+	public void pause(boolean p) {
 		paused = p;
 	}
 	
@@ -272,17 +272,15 @@ public class PulseGenerator implements Runnable {
 			return;
 		}
 		
-		percent = percent + (servoOffsetArray[servoNum] - 50);
+		percent += servoOffsetArray[servoNum];
 
-		if (percent < -100 || percent > 100) {
+		if (percent < 0 || percent > 100) {
 			Log.e(TAG,
 					"Servo Position out of bounds, should be between 0 and 100");
 			return;
 		}
 
-		this.pulseWidthArray[servoNum] = MIN_PULSE_WIDTH
-				+ ((((100 + percent) / 2) * (MAX_PULSE_WIDTH - MIN_PULSE_WIDTH)) / 100);
-
+		this.pulseWidthArray[servoNum] = (int)((MAX_PULSE_WIDTH - MIN_PULSE_WIDTH) * ((float)percent / 100) + MIN_PULSE_WIDTH);
 		this.pulseCountArray[servoNum] = counts;
 
 		if (servoNum < 2) {
@@ -296,10 +294,10 @@ public class PulseGenerator implements Runnable {
 	}
 
 	/**
-	 * Sets the position of a servo.
+	 * Sets the offset position of a servo.
 	 * 
-	 * @param percent
-	 *            the new left pulse percent
+	 * @param percent sets the pulse percent offset
+	 * @param servoNum servo number to set
 	 */
 	public void setOffsetPulsePercent(int percent, int servoNum) {
 
@@ -308,13 +306,14 @@ public class PulseGenerator implements Runnable {
 					"Servo Position out of bounds, should be between 0 and 100");
 			return;
 		}
-		servoOffsetArray[servoNum] = percent;
-		setServo(servoNum, 0, Integer.MAX_VALUE);
+		servoOffsetArray[servoNum] = percent - 50;
+		setServo(servoNum, 50, Integer.MAX_VALUE);
 	}
 
 	/**
 	 * Gets the pulse percent.
 	 * 
+	 * @param i the servo number
 	 * @return the pulse percent
 	 */
 	public int getPulsePercent(int i) {
@@ -324,6 +323,7 @@ public class PulseGenerator implements Runnable {
 	/**
 	 * Gets the pulse ms.
 	 * 
+	 * @param i the servo number
 	 * @return the pulse ms
 	 */
 	public float getPulseMs(int i) {
@@ -333,6 +333,7 @@ public class PulseGenerator implements Runnable {
 	/**
 	 * Gets the pulse samples.
 	 * 
+	 * @param i the servo number
 	 * @return the pulse samples
 	 */
 	public int getPulseSamples(int i) {
