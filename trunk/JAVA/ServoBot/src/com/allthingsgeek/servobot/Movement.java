@@ -25,7 +25,7 @@ import android.view.KeyEvent;
 public class Movement {
 	private PulseGenerator noise;
 	private static Movement instance;
-	private int speed = 10;
+	private int speed = 30;
 	private int offset = 0;
 
 	private Movement() {

@@ -67,28 +67,28 @@ public class SetupActivity extends Activity implements OnSeekBarChangeListener {
 	    mover = Movement.getInstance();
 	    
 		lPulseBar = (SeekBar) findViewById(R.id.LeftServo);
-		lPulseBar.setProgress((noise.getPulsePercent(0) - 40) * 5);
+		lPulseBar.setProgress((noise.getPulsePercent(0) - 25) * 2);
 		lPulseBar.setOnSeekBarChangeListener(this);
 		lPulseText = (TextView) findViewById(R.id.LeftServoValue);
 		lPulseText.setText("Servo 1(L Wheel) = " + noise.getPulsePercent(0)
 				+ "% (" + noise.getPulseSamples(0) + " samples)");
 
 	    lPulseBar2 = (SeekBar) findViewById(R.id.LeftServo2);
-		lPulseBar2.setProgress((noise.getPulsePercent(1) - 40) * 5);
+		lPulseBar2.setProgress((noise.getPulsePercent(1) - 25) * 2);
 	    lPulseBar2.setOnSeekBarChangeListener(this);
 	    lPulseText2 = (TextView) findViewById(R.id.LeftServoValue2);
 		lPulseText2.setText("Servo 2(L Arm) = " + noise.getPulsePercent(1)
 				+ "% (" + noise.getPulseSamples(1) + " samples)");
 	    
 		rPulseBar = (SeekBar) findViewById(R.id.RightServo);
-		rPulseBar.setProgress((noise.getPulsePercent(2) - 40) * 5);
+		rPulseBar.setProgress((noise.getPulsePercent(2) - 25) * 2);
 		rPulseBar.setOnSeekBarChangeListener(this);
 		rPulseText = (TextView) findViewById(R.id.RightServoValue);
 		rPulseText.setText("Servo 3(R Wheel) = " + noise.getPulsePercent(2)
 				+ "% (" + noise.getPulseSamples(2) + " samples)");
 
 	    rPulseBar2 = (SeekBar) findViewById(R.id.RightServo2);
-		rPulseBar2.setProgress((noise.getPulsePercent(3) - 40) * 5);
+		rPulseBar2.setProgress((noise.getPulsePercent(3) - 25) * 2);
 	    rPulseBar2.setOnSeekBarChangeListener(this);
 	    rPulseText2 = (TextView) findViewById(R.id.RightServoValue2);
 		rPulseText2.setText("Servo 4(R Arm) = " + noise.getPulsePercent(3)
@@ -132,8 +132,7 @@ public class SetupActivity extends Activity implements OnSeekBarChangeListener {
     		noise.pause(true);
 	}
 
-	public void onProgressChanged(SeekBar seekBar, int progress,
-			boolean fromTouch) {
+	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromTouch) {
 		if (seekBar.getId() == lPulseBar.getId()) {
 			noise.setOffsetPulsePercent(progress / 2 + 25, 0);
 			lPulseText.setText("Servo 1(L Wheel) = " + noise.getPulsePercent(0)
