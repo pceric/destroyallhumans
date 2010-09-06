@@ -32,8 +32,7 @@ import android.widget.TextView;
 import android.widget.ToggleButton;
 
 /**
- * @author ehokanso
- * 
+ *  Activity to help configure the ServoBot program 
  */
 public class SetupActivity extends Activity implements OnSeekBarChangeListener {
 	public static SensorManager sensorManager;
@@ -52,6 +51,7 @@ public class SetupActivity extends Activity implements OnSeekBarChangeListener {
 	PulseGenerator noise;
 	Thread noiseThread;
 	GestureDetector nGestures;
+	Movement mover;
 
 	/*
 	 * (non-Javadoc)
@@ -63,8 +63,8 @@ public class SetupActivity extends Activity implements OnSeekBarChangeListener {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.setup);
 
-		// set up the noise thread
 	    noise = PulseGenerator.getInstance();
+	    mover = Movement.getInstance();
 	    
 		lPulseBar = (SeekBar) findViewById(R.id.LeftServo);
 		lPulseBar.setProgress((noise.getPulsePercent(0) - 40) * 5);
@@ -95,10 +95,10 @@ public class SetupActivity extends Activity implements OnSeekBarChangeListener {
 				+ "% (" + noise.getPulseSamples(3) + " samples)");
 		
 	    lrOffset = (SeekBar) findViewById(R.id.LROffset);
-	    lrOffset.setProgress((noise.getPulsePercent(3) - 40) * 5);
+	    lrOffset.setProgress(50 + mover.getOffset());
 	    lrOffset.setOnSeekBarChangeListener(this);
-	    lrOffsetText = (TextView) findViewById(R.id.RightServoValue2);
-	    lrOffsetText.setText("Left vs Right Offset = " + "");
+	    lrOffsetText = (TextView) findViewById(R.id.WheelOffestValue);
+	    lrOffsetText.setText("Left vs Right Offset = " + mover.getOffset());
 
 		soundToggleButton = (ToggleButton) findViewById(R.id.ToggleSound);
 		soundToggleButton.setChecked(!noise.isPaused());
@@ -118,7 +118,7 @@ public class SetupActivity extends Activity implements OnSeekBarChangeListener {
 		editor.putInt("servo2Percent", noise.getPulsePercent(1));
 		editor.putInt("servo3Percent", noise.getPulsePercent(2));
 		editor.putInt("servo4Percent", noise.getPulsePercent(3));
-		editor.putInt("wheelOffset", noise.getPulsePercent(3));
+		editor.putInt("wheelOffset", mover.getOffset());
 		// Commit the edits!
 		editor.commit();
 		finish();
@@ -155,8 +155,8 @@ public class SetupActivity extends Activity implements OnSeekBarChangeListener {
 					+ "% (" + noise.getPulseSamples(3) + " samples)");
 		}
 		if (seekBar.getId() == lrOffset.getId()) {
-			//noise.setOffsetPulsePercent(progress / 2 + 25, 3);
-			lrOffsetText.setText("Left vs Right Offset = " + "");
+			mover.setOffset(progress - 50);
+			lrOffsetText.setText("Left vs Right Offset = " + mover.getOffset());
 		}
 	}
 

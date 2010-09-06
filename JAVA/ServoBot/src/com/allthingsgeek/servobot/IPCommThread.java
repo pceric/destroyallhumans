@@ -25,7 +25,6 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-
 import android.app.ProgressDialog;
 
 import android.os.Handler;
