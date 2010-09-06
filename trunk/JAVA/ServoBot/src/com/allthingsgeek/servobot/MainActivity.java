@@ -79,7 +79,17 @@ public class MainActivity extends Activity {
 
     }
 
-    @Override
+    /* (non-Javadoc)
+	 * @see android.app.Activity#onDestroy()
+	 */
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+    	ipComThread.cancel();
+    	noise.stop();
+	}
+
+	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu, menu);
@@ -95,7 +105,6 @@ public class MainActivity extends Activity {
             startActivity(i);
             return true;
         case R.id.quit:
-        	noise.stop();
         	finish();
             return true;
         default:
@@ -108,11 +117,12 @@ public class MainActivity extends Activity {
     	ToggleButton t = (ToggleButton)v;
     	if (t.isChecked()) {
     		String msg = "IP:" + Formatter.formatIpAddress(ipAddress) + ":" + port;
-    		//ProgressDialog dialog = ProgressDialog.show(this, msg, "Waiting for client connection...");
-    		//ipComThread = new IPCommThread(port, dialog, robotState);
-    		//ipComThread.start();
+    		ProgressDialog dialog = null; // = ProgressDialog.show(this, msg, "Waiting for client connection...");
+    		ipComThread = new IPCommThread(port, dialog, robotState);
+    		ipComThread.start();
     		noise.pause(false);
     	} else {
+    		ipComThread.cancel();
     		noise.pause(true);
     	}
     }

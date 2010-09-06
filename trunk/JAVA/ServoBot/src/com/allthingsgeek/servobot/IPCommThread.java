@@ -31,6 +31,7 @@ import android.os.Handler;
 import android.util.Log;
 
 class IPCommThread extends Thread {
+	private static String TAG = "CommThread";
 
 	protected String tostText = "";
 
@@ -75,26 +76,17 @@ class IPCommThread extends Thread {
 			if (serverSocket == null) {
 				try {
 					serverSocket = new ServerSocket(listenPort);
-					// logText += "Listening on port " + listenPort +
-					// " for Connections\n";
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					Log.e(TAG, e.getMessage(), e);
 				}
 			} else if (socket == null) {
 				try {
-					// tostText = "Connecting";
-					// logText += "Connecting...\n";
-					// handler.sendEmptyMessage(0);
 					socket = serverSocket.accept();
 				} catch (IOException e) {
-					// tv.appendi"Socket: " + e.getMessage());
-					// e.printStackTrace();
+					Log.e(TAG, e.getMessage(), e);
 				}
-
 			} else if (iStream == null) {
 				try {
-
 					iStream = new DataInputStream(socket.getInputStream());
 					oStream = new DataOutputStream(socket.getOutputStream());
 
@@ -102,10 +94,8 @@ class IPCommThread extends Thread {
 					if (dialog != null && dialog.isShowing())
 						dialog.dismiss();
 				} catch (IOException e) {
-					// tv.appendi"Socket: " + e.getMessage());
-					// e.printStackTrace();
+					Log.e(TAG, e.getMessage(), e);
 				}
-
 			} else {
 				try {
 					if (serverSocket.isClosed()) {
@@ -117,39 +107,19 @@ class IPCommThread extends Thread {
 					} else {
 						readlen = iStream.read(buffer, 0, 100);
 						if (readlen > 0) {
-							mover.processTextCommand(new String(buffer, 0,
-									readlen - 1));
+							mover.processTextCommand(new String(buffer, 0, readlen - 1));
 						}
 					}
-
 				} catch (IOException e) {
-					// tv.append(e.getMessage());
+					Log.e(TAG, e.getMessage(), e);
 					return;
 				}
 			}
 			try {
 				Thread.sleep(sleepTime);
 			} catch (InterruptedException e) {
-
-				// tv.append(e.getMessage());
-				// e.printStackTrace();
 			}
 		}
-
-		try {
-			if (serverSocket != null)
-				;
-			{
-				serverSocket.close();
-			}
-
-		} catch (Exception e1) {
-		}
-		socket = null;
-		iStream = null;
-		oStream = null;
-		serverSocket = null;
-		stopListening = false;
 	}
 
 	/* Call this from the main Activity to send data to the remote device */
@@ -159,7 +129,7 @@ class IPCommThread extends Thread {
 				oStream.write(bytes);
 			}
 		} catch (IOException e) {
-			Log.e("CommThread.write", "exception during write", e);
+			Log.e(TAG, "exception during write", e);
 		}
 	}
 
@@ -169,8 +139,11 @@ class IPCommThread extends Thread {
 
 	/* Call this from the main Activity to shutdown the connection */
 	public void cancel() {
-
+		// Close the sockets
+		try {
+			serverSocket.close();
+		} catch (IOException e) {
+		}
 		stopListening = true;
-
 	}
 }
