@@ -63,7 +63,7 @@ public class MainActivity extends Activity {
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
         int ipAddress = wifiInfo.getIpAddress();
         TextView tv = (TextView)findViewById(R.id.TextViewIP);
-        tv.setText(Formatter.formatIpAddress(ipAddress));
+        tv.setText("Listening on " + Formatter.formatIpAddress(ipAddress) + ":" + port);
         
         robotState = new RobotState();
         noise = PulseGenerator.getInstance();
@@ -75,7 +75,7 @@ public class MainActivity extends Activity {
         noise.setOffsetPulsePercent(settings.getInt("servo2Percent", 50), 1);
         noise.setOffsetPulsePercent(settings.getInt("servo3Percent", 50), 2);
         noise.setOffsetPulsePercent(settings.getInt("servo4Percent", 50), 3);
-		//noise.setWheelOffset(settings.getFloat("wheelOffset", 0));
+		mover.setOffset(settings.getInt("wheelOffset", 0));
 
     }
 

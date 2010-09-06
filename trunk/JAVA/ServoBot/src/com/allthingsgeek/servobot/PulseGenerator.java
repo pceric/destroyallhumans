@@ -1,5 +1,3 @@
-package com.allthingsgeek.servobot;
-
 /*
  * Robot control console. Copyright (C) 2010 Darrell Taylor & Eric Hokanson
  * 
@@ -17,6 +15,8 @@ package com.allthingsgeek.servobot;
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+package com.allthingsgeek.servobot;
+
 import java.util.Arrays;
 
 import android.media.AudioFormat;
@@ -24,7 +24,6 @@ import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.util.Log;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class PulseGenerator.
  */
@@ -264,8 +263,7 @@ public class PulseGenerator implements Runnable {
 	/**
 	 * Sets the servo pos and runtime
 	 * 
-	 * @param percent
-	 *            the new left pulse percent
+	 * @param percent the new left pulse percent
 	 */
 	public void setServo(int servoNum, int percent, int counts) {
 
