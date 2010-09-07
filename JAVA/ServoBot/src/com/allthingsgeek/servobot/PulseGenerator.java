@@ -128,9 +128,9 @@ public class PulseGenerator implements Runnable {
 		noiseThread.setName("noiseThread");
 
 		generatePCM(pulseWidthArray[0], pulseWidthArray[1], pulseInterval,
-				leftChannelBuffer, pulseInterval * bufferPulses, 1, 0);
+				leftChannelBuffer, pulseInterval * bufferPulses, 1);
 		generatePCM(pulseWidthArray[2], pulseWidthArray[3], pulseInterval,
-				rightChannelBuffer, pulseInterval * bufferPulses, 3 , pulseInterval/2);
+				rightChannelBuffer, pulseInterval * bufferPulses, 3 );
 
 		noiseThread.start();
 
@@ -153,58 +153,30 @@ public class PulseGenerator implements Runnable {
 	 * @param lastChanged
 	 */
 	private void generatePCM(int pulseWidth, int negPulseWidth,
-			int pulseInterval, short buffer[], int bufferLength, int lastChanged, int startLag) {
+			int pulseInterval, short buffer[], int bufferLength, int lastChanged) {
 
 		int i = 0;
 		int j = 0;
     		
-        while (i < startLag)
+		int pulseVolume = -volume;
+		if (lastChanged % 2 == 0)
         {
-          j = 0;
-    
-          if (lastChanged % 2 == 0)
-          {
-            buffer[i] = (short) ( ( -volume ) );
-            i++;
-    
-          }
-          else
-          {
-    
-            buffer[i] = (short) ( ( volume ) );
-            i++;
-          }
-    
+		  pulseVolume = volume;
         }
 
 		while (i < bufferLength) {
 			j = 0;
-
-			if (lastChanged % 2 == 0) {
-				while (j < pulseWidth) {
-					buffer[i] = (short) ((volume));
+				while (j < pulseWidth && i < bufferLength) {
+					buffer[i] = (short) ((pulseVolume));
 					i++;
 					j++;
 				}
 
-				while (j < pulseInterval) {
-					buffer[i] = (short) ((-volume));
+				while (j < pulseInterval && i < bufferLength) {
+					buffer[i] = (short) ((-pulseVolume));
 					i++;
 					j++;
 				}
-			} else {
-				while (j < negPulseWidth) {
-					buffer[i] = (short) ((-volume));
-					i++;
-					j++;
-				}
-				while (j < pulseInterval) {
-					buffer[i] = (short) ((volume));
-					i++;
-					j++;
-				}
-
-			}
 		}
 		bufferChanged = true;
 	}
@@ -214,6 +186,7 @@ public class PulseGenerator implements Runnable {
 		/** The stero audio buffer. */
 		short[] audioBuffer = new short[systembufferlength];
 
+		int monoBufferLength = pulseInterval * bufferPulses;
 		int sterobufferlength = pulseInterval * bufferPulses * 2;
 		noiseAudioTrack.play();
 
@@ -249,7 +222,7 @@ public class PulseGenerator implements Runnable {
 
 			if (bufferChanged) {
 				for (int i = 0; i < sterobufferlength; i += 2) {
-					audioBuffer[i] = leftChannelBuffer[i / 2];
+					audioBuffer[i] = leftChannelBuffer[((i / 2)+(pulseInterval/2)) % monoBufferLength];
 					audioBuffer[i + 1] = rightChannelBuffer[i / 2];
 				}
 				bufferChanged = false;
@@ -308,10 +281,10 @@ public class PulseGenerator implements Runnable {
 
 		if (servoNum < 2) {
 			generatePCM(pulseWidthArray[0], pulseWidthArray[1], pulseInterval,
-					leftChannelBuffer, pulseInterval * bufferPulses, servoNum, 0);
+					leftChannelBuffer, pulseInterval * bufferPulses, servoNum);
 		} else {
 			generatePCM(pulseWidthArray[2], pulseWidthArray[3], pulseInterval,
-					rightChannelBuffer, pulseInterval * bufferPulses, servoNum,pulseInterval/2);
+					rightChannelBuffer, pulseInterval * bufferPulses, servoNum);
 		}
 
 	}
