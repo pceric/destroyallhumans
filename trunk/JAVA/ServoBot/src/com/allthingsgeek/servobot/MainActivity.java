@@ -80,6 +80,16 @@ public class MainActivity extends Activity {
     }
 
     /* (non-Javadoc)
+	 * @see android.app.Activity#onResume()
+	 */
+	@Override
+	protected void onResume() {
+		super.onResume();
+		ToggleButton t = (ToggleButton) findViewById(R.id.ToggleButtonPower);
+		t.setChecked(!noise.isPaused());
+	}
+
+	/* (non-Javadoc)
 	 * @see android.app.Activity#onDestroy()
 	 */
 	@Override

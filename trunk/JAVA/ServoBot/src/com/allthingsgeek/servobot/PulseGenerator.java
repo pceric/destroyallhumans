@@ -57,7 +57,7 @@ public class PulseGenerator implements Runnable {
 	private int bufferPulses = 2;
 
 	/** The max volume */
-	private int volume = Short.MAX_VALUE;
+	private short volume = Short.MAX_VALUE;
 
 	/** Are we playing sound right now? */
 	private boolean playing = true;
@@ -97,15 +97,11 @@ public class PulseGenerator implements Runnable {
 
 		pulseCountArray = new int[NUM_SERVOS];
 
-		Arrays.fill(pulseCountArray, 0);
-
 		servoOffsetArray = new int[NUM_SERVOS];
-
-		Arrays.fill(servoOffsetArray, (MIN_PULSE_WIDTH + MAX_PULSE_WIDTH) / 2);
 
 		pulseWidthArray = new int[NUM_SERVOS];
 
-		Arrays.fill(pulseWidthArray, (MIN_PULSE_WIDTH + MAX_PULSE_WIDTH) / 2);
+		Arrays.fill(pulseWidthArray, ((MAX_PULSE_WIDTH - MIN_PULSE_WIDTH) / 2) + MIN_PULSE_WIDTH);
 
 		pulseInterval = sampleRate / 50;
 
@@ -144,11 +140,18 @@ public class PulseGenerator implements Runnable {
 		if (instance == null) {
 			instance = new PulseGenerator();
 		}
-
 		return instance;
-
 	}
 
+	/**
+	 * Builds a PWM signal in the buffer
+	 * @param pulseWidth Pulse width for signal > 0
+	 * @param negPulseWidth Pulse width for signal < 0
+	 * @param pulseInterval Length of pulse
+	 * @param buffer Array to store the signal
+	 * @param bufferLength Length of buffer
+	 * @param lastChanged
+	 */
 	private void generatePCM(int pulseWidth, int negPulseWidth,
 			int pulseInterval, short buffer[], int bufferLength, int lastChanged) {
 
@@ -183,8 +186,6 @@ public class PulseGenerator implements Runnable {
 
 			}
 		}
-
-		bufferChanged = true;
 	}
 
 	public void run() {
@@ -234,6 +235,7 @@ public class PulseGenerator implements Runnable {
 			}
 			noiseAudioTrack.write(audioBuffer, 0, sterobufferlength);
 		}
+		// Cleanup
 		for (int i = 0; i < systembufferlength; i++) {
 			audioBuffer[i] = (short) (0);
 		}
@@ -265,7 +267,7 @@ public class PulseGenerator implements Runnable {
 	 * 
 	 * @param percent the new left pulse percent
 	 */
-	public void setServo(int servoNum, int percent, int counts) {
+	public synchronized void setServo(int servoNum, int percent, int counts) {
 
 		if (servoNum < 0 || servoNum > 4) {
 			Log.e(TAG, "Servo index out of bounds, should be between 0 and 3");

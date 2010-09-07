@@ -106,9 +106,9 @@ class IPCommThread extends Thread {
 						// tostText = "Disconnected";
 						// logText += "Disconnected!\n";
 					} else {
-						readlen = iStream.read(buffer, 0, 100);
+						readlen = iStream.read(buffer, 0, 1);
 						if (readlen > 0) {
-							mover.processTextCommand(new String(buffer, 0, readlen - 1));
+							mover.processTextCommand(new String(buffer, 0, 1));
 						}
 					}
 				} catch (IOException e) {
@@ -140,11 +140,15 @@ class IPCommThread extends Thread {
 
 	/* Call this from the main Activity to shutdown the connection */
 	public void cancel() {
+		stopListening = true;
 		// Close the sockets
 		try {
-			serverSocket.close();
-		} catch (IOException e) {
+			socket.close();
+		} catch (Exception e) {
 		}
-		stopListening = true;
+		try {
+			serverSocket.close();
+		} catch (Exception e) {
+		}
 	}
 }
