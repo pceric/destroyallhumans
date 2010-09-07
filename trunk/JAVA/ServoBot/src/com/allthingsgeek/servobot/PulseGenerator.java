@@ -186,7 +186,6 @@ public class PulseGenerator implements Runnable {
 		/** The stero audio buffer. */
 		short[] audioBuffer = new short[systembufferlength];
 
-		int monoBufferLength = pulseInterval * bufferPulses;
 		int sterobufferlength = pulseInterval * bufferPulses * 2;
 		noiseAudioTrack.play();
 
@@ -222,7 +221,8 @@ public class PulseGenerator implements Runnable {
 
 			if (bufferChanged) {
 				for (int i = 0; i < sterobufferlength; i += 2) {
-					audioBuffer[i] = leftChannelBuffer[((i / 2)+(pulseInterval/2)) % monoBufferLength];
+				    //the pulses are staggerd by 1/2 pulseInterval
+					audioBuffer[i] = leftChannelBuffer[((i / 2)+(pulseInterval/2)) % (sterobufferlength/2)];
 					audioBuffer[i + 1] = rightChannelBuffer[i / 2];
 				}
 				bufferChanged = false;
@@ -252,6 +252,22 @@ public class PulseGenerator implements Runnable {
 		paused = p;
 	}
 	
+	   /**
+     * Pause
+     */
+    public void pause() {
+        paused = true;
+    }
+	
+    
+    /**
+     * un Pause
+     */
+    public void unpause() {
+        paused = false;
+    }
+    
+    
 	public boolean isPaused() {
 		return paused;
 	}
