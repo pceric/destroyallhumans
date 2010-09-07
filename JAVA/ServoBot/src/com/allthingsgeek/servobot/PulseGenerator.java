@@ -128,9 +128,9 @@ public class PulseGenerator implements Runnable {
 		noiseThread.setName("noiseThread");
 
 		generatePCM(pulseWidthArray[0], pulseWidthArray[1], pulseInterval,
-				leftChannelBuffer, pulseInterval * bufferPulses, 1);
+				leftChannelBuffer, pulseInterval * bufferPulses, 1, 0);
 		generatePCM(pulseWidthArray[2], pulseWidthArray[3], pulseInterval,
-				rightChannelBuffer, pulseInterval * bufferPulses, 3);
+				rightChannelBuffer, pulseInterval * bufferPulses, 3 , pulseInterval/2);
 
 		noiseThread.start();
 
@@ -153,10 +153,30 @@ public class PulseGenerator implements Runnable {
 	 * @param lastChanged
 	 */
 	private void generatePCM(int pulseWidth, int negPulseWidth,
-			int pulseInterval, short buffer[], int bufferLength, int lastChanged) {
+			int pulseInterval, short buffer[], int bufferLength, int lastChanged, int startLag) {
 
 		int i = 0;
 		int j = 0;
+    		
+        while (i < startLag)
+        {
+          j = 0;
+    
+          if (lastChanged % 2 == 0)
+          {
+            buffer[i] = (short) ( ( -volume ) );
+            i++;
+    
+          }
+          else
+          {
+    
+            buffer[i] = (short) ( ( volume ) );
+            i++;
+          }
+    
+        }
+
 		while (i < bufferLength) {
 			j = 0;
 
@@ -288,10 +308,10 @@ public class PulseGenerator implements Runnable {
 
 		if (servoNum < 2) {
 			generatePCM(pulseWidthArray[0], pulseWidthArray[1], pulseInterval,
-					leftChannelBuffer, pulseInterval * bufferPulses, servoNum);
+					leftChannelBuffer, pulseInterval * bufferPulses, servoNum, 0);
 		} else {
 			generatePCM(pulseWidthArray[2], pulseWidthArray[3], pulseInterval,
-					rightChannelBuffer, pulseInterval * bufferPulses, servoNum);
+					rightChannelBuffer, pulseInterval * bufferPulses, servoNum,pulseInterval/2);
 		}
 
 	}
