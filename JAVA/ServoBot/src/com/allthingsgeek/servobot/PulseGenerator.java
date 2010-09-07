@@ -186,6 +186,7 @@ public class PulseGenerator implements Runnable {
 
 			}
 		}
+		bufferChanged = true;
 	}
 
 	public void run() {
