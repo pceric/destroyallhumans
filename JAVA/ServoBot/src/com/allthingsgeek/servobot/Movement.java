@@ -25,7 +25,7 @@ import android.view.KeyEvent;
 public class Movement {
 	private PulseGenerator noise;
 	private static Movement instance;
-	private int speed = 30;
+	private int speed = 20;
 	private int offset = 0;
 
 	private Movement() {
@@ -67,8 +67,8 @@ public class Movement {
 			right += offset;
 		else if (offset > 0)
 			left -= offset;
-		noise.setServo(0, left, ms);
-		noise.setServo(2, -right, ms);
+		noise.setServo(0, 50 + left, ms);
+		noise.setServo(2, 50 - right, ms);
 	}
 
 	public void driveBackward(int ms) {
@@ -77,23 +77,23 @@ public class Movement {
 			right += offset;
 		else if (offset > 0)
 			left -= offset;
-		noise.setServo(0, -left, ms);
-		noise.setServo(2, right, ms);
+		noise.setServo(0, 50 - left, ms);
+		noise.setServo(2, 50 + right, ms);
 	}
 
 	public void stop() {
-		noise.setServo(1, 50, 1);
-		noise.setServo(3, 50, 1);
+		noise.setServo(0, 50, 1);
+		noise.setServo(2, 50, 1);
 	}
 
 	public void turnLeft() {
-		noise.setServo(0, speed, 25);
-		noise.setServo(2, speed, 25);
+		noise.setServo(0, 50 + speed, 25);
+		noise.setServo(2, 50 + speed, 25);
 	}
 
 	public void turnRight() {
-		noise.setServo(0, -speed, 25);
-		noise.setServo(2, -speed, 25);
+		noise.setServo(0, 50 - speed, 25);
+		noise.setServo(2, 50 - speed, 25);
 	}
 
 	public void setSpeed(int s) {
@@ -127,15 +127,19 @@ public class Movement {
 	public boolean processKeyEvent(int keyCode) {
 		switch (keyCode) {
 		case KeyEvent.KEYCODE_DPAD_UP:
+		case KeyEvent.KEYCODE_W:
 			driveFoward();
 			return true;
 		case KeyEvent.KEYCODE_DPAD_DOWN:
+		case KeyEvent.KEYCODE_S:
 			driveBackward();
 			return true;
 		case KeyEvent.KEYCODE_DPAD_LEFT:
+		case KeyEvent.KEYCODE_A:
 			turnLeft();
 			return true;
 		case KeyEvent.KEYCODE_DPAD_RIGHT:
+		case KeyEvent.KEYCODE_D:
 			turnRight();
 			return true;
 		case KeyEvent.KEYCODE_P:
@@ -147,6 +151,7 @@ public class Movement {
 				speed--;
 			return true;
 		case KeyEvent.KEYCODE_DPAD_CENTER:
+		case KeyEvent.KEYCODE_SPACE:
 			stop();
 			return true;
 		}
