@@ -140,6 +140,12 @@ public class MainActivity extends Activity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event)
     {
-    	return mover.processKeyEvent(keyCode);
+    	return mover.processKeyDownEvent(keyCode);
+    }
+    
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event)
+    {
+        return mover.processKeyUpEvent(keyCode);
     }
 }
