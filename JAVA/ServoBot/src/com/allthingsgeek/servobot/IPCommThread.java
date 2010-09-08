@@ -76,13 +76,13 @@ class IPCommThread extends Thread {
 			if (serverSocket == null) {
 				try {
 					serverSocket = new ServerSocket(listenPort);
-				} catch (IOException e) {
+				} catch (Exception e) {
 					Log.e(TAG, e.getMessage(), e);
 				}
 			} else if (socket == null) {
 				try {
 					socket = serverSocket.accept();
-				} catch (IOException e) {
+				} catch (Exception e) {
 					Log.e(TAG, e.getMessage(), e);
 				}
 			} else if (iStream == null) {
@@ -93,7 +93,7 @@ class IPCommThread extends Thread {
 					clientAddress = socket.getInetAddress();
 					if (dialog != null && dialog.isShowing())
 						dialog.dismiss();
-					oStream.write("Welcome to ServoBot.\nCommands are W,S,A,D,+,-, .\n".getBytes());
+					oStream.write(("Welcome to " + R.string.app_name + ".\nCommands are w,s,a,d,+,-, .\n").getBytes());
 				} catch (IOException e) {
 					Log.e(TAG, e.getMessage(), e);
 				}
@@ -143,11 +143,10 @@ class IPCommThread extends Thread {
 		stopListening = true;
 		// Close the sockets
 		try {
-			socket.close();
-		} catch (Exception e) {
-		}
-		try {
-			serverSocket.close();
+			if (socket != null && !socket.isClosed())
+				socket.close();
+			if (serverSocket != null && !serverSocket.isClosed())
+				serverSocket.close();
 		} catch (Exception e) {
 		}
 	}

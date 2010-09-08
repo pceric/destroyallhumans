@@ -49,8 +49,8 @@ public class Movement {
 	/**
 	 * @param offset the offset to set
 	 */
-	public void setOffset(int offset) {
-		this.offset = offset;
+	public void setOffset(int o) {
+		this.offset = o;
 	}
 
 	public void driveFoward() {
@@ -150,7 +150,7 @@ public class Movement {
 			turnRight();
 			return true;
 		case KeyEvent.KEYCODE_P:
-			if (speed < 100)
+			if (speed < 50)
 				speed++;
 			return true;
 		case KeyEvent.KEYCODE_M:
