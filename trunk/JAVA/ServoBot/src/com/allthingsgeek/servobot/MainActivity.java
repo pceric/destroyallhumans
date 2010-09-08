@@ -69,6 +69,11 @@ public class MainActivity extends Activity {
         noise = PulseGenerator.getInstance();
         mover = Movement.getInstance();
         
+		String msg = "IP:" + Formatter.formatIpAddress(ipAddress) + ":" + port;
+		ProgressDialog dialog = null; // = ProgressDialog.show(this, msg, "Waiting for client connection...");
+		ipComThread = new IPCommThread(port, dialog, robotState);
+		ipComThread.start();
+
         // Restore preferences
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         noise.setOffsetPulsePercent(settings.getInt("servo1Percent", 50), 0);
@@ -76,7 +81,6 @@ public class MainActivity extends Activity {
         noise.setOffsetPulsePercent(settings.getInt("servo3Percent", 50), 2);
         noise.setOffsetPulsePercent(settings.getInt("servo4Percent", 50), 3);
 		mover.setOffset(settings.getInt("wheelOffset", 0));
-
     }
 
     /* (non-Javadoc)
@@ -126,13 +130,8 @@ public class MainActivity extends Activity {
     {
     	ToggleButton t = (ToggleButton)v;
     	if (t.isChecked()) {
-    		String msg = "IP:" + Formatter.formatIpAddress(ipAddress) + ":" + port;
-    		ProgressDialog dialog = null; // = ProgressDialog.show(this, msg, "Waiting for client connection...");
-    		ipComThread = new IPCommThread(port, dialog, robotState);
-    		ipComThread.start();
     		noise.pause(false);
     	} else {
-    		ipComThread.cancel();
     		noise.pause(true);
     	}
     }

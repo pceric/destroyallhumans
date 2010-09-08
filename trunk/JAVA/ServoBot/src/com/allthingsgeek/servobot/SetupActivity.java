@@ -95,7 +95,7 @@ public class SetupActivity extends Activity implements OnSeekBarChangeListener {
 				+ "% (" + noise.getPulseSamples(3) + " samples)");
 		
 	    lrOffset = (SeekBar) findViewById(R.id.LROffset);
-	    lrOffset.setProgress(50 + mover.getOffset());
+	    lrOffset.setProgress(50 + mover.getOffset() * 2);
 	    lrOffset.setOnSeekBarChangeListener(this);
 	    lrOffsetText = (TextView) findViewById(R.id.WheelOffestValue);
 	    lrOffsetText.setText("Left vs Right Offset = " + mover.getOffset());
@@ -154,7 +154,7 @@ public class SetupActivity extends Activity implements OnSeekBarChangeListener {
 					+ "% (" + noise.getPulseSamples(3) + " samples)");
 		}
 		if (seekBar.getId() == lrOffset.getId()) {
-			mover.setOffset(progress - 50);
+			mover.setOffset((progress / 2 + 25) - 50);
 			lrOffsetText.setText("Left vs Right Offset = " + mover.getOffset());
 		}
 	}
