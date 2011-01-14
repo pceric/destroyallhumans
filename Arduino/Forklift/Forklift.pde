@@ -1,25 +1,40 @@
+/*
+ Forklift Robot control code for Arduino and Adafruit Motor Shield.
+ Copyright (C) 2010-2011 Eric Hokanson
+ 
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include <AFMotor.h>
 
 #define BUFFERSIZE 256
 
 // ** GENERAL SETTINGS ** - General preference settings
-boolean DEBUGGING = false; // Whether debugging output over serial is on by defauly (can be flipped with 'h' command)
+const boolean DEBUGGING = false; // Whether debugging output over serial is on by defauly (can be flipped with 'h' command)
 const int ledPin = 13; // LED turns on while running servos
-
 AF_DCMotor lift(1, MOTOR12_1KHZ);
 AF_DCMotor left(2, MOTOR12_1KHZ);
-AF_DCMotor right(3, MOTOR12_1KHZ);
+AF_DCMotor right(4, MOTOR12_1KHZ);
 int motorSpeed = 200; // Default motorSpeed setting. Use a range from 100-255
 
 // No config required for these parameters
-char incomingByte; // Holds incoming serial values
-char msg[8]; // For passing back serial messages
 char inBytes[BUFFERSIZE]; //Buffer for serial in messages
 int serialIndex = 0; 
 int serialAvail = 0;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   lift.setSpeed(motorSpeed);
   left.setSpeed(motorSpeed);
   right.setSpeed(motorSpeed);
@@ -31,60 +46,36 @@ void stopBot() {
   left.run(RELEASE);      // stopped
   right.run(RELEASE);      // stopped
   digitalWrite(ledPin, LOW);  // Turn the LED off
-  if (DEBUGGING) { Serial.println("Stopping both wheels"); }
+  if (DEBUGGING) { Serial.println("Stopping all motors."); }
 }
 
 // Replies out over serial and handles pausing and flushing the data to deal with Android serial comms
 void speak(char* tmpmsg) {
   Serial.print("speak:");
   Serial.println(tmpmsg); // Send the message back out the serial line
-  //Wait for the serial debugger to shut up
-  delay(200); //this is a magic number
-  Serial.flush(); //clears all incoming data
 }
 
 // Reads serial input if available and parses command when full command has been sent. 
 void readSerialInput() {
+  int offset = serialIndex;
   serialAvail = Serial.available();
   //Read what is available
-  for (int i = 0; i < serialAvail; i++) {
+  for (int i = offset; i < (offset + serialAvail); i++) {
     //Store into buffer.
-    inBytes[i + serialIndex] = Serial.read();
+    inBytes[i] = Serial.read();
+    if (DEBUGGING) { Serial.print("Read: "); Serial.println(inBytes[i], HEX); }
     //Check for command end. 
-    
-    if (inBytes[i + serialIndex] == '\n' || inBytes[i + serialIndex] == ';' || inBytes[i + serialIndex] == '>') { //Use ; when using Serial Monitor
-       inBytes[i + serialIndex] = '\0'; //end of string char
-       parseCommand(inBytes); 
+    if (inBytes[i] == '\n' || inBytes[i] == ';' || inBytes[i] == '>') { //Use ; when using Serial Monitor
+       inBytes[i] = '\0'; //end of string char
        serialIndex = 0;
+       if (i > 0)
+         performCommand(inBytes); 
     }
     else {
       //expecting more of the command to come later.
-      serialIndex += serialAvail;
+      ++serialIndex;
     }
   }  
-}
-
-// Cleans and parses the command
-void parseCommand(char* com) {
-  if (com[0] == '\0') { return; } //bit of error checking
-  int start = 0;
-  //get start of command
-  while (com[start] != '<'){
-    start++; 
-    if (com[start] == '\0') {
-      //its not there. Must be old version
-      start = -1;
-      break;
-    }
-  }
-  start++;
-  //Shift to beginning
-  int i = 0;
-  while (com[i + start - 1] != '\0') {
-    com[i] = com[start + i];
-    i++; 
-  } 
-  performCommand(com);
 }
 
 void performCommand(char* com) {  
@@ -115,7 +106,7 @@ void performCommand(char* com) {
   } else if (strcmp(com, "h") == 0) { // Help mode - debugging toggle
     // Print out some basic instructions
     Serial.println("Ready to listen to commands! Try ome of these:");
-    Serial.println("F (forward), B (backward), L (left), R (right), S (stop), D (demo).");
+    Serial.println("f (forward), b (backward), l (left), r (right), s (stop), hu (lift up), hd (lift down), hs (lift stop).");
     Serial.println("Also use numbers 1-9 to adjust motorSpeed (0=slow, 9=fast).");
   } else if (strncmp(com, "w ", 2) == 0 ) {
     //I know the preceeding condition is dodgy but it will change soon 
@@ -135,8 +126,8 @@ void performCommand(char* com) {
       delay(100);
     //}  
   } else { 
-    speak("Forklift doesn't understand!");  // Echo unknown command back
-    if (DEBUGGING) {
+    speak("Forklift doesn't understand!");
+    if (DEBUGGING) {  // Echo unknown command back
       Serial.print("Unknown command: ");
       Serial.println(com);
     }
