@@ -1,0 +1,28 @@
+#######################################
+# Syntax Coloring Map Mech
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+Mech	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+analogWrite	KEYWORD2
+begin	KEYWORD2
+getPosition	KEYWORD2
+getPositionMicro	KEYWORD2
+isRunning	KEYWORD2
+setBounds	KEYWORD2
+setPosition	KEYWORD2
+stop	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+HOUT1	LITERAL1
+HOUT2	LITERAL1
+HOUT3	LITERAL1
+HOUT4	LITERAL1
