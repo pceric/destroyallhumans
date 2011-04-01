@@ -17,6 +17,20 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+/** @mainpage Quick Start Guide
+ * 
+ * @section install_sec Installation
+ * Extract the MechShield directory into the arduino/libraries directory.
+ * 
+ * @section usage_sec Usage
+ * Click <a href="../../examples/HBridge/HBridge.pde">here</a> or
+ * <a href="../../examples/Sweep/Sweep.pde">here</a> to see a
+ * couple simple examples of how to use this library.
+ * 
+ * You can also find these examples by selecting File->Examples->MechShield
+ * from the Arduino software menu.
+ */
+
 #ifndef MechShield_h
 #define MechShield_h
 
