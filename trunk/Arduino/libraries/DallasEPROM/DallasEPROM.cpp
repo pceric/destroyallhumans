@@ -29,24 +29,41 @@ model_type _chip_model_list[] = {
 	{ 0, 0, 0, 0 }
 };
 
-DallasEPROM::DallasEPROM(OneWire* oneWire) {
-	_wire = oneWire;
+DallasEPROM::DallasEPROM(OneWire* rWire) {
+	_wire = rWire;
 	search();
 	_progPin = -1;
 }
 
-DallasEPROM::DallasEPROM(OneWire* oneWire, int progPin) {
-	_wire = oneWire;
+DallasEPROM::DallasEPROM(OneWire* rWire, int progPin) {
+	_wire = rWire;
 	search();
 	_progPin = progPin;
 	pinMode(progPin, OUTPUT);
 	digitalWrite(progPin, LOW);
 }
 
-// Static method
+/*******************
+ * Static methods
+ *******************/
+
 bool DallasEPROM::validAddress(uint8_t* deviceAddress) {
 	return (OneWire::crc8(deviceAddress, 7) == deviceAddress[7]);
 }
+
+bool DallasEPROM::isSupported(uint8_t* deviceAddress) {
+	int i = 0;
+	while (_chip_model_list[i].id) {
+		if (deviceAddress[0] == _chip_model_list[i].id)
+			return true;
+		++i;
+	}
+	return false;
+}
+
+/*******************
+ * Public methods
+ *******************/
 
 uint8_t* DallasEPROM::getAddress() {
 	return _addr;
@@ -79,6 +96,8 @@ int DallasEPROM::readPage(uint8_t* data, int page) {
 
 	if (!isPageValid(page))
 		return INVALID_PAGE;
+	else if (!isConnected())
+		return DEVICE_DISCONNECTED;
 
 	// TODO: check for page redirection
 
@@ -108,7 +127,10 @@ int DallasEPROM::writePage(uint8_t* data, int page) {
 
 	if (!isPageValid(page))
 		return INVALID_PAGE;
+	else if (!isConnected())
+		return DEVICE_DISCONNECTED;
 
+	// EEPROMS have a difference write method than EPROMS
 	if (!isEPROMDevice()) {
 		int status;
 
@@ -160,6 +182,8 @@ int DallasEPROM::writePage(uint8_t* data, int page) {
 int DallasEPROM::lockPage(int page) {
 	if (!isPageValid(page))
 		return INVALID_PAGE;
+	else if (!isConnected())
+		return DEVICE_DISCONNECTED;
 
 	_wire->reset();
 	_wire->select(_addr);
@@ -206,6 +230,8 @@ bool DallasEPROM::isPageLocked(int page) {
 
 	if (!isPageValid(page))
 		return INVALID_PAGE;
+	else if (!isConnected())
+		return DEVICE_DISCONNECTED;
 
 	_wire->reset();
 	_wire->select(_addr);

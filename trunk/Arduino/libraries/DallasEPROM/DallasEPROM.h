@@ -27,7 +27,7 @@
 #ifndef DallasEPROM_h
 #define DallasEPROM_h
 
-#define DALLASEPROMVERSION "1.0.0"
+#define DALLASEPROMVERSION "1.0.1"
 
 #include <inttypes.h>
 #include <OneWire.h>
@@ -94,12 +94,21 @@ public:
 	 * Static helper function to check if an address has a valid checksum.
 	 * 
 	 * @param pAddress Pointer to an 8 byte 1-Wire address.
-	 * @return True if valid.
+	 * @return True if the address has a valid checksum.
 	 */
 	static bool validAddress(uint8_t* pAddress);
 	
 	/**
-	 * Gets the address of the current instance.
+	 * Static helper function to check if the supplied address is from
+	 * a chip that the library supports.
+	 * 
+	 * @param pAddress Pointer to an 8 byte 1-Wire address.
+	 * @return True if the chip is supported.
+	 */
+	static bool isSupported(uint8_t* pAddress);
+	
+	/**
+	 * Gets the device address of the current instance.
 	 * 
 	 * @return Pointer to the currently configured address.
 	 */
