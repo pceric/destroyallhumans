@@ -17,6 +17,7 @@ void setup() {
   Serial.println("SET CONTROL ECHO 0");
   Serial.println("SET BT AUTH * 1234");
   Serial.println("SET CONTROL CD 64 0");  // Set PIO2 high on connection
+  Serial.println("SET CONTROL MSC DCE 00 08 00 00 00 00");  // Set reset to PIO3
   Serial.println("SET CONTROL ESCAPE - 00 1");  // Disable escape
   //Serial.println("SET CONTROL BAUD 115200,8n1");      //first release 19200
 }
