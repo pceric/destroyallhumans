@@ -19,7 +19,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
  <tbody>
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
-   <div id="projectname">MechShield&#160;<span id="projectnumber">1.0.0</span></div>
+   <div id="projectname">MechShield&#160;<span id="projectnumber">1.0.1</span></div>
    <div id="projectbrief">Library for I2C MechShield for Arduino</div>
   </td>
  </tr>
@@ -62,7 +62,10 @@ Installation</h2>
 <h2><a class="anchor" id="usage_sec"></a>
 Usage</h2>
 <p>Click <a href="../../examples/HBridge/HBridge.pde">here</a> or <a href="../../examples/Sweep/Sweep.pde">here</a> to see a couple simple examples of how to use this library.</p>
-<p>You can also find these examples by selecting File-&gt;Examples-&gt;MechShield from the Arduino software menu. </p>
+<p>You can also find these examples by selecting File-&gt;Examples-&gt;MechShield from the Arduino software menu.</p>
+<h2><a class="anchor" id="hack_sec"></a>
+Hacks</h2>
+<p>The I2C chip used on the MechShield can support up to 1 MHz operation. To lower latency you can modify the twi.h file found in the [arduino base]/libraries/Wire/utility directory and change the line: #define TWI_FREQ 100000L to #define TWI_FREQ 400000L </p>
 </div></div>
 <!--- window showing the filter options -->
 <div id="MSearchSelectWindow"
@@ -78,7 +81,7 @@ Usage</h2>
 </iframe>
 </div>
 
-<hr class="footer"/><address class="footer"><small>Generated on Thu Mar 31 2011 20:27:37 for MechShield by&#160;
+<hr class="footer"/><address class="footer"><small>Generated on Tue Apr 5 2011 21:14:38 for MechShield by&#160;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.3 </small></address>
 </body>
