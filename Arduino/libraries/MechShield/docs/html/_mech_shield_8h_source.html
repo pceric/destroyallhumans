@@ -107,22 +107,22 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00079"></a>00079 
 <a name="l00085"></a><a class="code" href="class_mech.html">00085</a> <span class="keyword">class </span><a class="code" href="class_mech.html">Mech</a> {
 <a name="l00086"></a>00086 <span class="keyword">public</span>:
-<a name="l00090"></a>00090         <span class="keywordtype">void</span> <a class="code" href="class_mech.html#aa0bcada777c21583be0ea1f743f8568a">begin</a>();
-<a name="l00091"></a>00091 
-<a name="l00099"></a>00099         uint8_t <a class="code" href="class_mech.html#aaa0c968203023b0141fbc896fdc0c4ca">setPosition</a>(<span class="keywordtype">int</span> pin, <span class="keywordtype">int</span> position);
-<a name="l00100"></a>00100 
-<a name="l00108"></a>00108         <span class="keywordtype">void</span> <a class="code" href="class_mech.html#afdf9daacc55a7d1af20b33d43b826445">setBounds</a>(<span class="keywordtype">int</span> pin, <span class="keywordtype">int</span> min, <span class="keywordtype">int</span> max);
-<a name="l00109"></a>00109 
-<a name="l00113"></a>00113         <span class="keywordtype">void</span> <a class="code" href="class_mech.html#af75c2538050b199bbde7f7ee351ef3d5">sleep</a>();
-<a name="l00114"></a>00114 
-<a name="l00124"></a>00124         <span class="keywordtype">int</span> <a class="code" href="class_mech.html#adc6bafbbccc6a5a4cff1beb995d2b08f">getPosition</a>(<span class="keywordtype">int</span> pin);
-<a name="l00125"></a>00125 
-<a name="l00135"></a>00135         <span class="keywordtype">int</span> <a class="code" href="class_mech.html#a12ea46df38f22f7171a8a67d744ac946">getPositionMicro</a>(<span class="keywordtype">int</span> pin);
-<a name="l00136"></a>00136 
-<a name="l00143"></a>00143         <span class="keywordtype">bool</span> <a class="code" href="class_mech.html#afe869e43726639dbbc233c5efd7e1443">isRunning</a>(<span class="keywordtype">int</span> pin);
-<a name="l00144"></a>00144 
-<a name="l00159"></a>00159         uint8_t <a class="code" href="class_mech.html#a397ea7c22b65e9c567e297842f632ef3">analogWrite</a>(<span class="keywordtype">int</span> pin, <span class="keywordtype">int</span> value);
-<a name="l00160"></a>00160         
+<a name="l00101"></a>00101         uint8_t <a class="code" href="class_mech.html#a397ea7c22b65e9c567e297842f632ef3">analogWrite</a>(<span class="keywordtype">int</span> pin, <span class="keywordtype">int</span> value);
+<a name="l00102"></a>00102         
+<a name="l00106"></a>00106         <span class="keywordtype">void</span> <a class="code" href="class_mech.html#aa0bcada777c21583be0ea1f743f8568a">begin</a>();
+<a name="l00107"></a>00107 
+<a name="l00117"></a>00117         <span class="keywordtype">int</span> <a class="code" href="class_mech.html#adc6bafbbccc6a5a4cff1beb995d2b08f">getPosition</a>(<span class="keywordtype">int</span> pin);
+<a name="l00118"></a>00118 
+<a name="l00128"></a>00128         <span class="keywordtype">int</span> <a class="code" href="class_mech.html#a12ea46df38f22f7171a8a67d744ac946">getPositionMicro</a>(<span class="keywordtype">int</span> pin);
+<a name="l00129"></a>00129 
+<a name="l00136"></a>00136         <span class="keywordtype">bool</span> <a class="code" href="class_mech.html#afe869e43726639dbbc233c5efd7e1443">isRunning</a>(<span class="keywordtype">int</span> pin);
+<a name="l00137"></a>00137 
+<a name="l00145"></a>00145         <span class="keywordtype">void</span> <a class="code" href="class_mech.html#afdf9daacc55a7d1af20b33d43b826445">setBounds</a>(<span class="keywordtype">int</span> pin, <span class="keywordtype">int</span> min, <span class="keywordtype">int</span> max);
+<a name="l00146"></a>00146 
+<a name="l00154"></a>00154         uint8_t <a class="code" href="class_mech.html#aaa0c968203023b0141fbc896fdc0c4ca">setPosition</a>(<span class="keywordtype">int</span> pin, <span class="keywordtype">int</span> position);
+<a name="l00155"></a>00155 
+<a name="l00159"></a>00159         <span class="keywordtype">void</span> <a class="code" href="class_mech.html#af75c2538050b199bbde7f7ee351ef3d5">sleep</a>();
+<a name="l00160"></a>00160 
 <a name="l00164"></a>00164         <span class="keywordtype">void</span> <a class="code" href="class_mech.html#aaab97b9018df04a839e0a1d7ee019e40">wake</a>();
 <a name="l00165"></a>00165 <span class="keyword">private</span>:
 <a name="l00166"></a>00166         <a class="code" href="structservo__t.html">servo_t</a> _servos[MAX_SERVOS]; <span class="comment">// array of servo structures</span>
@@ -145,7 +145,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </iframe>
 </div>
 
-<hr class="footer"/><address class="footer"><small>Generated on Tue Apr 5 2011 21:14:38 for MechShield by&#160;
+<hr class="footer"/><address class="footer"><small>Generated on Tue Apr 5 2011 21:38:31 for MechShield by&#160;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.3 </small></address>
 </body>
