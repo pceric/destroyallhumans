@@ -85,32 +85,25 @@ typedef struct {
 class Mech {
 public:
 	/**
+	 * Allows PWM control of the four H bridge outputs on the MechShield.
+	 * Will generate a steady square wave of the specified duty
+	 * cycle at a frequency of ~244 Hz.
+	 * 
+	 * Note: This can be used to manually control any pin.  However,
+	 * a steady signal on pin 1 is required for proper
+	 * operation of the servo outputs.
+	 * 
+	 * @see #setPosition(int pin, int position)
+	 * @param pin One of the @ref HBRIDGE_GROUP.
+	 * @param value Value from 0 to 4095.
+	 * @return Error code or 0 on success.
+	 */
+	uint8_t analogWrite(int pin, int value);
+	
+	/**
 	 * Starts the I2C bus and enables the MechShield board.
 	 */
 	void begin();
-
-	/**
-	 * Sets the position of a servo in degrees or in microseconds.
-	 * 
-	 * @param pin MechShield pin number (1-12).
-	 * @param position Servo position in degrees if <= 180 else in microseconds.
-	 * @return Error code or 0 on success.
-	 */
-	uint8_t setPosition(int pin, int position);
-
-	/**
-	 * Configures the travel of a servo.
-	 * 
-	 * @param pin MechShield pin number (1-12).
-	 * @param min Minimum pulse width in microseconds.
-	 * @param max Maximum pulse width in microseconds.
-	 */
-	void setBounds(int pin, int min, int max);
-
-	/**
-	 * Puts the PWM chip on the MechShield into a low power sleep mode.
-	 */
-	void sleep();
 
 	/**
 	 * Gets currently configured position for the requested MechShield pin in degrees.
@@ -143,21 +136,28 @@ public:
 	bool isRunning(int pin);
 
 	/**
-	 * Allows PWM control of the four H bridge outputs on the MechShield.
-	 * Will generate a steady square wave of the specified duty
-	 * cycle at a frequency of ~244 Hz.
+	 * Configures the travel of a servo.
 	 * 
-	 * Note: This can be used to manually control any pin.  However,
-	 * a steady singal on pin 1 is required for proper
-	 * operation of the servo outputs.
+	 * @param pin MechShield pin number (1-12).
+	 * @param min Minimum pulse width in microseconds.
+	 * @param max Maximum pulse width in microseconds.
+	 */
+	void setBounds(int pin, int min, int max);
+
+	/**
+	 * Sets the position of a servo in degrees or in microseconds.
 	 * 
-	 * @see #setPosition(int pin, int position)
-	 * @param pin One of the @ref HBRIDGE_GROUP.
-	 * @param value Value from 0 to 4095.
+	 * @param pin MechShield pin number (1-12).
+	 * @param position Servo position in degrees if <= 180 else in microseconds.
 	 * @return Error code or 0 on success.
 	 */
-	uint8_t analogWrite(int pin, int value);
-	
+	uint8_t setPosition(int pin, int position);
+
+	/**
+	 * Puts the PWM chip on the MechShield into a low power sleep mode.
+	 */
+	void sleep();
+
 	/**
 	 * Wakes the PWM chip after a call to #sleep().
 	 */

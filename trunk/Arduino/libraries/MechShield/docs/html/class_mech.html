@@ -72,14 +72,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <table class="memberdecls">
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mech.html#a397ea7c22b65e9c567e297842f632ef3">analogWrite</a> (int pin, int value)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mech.html#aa0bcada777c21583be0ea1f743f8568a">begin</a> ()</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mech.html#aaa0c968203023b0141fbc896fdc0c4ca">setPosition</a> (int pin, int position)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mech.html#afdf9daacc55a7d1af20b33d43b826445">setBounds</a> (int pin, int min, int max)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mech.html#af75c2538050b199bbde7f7ee351ef3d5">sleep</a> ()</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mech.html#adc6bafbbccc6a5a4cff1beb995d2b08f">getPosition</a> (int pin)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mech.html#a12ea46df38f22f7171a8a67d744ac946">getPositionMicro</a> (int pin)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mech.html#afe869e43726639dbbc233c5efd7e1443">isRunning</a> (int pin)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mech.html#a397ea7c22b65e9c567e297842f632ef3">analogWrite</a> (int pin, int value)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mech.html#afdf9daacc55a7d1af20b33d43b826445">setBounds</a> (int pin, int min, int max)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mech.html#aaa0c968203023b0141fbc896fdc0c4ca">setPosition</a> (int pin, int position)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mech.html#af75c2538050b199bbde7f7ee351ef3d5">sleep</a> ()</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_mech.html#aaab97b9018df04a839e0a1d7ee019e40">wake</a> ()</td></tr>
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
@@ -111,7 +111,7 @@ Public Member Functions</h2></td></tr>
 </div>
 <div class="memdoc">
 <p>Allows PWM control of the four H bridge outputs on the MechShield. Will generate a steady square wave of the specified duty cycle at a frequency of ~244 Hz.</p>
-<p>Note: This can be used to manually control any pin. However, a steady singal on pin 1 is required for proper operation of the servo outputs.</p>
+<p>Note: This can be used to manually control any pin. However, a steady signal on pin 1 is required for proper operation of the servo outputs.</p>
 <dl class="see"><dt><b>See also:</b></dt><dd><a class="el" href="class_mech.html#aaa0c968203023b0141fbc896fdc0c4ca">setPosition(int pin, int position)</a> </dd></dl>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table class="params">
@@ -349,7 +349,7 @@ Public Member Functions</h2></td></tr>
 </iframe>
 </div>
 
-<hr class="footer"/><address class="footer"><small>Generated on Tue Apr 5 2011 21:14:38 for MechShield by&#160;
+<hr class="footer"/><address class="footer"><small>Generated on Tue Apr 5 2011 21:38:31 for MechShield by&#160;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.3 </small></address>
 </body>
